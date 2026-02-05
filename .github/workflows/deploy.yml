@@ -51,6 +51,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: dashboard/dist
+          retention-days: 1
 
   deploy:
     environment:
