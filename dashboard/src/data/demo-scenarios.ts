@@ -228,31 +228,31 @@ TAX_EQUITY_STRUCTURE SolarPartnership
   STRUCTURE_TYPE partnership_flip
   TAX_INVESTOR "Tax Equity Fund LP"
   SPONSOR "Desert Sun Holdings LLC"
-  TAX_CREDIT_ALLOCATION 99% investor, 1% sponsor
-  DEPRECIATION_ALLOCATION 99% investor, 1% sponsor
-  CASH_ALLOCATION 10% investor, 90% sponsor
-  TARGET_RETURN 8.0%
+  TAX_CREDIT_ALLOCATION 99/1
+  DEPRECIATION_ALLOCATION 99/1
+  CASH_ALLOCATION 10/90
+  TARGET_RETURN 8.0
   BUYOUT_PRICE $5_000_000
 
 TAX_CREDIT SolarITC
   CREDIT_TYPE itc
-  RATE 30%
-  ADDER domestic_content 10%
-  ADDER energy_community 10%
+  RATE 30
+  ADDER domestic_content 10
+  ADDER energy_community 10
   ELIGIBLE_BASIS $240_000_000
   VESTING_PERIOD 5 YEARS
-  RECAPTURE_RISK 20% per year
+  RECAPTURE_RISK 20
 
 DEPRECIATION_SCHEDULE SolarMACRS
   METHOD macrs_5yr
   DEPRECIABLE_BASIS $240_000_000
-  BONUS_DEPRECIATION 60%
+  BONUS_DEPRECIATION 60
 
 FLIP_EVENT TargetReturnFlip
   TRIGGER target_return
-  TARGET_RETURN 8.0%
-  PRE_FLIP_ALLOCATION 99% investor, 1% sponsor
-  POST_FLIP_ALLOCATION 5% investor, 95% sponsor
+  TARGET_RETURN 8.0
+  PRE_FLIP_ALLOCATION 99/1
+  POST_FLIP_ALLOCATION 5/95
   BUYOUT_OPTION fair_market_value
 
 // ==================== TECHNICAL MILESTONES ====================
@@ -263,7 +263,7 @@ TECHNICAL_MILESTONE PileProgress
   MEASUREMENT "piles driven"
   TARGET_VALUE 45000
   CURRENT_VALUE 38500
-  PROGRESS_METRIC 85.6%
+  PROGRESS_METRIC 85.6
 
 TECHNICAL_MILESTONE ModuleProgress
   TARGET 2025-12-15
@@ -271,7 +271,7 @@ TECHNICAL_MILESTONE ModuleProgress
   MEASUREMENT "MW installed"
   TARGET_VALUE 200
   CURRENT_VALUE 140
-  PROGRESS_METRIC 70%
+  PROGRESS_METRIC 70
 
 // ==================== PERFORMANCE GUARANTEES ====================
 
@@ -297,9 +297,9 @@ PERFORMANCE_GUARANTEE AvailabilityGuarantee
 DEGRADATION_SCHEDULE PanelDegradation
   ASSET_TYPE "bifacial_mono_perc"
   INITIAL_CAPACITY 200
-  YEAR_1_DEGRADATION 2.0%
-  ANNUAL_DEGRADATION 0.4%
-  MINIMUM_CAPACITY 80%
+  YEAR_1_DEGRADATION 2.0
+  ANNUAL_DEGRADATION 0.4
+  MINIMUM_CAPACITY 80
   AFFECTS annual_gwh
 
 // ==================== CONDITIONS PRECEDENT ====================
@@ -666,13 +666,13 @@ WATERFALL OperatingWaterfall
 TAX_CREDIT WindPTC
   CREDIT_TYPE ptc
   RATE 2.75 cents per kWh
-  ADDER domestic_content 10%
+  ADDER domestic_content 10
   VESTING_PERIOD 10 YEARS
 
 DEPRECIATION_SCHEDULE WindMACRS
   METHOD macrs_5yr
   DEPRECIABLE_BASIS $160_000_000
-  BONUS_DEPRECIATION 60%
+  BONUS_DEPRECIATION 60
 
 // ==================== PERFORMANCE GUARANTEES ====================
 
@@ -930,7 +930,7 @@ BASKET GeneralInvestments
   CAPACITY $25_000_000
 
 BASKET RestrictedPayments
-  CAPACITY GreaterOf($10_000_000, 5% * total_assets)
+  CAPACITY GreaterOf($10_000_000, 0.05 * total_assets)
 
 BASKET CapEx
   CAPACITY $20_000_000
@@ -942,19 +942,19 @@ BASKET PermittedAcquisitions
 // ==================== GROWER BASKETS ====================
 
 BASKET EBITDAInvestments
-  CAPACITY 15% * EBITDA
+  CAPACITY 0.15 * EBITDA
   FLOOR $15_000_000
   SUBJECT TO NoDefault
 
 BASKET AssetBasedBasket
-  CAPACITY 2.5% * total_assets
+  CAPACITY 2.0.05 * total_assets
   FLOOR $5_000_000
 
 // ==================== BUILDER BASKETS ====================
 
 // Shows accumulation over time - currently at $18.5M
 BASKET RetainedEarningsBasket
-  BUILDS_FROM 50% * net_income
+  BUILDS_FROM 0.50 * net_income
   STARTING $10_000_000
   MAXIMUM $75_000_000
   SUBJECT TO NoDefault
