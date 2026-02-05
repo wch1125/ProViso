@@ -35,3 +35,4 @@ Thumbs.db
 
 # Optional eslint cache
 .eslintcache
+/.claude
