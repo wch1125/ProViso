@@ -22,6 +22,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', '*.generated.js', 'src/parser.generated.js'],
+    ignores: ['dist/', 'node_modules/', '*.generated.js', 'src/parser.generated.js', 'dashboard/'],
   }
 );

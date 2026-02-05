@@ -110,13 +110,14 @@ export function ExportModal({
       const filename = generateFilename(dashboardData.project.name, optionId);
 
       switch (optionId) {
-        case 'pdf':
+        case 'pdf': {
           // Generate compliance report and open print dialog
           const reportHtml = generateComplianceReport(dashboardData);
           openPrintWindow(reportHtml, dashboardData.project.name);
           break;
+        }
 
-        case 'word':
+        case 'word': {
           // Generate Word document
           const doc = generateWordDocument(provisoCode, {
             dealName: dashboardData.project.name,
@@ -124,8 +125,9 @@ export function ExportModal({
           });
           downloadDocument(doc, filename);
           break;
+        }
 
-        case 'json':
+        case 'json': {
           // Export full data as JSON
           const jsonData = generateFullExport(dashboardData, provisoCode, financials);
           downloadAsFile(
@@ -134,11 +136,13 @@ export function ExportModal({
             'application/json'
           );
           break;
+        }
 
-        case 'proviso':
+        case 'proviso': {
           // Download ProViso source code
           downloadAsFile(provisoCode, filename, 'text/plain');
           break;
+        }
       }
 
       // Track the export event

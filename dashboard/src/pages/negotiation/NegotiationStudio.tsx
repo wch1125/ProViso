@@ -67,30 +67,14 @@ export function NegotiationStudio() {
   const versions = getVersionsForDeal(dealId ?? '');
   const currentVersion = deal ? getDealCurrentVersion(deal.id) : undefined;
 
-  // Handle deal not found
-  if (!deal) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <FileText className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-white mb-2">Deal Not Found</h2>
-          <p className="text-slate-400 mb-4">The deal you're looking for doesn't exist.</p>
-          <Button variant="secondary" onClick={() => window.history.back()}>
-            Go Back
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Modal states
+  // Modal states - MUST be before any conditional returns
   const [showCompareModal, setShowCompareModal] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [showWordModal, setShowWordModal] = useState(false);
   const [showSendConfirmation, setShowSendConfirmation] = useState(false);
-  const [selectedVersion, setSelectedVersion] = useState<DealVersion | null>(currentVersion || null);
-  const [compareFromVersion, setCompareFromVersion] = useState<string>(versions[0]?.id || '');
-  const [compareToVersion, setCompareToVersion] = useState<string>(versions[versions.length - 1]?.id || '');
+  const [selectedVersion, setSelectedVersion] = useState<DealVersion | null>(null);
+  const [compareFromVersion, setCompareFromVersion] = useState<string>('');
+  const [compareToVersion, setCompareToVersion] = useState<string>('');
 
   // Editor states
   const [showCovenantEditor, setShowCovenantEditor] = useState(false);
@@ -99,6 +83,11 @@ export function NegotiationStudio() {
 
   // Copy state
   const [copiedWord, setCopiedWord] = useState(false);
+
+  // Initialize version state when deal becomes available
+  const effectiveSelectedVersion = selectedVersion || currentVersion || null;
+  const effectiveCompareFromVersion = compareFromVersion || versions[0]?.id || '';
+  const effectiveCompareToVersion = compareToVersion || versions[versions.length - 1]?.id || '';
 
   // Get change summary for display
   const getChangeSummary = (fromId: string, toId: string): ChangeSummary | null => {
@@ -113,26 +102,42 @@ export function NegotiationStudio() {
 
   // Get the current code including any added elements
   const currentCode = useMemo(() => {
-    let code = selectedVersion?.creditLangCode || '';
+    let code = effectiveSelectedVersion?.creditLangCode || '';
     for (const element of addedElements) {
       code += '\n\n' + element.code;
     }
     return code;
-  }, [selectedVersion?.creditLangCode, addedElements]);
+  }, [effectiveSelectedVersion?.creditLangCode, addedElements]);
 
   // Generate Word document from current code
   const generatedDocument = useMemo(() => {
-    if (!currentCode) return null;
+    if (!currentCode || !deal) return null;
     try {
       return generateWordDocument(currentCode, {
         dealName: deal.name,
         facilityAmount: 150000000,
-        version: `v${selectedVersion?.versionNumber || '1'}`,
+        version: `v${effectiveSelectedVersion?.versionNumber || '1'}`,
       });
     } catch {
       return null;
     }
-  }, [currentCode, deal.name, selectedVersion?.versionNumber]);
+  }, [currentCode, deal, effectiveSelectedVersion?.versionNumber]);
+
+  // Handle deal not found - AFTER all hooks
+  if (!deal) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <FileText className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-white mb-2">Deal Not Found</h2>
+          <p className="text-slate-400 mb-4">The deal you're looking for doesn't exist.</p>
+          <Button variant="secondary" onClick={() => window.history.back()}>
+            Go Back
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const handleVersionSelect = (version: DealVersion) => {
     setSelectedVersion(version);
@@ -154,7 +159,7 @@ export function NegotiationStudio() {
         type: 'version_sent',
         dealId: deal.id,
         title: 'Version sent to counterparty',
-        description: `v${selectedVersion?.versionNumber} - ${selectedVersion?.versionLabel}`,
+        description: `v${effectiveSelectedVersion?.versionNumber} - ${effectiveSelectedVersion?.versionLabel}`,
       });
     }
   };
@@ -187,7 +192,7 @@ export function NegotiationStudio() {
 
   const handleDownloadWord = () => {
     if (generatedDocument) {
-      downloadDocument(generatedDocument, `${deal.name.replace(/\s+/g, '_')}_v${selectedVersion?.versionNumber || '1'}.txt`);
+      downloadDocument(generatedDocument, `${deal.name.replace(/\s+/g, '_')}_v${effectiveSelectedVersion?.versionNumber || '1'}.txt`);
     }
   };
 
@@ -200,7 +205,7 @@ export function NegotiationStudio() {
       dealId={dealId || 'unknown'}
       dealName={deal.name}
       dealStatus={deal.status as 'draft' | 'negotiation' | 'closing' | 'active' | 'matured'}
-      subtitle={`${selectedVersion?.versionLabel} (v${selectedVersion?.versionNumber})`}
+      subtitle={`${effectiveSelectedVersion?.versionLabel} (v${effectiveSelectedVersion?.versionNumber})`}
       actions={
         <>
           <Button
@@ -252,7 +257,7 @@ export function NegotiationStudio() {
                   key={version.id}
                   onClick={() => handleVersionSelect(version)}
                   className={`w-full text-left p-3 rounded-lg transition-colors ${
-                    version.id === selectedVersion?.id
+                    version.id === effectiveSelectedVersion?.id
                       ? 'bg-accent-500/10 border border-accent-500/30'
                       : 'hover:bg-slate-800'
                   }`}
@@ -260,7 +265,7 @@ export function NegotiationStudio() {
                   <div className="flex items-center justify-between mb-1">
                     <span
                       className={`text-sm font-medium ${
-                        version.id === selectedVersion?.id
+                        version.id === effectiveSelectedVersion?.id
                           ? 'text-accent-400'
                           : 'text-white'
                       }`}
@@ -306,25 +311,25 @@ export function NegotiationStudio() {
                       Changes in This Version
                     </h2>
                   </div>
-                  {selectedVersion?.changeSummary && (
+                  {effectiveSelectedVersion?.changeSummary && (
                     <div className="flex items-center gap-4 text-sm">
                       <span className="text-emerald-400">
-                        {selectedVersion.changeSummary.borrowerFavorable} Borrower
+                        {effectiveSelectedVersion?.changeSummary.borrowerFavorable} Borrower
                       </span>
                       <span className="text-red-400">
-                        {selectedVersion.changeSummary.lenderFavorable} Lender
+                        {effectiveSelectedVersion?.changeSummary.lenderFavorable} Lender
                       </span>
                       <span className="text-slate-400">
-                        {selectedVersion.changeSummary.neutral} Neutral
+                        {effectiveSelectedVersion?.changeSummary.neutral} Neutral
                       </span>
                     </div>
                   )}
                 </div>
               </CardHeader>
               <CardBody>
-                {selectedVersion?.changeSummary ? (
+                {effectiveSelectedVersion?.changeSummary ? (
                   <div className="space-y-4">
-                    {selectedVersion.changeSummary.changes.map((change: Change) => (
+                    {effectiveSelectedVersion?.changeSummary.changes.map((change: Change) => (
                       <ChangeCard key={change.id} change={change} />
                     ))}
                   </div>
@@ -421,7 +426,7 @@ export function NegotiationStudio() {
                 From Version
               </label>
               <Select
-                value={compareFromVersion}
+                value={effectiveCompareFromVersion}
                 onChange={(e) => setCompareFromVersion(e.target.value)}
                 options={versions.map((v) => ({
                   value: v.id,
@@ -434,7 +439,7 @@ export function NegotiationStudio() {
                 To Version
               </label>
               <Select
-                value={compareToVersion}
+                value={effectiveCompareToVersion}
                 onChange={(e) => setCompareToVersion(e.target.value)}
                 options={versions.map((v) => ({
                   value: v.id,
@@ -445,7 +450,7 @@ export function NegotiationStudio() {
           </div>
 
           {(() => {
-            const summary = getChangeSummary(compareFromVersion, compareToVersion);
+            const summary = getChangeSummary(effectiveCompareFromVersion, effectiveCompareToVersion);
             if (summary) {
               return (
                 <div className="bg-slate-800/50 rounded-lg p-4">
@@ -472,8 +477,8 @@ export function NegotiationStudio() {
           })()}
 
           {(() => {
-            const fromVersion = versions.find((v) => v.id === compareFromVersion);
-            const toVersion = versions.find((v) => v.id === compareToVersion);
+            const fromVersion = versions.find((v) => v.id === effectiveCompareFromVersion);
+            const toVersion = versions.find((v) => v.id === effectiveCompareToVersion);
             if (fromVersion && toVersion) {
               return (
                 <DiffViewer
@@ -494,13 +499,13 @@ export function NegotiationStudio() {
       <Modal
         isOpen={showCodeModal}
         onClose={() => setShowCodeModal(false)}
-        title={`ProViso Code - ${selectedVersion?.versionLabel}`}
+        title={`ProViso Code - ${effectiveSelectedVersion?.versionLabel}`}
         size="lg"
       >
         <div className="rounded-lg border border-slate-700 bg-slate-900 overflow-hidden">
           <div className="px-4 py-2 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
             <span className="text-sm text-slate-400">
-              {selectedVersion?.authorParty} &middot; v{selectedVersion?.versionNumber}
+              {effectiveSelectedVersion?.authorParty} &middot; v{effectiveSelectedVersion?.versionNumber}
               {addedElements.length > 0 && (
                 <span className="ml-2 text-accent-400">
                   + {addedElements.length} new element{addedElements.length > 1 ? 's' : ''}
@@ -610,8 +615,8 @@ export function NegotiationStudio() {
         confirmLabel="Send"
         cancelLabel="Cancel"
         details={[
-          `Version: v${selectedVersion?.versionNumber} - ${selectedVersion?.versionLabel}`,
-          `Changes: ${(selectedVersion?.changeSummary?.totalChanges || 0) + addedElements.length} modifications`,
+          `Version: v${effectiveSelectedVersion?.versionNumber} - ${effectiveSelectedVersion?.versionLabel}`,
+          `Changes: ${(effectiveSelectedVersion?.changeSummary?.totalChanges || 0) + addedElements.length} modifications`,
         ]}
       />
 

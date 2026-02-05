@@ -7,17 +7,18 @@ interface WaterfallChartProps {
   waterfall: WaterfallData;
 }
 
+interface ChartDataItem {
+  name: string;
+  amount: number;
+  blocked?: boolean;
+  reason?: string;
+  cumulative: number;
+}
+
 export function WaterfallChart({ waterfall }: WaterfallChartProps) {
   const { revenue, tiers } = waterfall;
 
-  // Transform data for the stacked bar chart
-  const chartData = tiers.map((tier, index) => ({
-    name: tier.name,
-    amount: tier.amount,
-    blocked: tier.blocked,
-    reason: tier.reason,
-    cumulative: tiers.slice(0, index + 1).reduce((sum, t) => sum + t.amount, 0),
-  }));
+  // Note: ChartDataItem interface is used for CustomTooltip typing
 
   // Calculate totals
   const totalDistributed = tiers.filter(t => !t.blocked).reduce((sum, t) => sum + t.amount, 0);
@@ -32,7 +33,7 @@ export function WaterfallChart({ waterfall }: WaterfallChartProps) {
   };
 
   // Custom tooltip
-  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: typeof chartData[0] }> }) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: ChartDataItem }> }) => {
     if (!active || !payload || !payload[0]) return null;
     const data = payload[0].payload;
 
