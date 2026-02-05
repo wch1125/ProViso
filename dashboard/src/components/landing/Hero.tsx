@@ -1,13 +1,42 @@
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sun, Wind, Building2 } from 'lucide-react';
+import { trackDemoStarted } from '../../utils/analytics';
+
+interface Industry {
+  id: string;
+  icon: typeof Sun;
+  name: string;
+  description: string;
+}
+
+const industries: Industry[] = [
+  {
+    id: 'solar',
+    icon: Sun,
+    name: 'Solar Utility',
+    description: '200MW utility-scale solar with ITC tax equity',
+  },
+  {
+    id: 'wind',
+    icon: Wind,
+    name: 'Wind Onshore',
+    description: '150MW wind farm with PTC credits',
+  },
+  {
+    id: 'corporate',
+    icon: Building2,
+    name: 'Corporate Revolver',
+    description: '$150M revolving credit facility',
+  },
+];
 
 interface HeroProps {
-  onTryDemo: () => void;
+  onSelectIndustry: (industryId: string) => void;
 }
 
 /**
- * Hero section with gradient background, grid pattern, and CTA.
+ * Hero section with gradient background, grid pattern, and demo cards.
  */
-export function Hero({ onTryDemo }: HeroProps) {
+export function Hero({ onSelectIndustry }: HeroProps) {
   return (
     <section
       className="
@@ -102,47 +131,60 @@ export function Hero({ onTryDemo }: HeroProps) {
           for project finance. Transform weeks of legal memos into milliseconds of certainty.
         </p>
 
-        {/* CTA */}
+        {/* Demo Cards */}
         <div
           className="
-            flex flex-col sm:flex-row items-center justify-center gap-4
+            grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto
             opacity-0 animate-fade-up
           "
           style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}
         >
-          <button
-            onClick={onTryDemo}
-            className="
-              inline-flex items-center gap-2
-              bg-gradient-to-r from-gold-600 to-gold-500
-              hover:from-gold-500 hover:to-gold-400
-              text-white font-semibold
-              px-8 py-4 rounded-lg
-              shadow-md hover:shadow-gold
-              transform hover:-translate-y-0.5
-              transition-all duration-150
-              focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 focus:ring-offset-navy-700
-            "
-          >
-            Try the Demo
-            <ArrowRight className="w-5 h-5" />
-          </button>
+          {industries.map((industry) => {
+            const Icon = industry.icon;
+            return (
+              <button
+                key={industry.id}
+                onClick={() => {
+                  trackDemoStarted(industry.id);
+                  onSelectIndustry(industry.id);
+                }}
+                className="
+                  group relative overflow-hidden text-left
+                  bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl
+                  p-5
+                  hover:bg-white/10 hover:border-gold-500/50
+                  focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 focus:ring-offset-navy-700
+                  transition-all duration-200
+                "
+              >
+                <div className="flex items-start gap-4">
+                  {/* Icon */}
+                  <div
+                    className="
+                      w-10 h-10 flex-shrink-0
+                      bg-gold-600/20 border border-gold-600/30
+                      rounded-lg flex items-center justify-center
+                      group-hover:scale-110 group-hover:bg-gold-600/30
+                      transition-all duration-200
+                    "
+                  >
+                    <Icon className="w-5 h-5 text-gold-400" />
+                  </div>
 
-          <a
-            href="https://github.com/haslun/proviso"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="
-              inline-flex items-center gap-2
-              bg-transparent border border-white/20
-              hover:border-gold-600 hover:bg-gold-600/10
-              text-white/70 hover:text-gold-400
-              px-6 py-3 rounded-lg
-              transition-all duration-150
-            "
-          >
-            View on GitHub
-          </a>
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-white mb-1 flex items-center gap-2">
+                      {industry.name}
+                      <ArrowRight className="w-4 h-4 text-gold-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </h3>
+                    <p className="text-sm text-white/60 leading-snug">
+                      {industry.description}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     </section>

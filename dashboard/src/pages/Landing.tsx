@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   Hero,
   Features,
-  IndustrySelector,
   Footer,
   ThemeToggle,
 } from '../components/landing';
@@ -13,11 +12,6 @@ import {
  */
 export function Landing() {
   const navigate = useNavigate();
-
-  const handleTryDemo = () => {
-    // Default to solar demo (most feature-rich)
-    navigate('/deals/solar-demo/monitor');
-  };
 
   const handleSelectIndustry = (industryId: string) => {
     // Navigate to appropriate demo based on industry
@@ -41,14 +35,11 @@ export function Landing() {
       {/* Theme toggle */}
       <ThemeToggle />
 
-      {/* Hero section */}
-      <Hero onTryDemo={handleTryDemo} />
+      {/* Hero section with demo cards */}
+      <Hero onSelectIndustry={handleSelectIndustry} />
 
       {/* Features section */}
       <Features />
-
-      {/* Industry selector */}
-      <IndustrySelector onSelect={handleSelectIndustry} />
 
       {/* Footer */}
       <Footer />
