@@ -1,0 +1,189 @@
+// Sunrise Solar Project
+// $150M Construction + Term Loan
+// CreditLang v1.0
+
+// ==================== PHASES ====================
+
+PHASE Construction
+  UNTIL COD_Achieved
+  COVENANTS SUSPENDED TotalLeverage, InterestCoverage
+  REQUIRED MinEquityContribution
+
+PHASE Operations
+  FROM COD_Achieved
+  COVENANTS ACTIVE TotalLeverage, SeniorLeverage, InterestCoverage, MinDSCR
+
+TRANSITION COD_Achieved
+  WHEN ALL_OF(
+    SubstantialCompletion,
+    LenderCertification,
+    FinalInspection,
+    InsuranceTransition
+  )
+
+// ==================== MILESTONES ====================
+
+MILESTONE FoundationComplete
+  TARGET 2024-06-30
+  LONGSTOP 2024-09-30
+  TRIGGERS Draw2Available
+
+MILESTONE SteelErection
+  TARGET 2024-09-30
+  LONGSTOP 2024-12-31
+  REQUIRES FoundationComplete
+  TRIGGERS Draw3Available
+
+MILESTONE RoofComplete
+  TARGET 2025-01-15
+  LONGSTOP 2025-03-15
+  REQUIRES SteelErection
+  TRIGGERS Draw4Available
+
+MILESTONE MEPComplete
+  TARGET 2025-04-01
+  LONGSTOP 2025-06-01
+  REQUIRES RoofComplete
+
+MILESTONE SubstantialCompletion
+  TARGET 2025-06-15
+  LONGSTOP 2025-08-15
+  REQUIRES ALL_OF(RoofComplete, MEPComplete, FinalInspection)
+  TRIGGERS COD_Achieved
+
+// ==================== DEFINITIONS ====================
+
+DEFINE EBITDA AS
+  net_income + interest_expense + tax_expense + depreciation + amortization
+
+DEFINE TotalDebt AS
+  senior_debt + subordinated_debt
+
+DEFINE SeniorDebt AS
+  senior_debt
+
+DEFINE DebtService AS
+  senior_interest + senior_principal
+
+DEFINE DSCR AS
+  EBITDA / DebtService
+
+DEFINE Leverage AS
+  TotalDebt / EBITDA
+
+DEFINE SeniorLeverage AS
+  SeniorDebt / EBITDA
+
+// ==================== COVENANTS ====================
+
+COVENANT TotalLeverage
+  REQUIRES Leverage <= 4.50
+  TESTED QUARTERLY
+
+COVENANT SeniorLeverage
+  REQUIRES SeniorLeverage <= 3.00
+  TESTED QUARTERLY
+
+COVENANT InterestCoverage
+  REQUIRES EBITDA / interest_expense >= 2.50
+  TESTED QUARTERLY
+
+COVENANT MinDSCR
+  REQUIRES DSCR >= 1.25
+  TESTED QUARTERLY
+
+COVENANT MinEquityContribution
+  REQUIRES equity_contributed >= 0.35 * total_project_cost
+  TESTED MONTHLY
+
+// ==================== RESERVES ====================
+
+RESERVE DebtServiceReserve
+  TARGET 6 * monthly_debt_service
+  MINIMUM 3 * monthly_debt_service
+  FUNDED_BY Waterfall, EquityContribution
+  RELEASED_TO Waterfall
+
+RESERVE MaintenanceReserve
+  TARGET annual_capex_budget
+  MINIMUM 0.5 * annual_capex_budget
+  FUNDED_BY Waterfall
+  RELEASED_FOR PermittedCapEx
+
+// ==================== WATERFALL ====================
+
+WATERFALL OperatingWaterfall
+  FREQUENCY monthly
+
+  TIER 1 "Operating Expenses"
+    PAY operating_expenses
+    FROM Revenue
+
+  TIER 2 "Senior Debt Service"
+    PAY senior_interest + senior_principal
+    FROM REMAINDER
+    SHORTFALL -> DebtServiceReserve
+
+  TIER 3 "DSRA Replenishment"
+    PAY TO DebtServiceReserve
+    UNTIL DebtServiceReserve >= 6 * monthly_debt_service
+    FROM REMAINDER
+
+  TIER 4 "Maintenance Reserve"
+    PAY TO MaintenanceReserve
+    UNTIL MaintenanceReserve >= annual_capex_budget
+    FROM REMAINDER
+
+  TIER 5 "Distributions"
+    IF DSCR >= 1.50
+    PAY distributions
+    FROM REMAINDER
+
+// ==================== CONDITIONS PRECEDENT ====================
+
+CONDITIONS_PRECEDENT InitialFunding
+  SECTION "4.01"
+
+  CP ExecutedCreditAgreement
+    DESCRIPTION "Executed Credit Agreement and all Loan Documents"
+    RESPONSIBLE Agent
+
+  CP LegalOpinions
+    DESCRIPTION "Opinions of Borrower's Counsel and Local Counsel"
+    RESPONSIBLE BorrowerCounsel
+
+  CP EquityContribution
+    DESCRIPTION "Evidence of Initial Equity Contribution"
+    RESPONSIBLE Sponsor
+    SATISFIES MinEquityContribution
+
+  CP InsuranceCertificates
+    DESCRIPTION "Evidence of Required Insurance Coverage"
+    RESPONSIBLE Borrower
+
+  CP EnvironmentalReport
+    DESCRIPTION "Phase I Environmental Site Assessment"
+    RESPONSIBLE Borrower
+
+CONDITIONS_PRECEDENT Draw3
+  SECTION "4.02(c)"
+
+  CP Draw3LienSearch
+    DESCRIPTION "Updated Lien Search Results"
+    RESPONSIBLE Agent
+
+  CP Draw3TitleEndorsement
+    DESCRIPTION "Date-Down Title Endorsement"
+    RESPONSIBLE Borrower
+
+  CP Draw3Inspection
+    DESCRIPTION "Construction Inspection Report"
+    RESPONSIBLE EngineeringConsultant
+
+  CP Draw3ContractorWaiver
+    DESCRIPTION "Contractor Partial Lien Waiver"
+    RESPONSIBLE GeneralContractor
+
+  CP Draw3BudgetReconciliation
+    DESCRIPTION "Updated Budget and Schedule"
+    RESPONSIBLE Borrower

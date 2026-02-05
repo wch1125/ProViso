@@ -1,0 +1,129 @@
+{
+  "project": {
+    "name": "Sunrise Solar Project",
+    "facility": "$150M Construction + Term",
+    "sponsor": "Renewable Energy Partners",
+    "borrower": "Sunrise Solar Holdings LLC"
+  },
+  "phase": {
+    "current": "construction",
+    "constructionStart": "2025-06-01",
+    "codTarget": "2026-09-15",
+    "maturity": "2041-09-15"
+  },
+  "financials": {
+    "net_income": 8000000,
+    "interest_expense": 6000000,
+    "tax_expense": 2000000,
+    "depreciation": 4000000,
+    "amortization": 1000000,
+    "senior_debt": 100000000,
+    "subordinated_debt": 20000000,
+    "senior_interest": 4000000,
+    "senior_principal": 3000000,
+    "total_project_cost": 150000000,
+    "equity_contributed": 55000000,
+    "monthly_debt_service": 5000000,
+    "annual_capex_budget": 16000000,
+    "operating_expenses": 3200000,
+    "distributions": 5000000,
+    "Revenue": 12500000,
+    "total_assets": 180000000
+  },
+  "milestones": [
+    {
+      "name": "FoundationComplete",
+      "target": "2025-09-30",
+      "longstop": "2025-12-31",
+      "status": "achieved",
+      "achievedDate": "2025-09-22"
+    },
+    {
+      "name": "SteelErection",
+      "target": "2025-12-31",
+      "longstop": "2026-03-31",
+      "status": "achieved",
+      "achievedDate": "2026-01-15"
+    },
+    {
+      "name": "RoofComplete",
+      "target": "2026-04-15",
+      "longstop": "2026-06-15",
+      "status": "in_progress",
+      "percentComplete": 65
+    },
+    {
+      "name": "MEPComplete",
+      "target": "2026-07-01",
+      "longstop": "2026-09-01",
+      "status": "pending"
+    },
+    {
+      "name": "SubstantialCompletion",
+      "target": "2026-09-15",
+      "longstop": "2026-11-15",
+      "status": "pending"
+    }
+  ],
+  "covenants": {
+    "TotalLeverage": {
+      "actual": 3.24,
+      "required": 4.50,
+      "operator": "<="
+    },
+    "SeniorLeverage": {
+      "actual": 2.18,
+      "required": 3.00,
+      "operator": "<="
+    },
+    "InterestCoverage": {
+      "actual": 4.52,
+      "required": 2.50,
+      "operator": ">="
+    },
+    "MinDSCR": {
+      "actual": 1.45,
+      "required": 1.25,
+      "operator": ">="
+    }
+  },
+  "reserves": {
+    "DebtServiceReserve": {
+      "balance": 24600000,
+      "target": 30000000,
+      "minimum": 15000000
+    },
+    "MaintenanceReserve": {
+      "balance": 8200000,
+      "target": 16000000,
+      "minimum": 8000000
+    }
+  },
+  "waterfall": {
+    "revenue": 12500000,
+    "tiers": [
+      {
+        "name": "Operating Expenses",
+        "amount": 3200000
+      },
+      {
+        "name": "Senior Debt Service",
+        "amount": 4100000
+      },
+      {
+        "name": "DSRA Top-Up",
+        "amount": 800000
+      },
+      {
+        "name": "Maintenance Reserve",
+        "amount": 500000
+      },
+      {
+        "name": "Available for Distribution",
+        "amount": 3900000,
+        "blocked": true,
+        "reason": "DSCR < 1.50x"
+      }
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "period_end": "2024-09-30",
+  "company": "Acme Corp",
+  "financials": {
+    "revenue": 142000000,
+    "net_income": 22000000,
+    "interest_expense": 8200000,
+    "tax_expense": 7500000,
+    "depreciation": 4800000,
+    "amortization": 2200000,
+    "extraordinary_items": 0,
+    "funded_debt": 156000000,
+    "capital_leases": 5000000,
+    "cash": 28400000,
+    "total_assets": 340000000
+  },
+  "adjustments": {
+    "payment_due": false,
+    "payment_received": true,
+    "external_debt_default": 0
+  },
+  "notes": "Q3 2024 financials - Prepared for covenant compliance testing"
+}

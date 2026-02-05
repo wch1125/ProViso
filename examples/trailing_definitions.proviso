@@ -1,0 +1,72 @@
+// Trailing Calculation Example
+// CreditLang v0.3
+//
+// This example demonstrates trailing period calculations
+// for credit agreement covenant testing.
+
+// ==================== QUARTERLY DEFINITIONS ====================
+
+// EBITDA for a single quarter
+DEFINE QuarterlyEBITDA AS
+  net_income + interest_expense + tax_expense + depreciation + amortization
+  EXCLUDING extraordinary_items
+
+// ==================== TRAILING CALCULATIONS ====================
+
+// Last Twelve Months (LTM) EBITDA - sum of last 4 quarters
+DEFINE LTM_EBITDA AS
+  TRAILING 4 QUARTERS OF QuarterlyEBITDA
+
+// LTM Interest Expense
+DEFINE LTM_InterestExpense AS
+  TRAILING 4 QUARTERS OF interest_expense
+
+// ==================== BALANCE SHEET ITEMS ====================
+
+// Total Debt (point-in-time from current period)
+DEFINE TotalDebt AS
+  funded_debt + capital_leases
+
+// ==================== RATIOS USING TRAILING VALUES ====================
+
+// Leverage Ratio: Total Debt / LTM EBITDA
+DEFINE Leverage AS
+  TotalDebt / LTM_EBITDA
+
+// Interest Coverage: LTM EBITDA / LTM Interest Expense
+DEFINE InterestCoverage AS
+  LTM_EBITDA / LTM_InterestExpense
+
+// ==================== FINANCIAL COVENANTS ====================
+
+// Maximum Leverage Ratio - tested quarterly against trailing EBITDA
+COVENANT MaxLeverage
+  REQUIRES Leverage <= 4.50
+  TESTED QUARTERLY
+
+// Minimum Interest Coverage - tested quarterly against trailing values
+COVENANT MinInterestCoverage
+  REQUIRES InterestCoverage >= 2.50
+  TESTED QUARTERLY
+
+// Minimum Liquidity - point-in-time test
+COVENANT MinLiquidity
+  REQUIRES cash >= 15_000_000
+  TESTED QUARTERLY
+
+// ==================== BASKETS ====================
+
+// Fixed capacity basket
+BASKET GeneralInvestments
+  CAPACITY $25_000_000
+
+// Grower basket based on trailing EBITDA
+BASKET AcquisitionBasket
+  CAPACITY 15% * LTM_EBITDA
+  FLOOR $20_000_000
+
+// Builder basket that accumulates from retained earnings
+BASKET RetainedEarningsBasket
+  BUILDS_FROM 50% * net_income
+  STARTING $0
+  MAXIMUM $50_000_000

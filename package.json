@@ -1,0 +1,61 @@
+{
+  "name": "proviso",
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Domain-Specific Language for Credit Agreements",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "proviso": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "npm run build:grammar && npm run build:ts && npm run copy:grammar",
+    "build:grammar": "peggy --format es -o src/parser.generated.js grammar/proviso.pegjs",
+    "build:ts": "tsc",
+    "copy:grammar": "node -e \"require('fs').cpSync('src/parser.generated.js', 'dist/parser.generated.js')\"",
+    "dev": "ts-node src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build",
+    "dashboard": "npm --prefix dashboard run dev",
+    "dashboard:build": "npm --prefix dashboard run build",
+    "dashboard:preview": "npm --prefix dashboard run preview"
+  },
+  "keywords": [
+    "dsl",
+    "credit",
+    "finance",
+    "legal",
+    "covenant",
+    "parser"
+  ],
+  "author": "Haslun Studio",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "eslint": "^9.39.2",
+    "peggy": "^4.0.2",
+    "prettier": "^3.2.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.54.0",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

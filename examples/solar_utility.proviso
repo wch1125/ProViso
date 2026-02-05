@@ -1,0 +1,628 @@
+// Desert Sun Solar Project
+// 200MW Utility-Scale Solar Farm
+// $280M Construction + Term Loan with Tax Equity Partnership
+// CreditLang v2.1 - Showcases all Project Finance Industry constructs
+
+// ==================== PROJECT PHASES ====================
+
+PHASE Development
+  UNTIL NTP_Achieved
+  COVENANTS SUSPENDED TotalLeverage, SeniorDSCR, InterestCoverage
+  REQUIRED DevelopmentMilestones
+
+PHASE Construction
+  FROM NTP_Achieved
+  UNTIL COD_Achieved
+  COVENANTS SUSPENDED TotalLeverage, SeniorDSCR
+  REQUIRED MinEquityContribution, ConstructionProgress
+
+PHASE Operations
+  FROM COD_Achieved
+  COVENANTS ACTIVE TotalLeverage, SeniorDSCR, InterestCoverage, MinDSCR
+
+TRANSITION NTP_Achieved
+  WHEN ALL_OF(
+    AllPermitsSecured,
+    OffTakeExecuted,
+    InterconnectionApproved,
+    TaxEquityCommitment
+  )
+
+TRANSITION COD_Achieved
+  WHEN ALL_OF(
+    SubstantialCompletion,
+    FinalInspection,
+    GridSynchronization,
+    InsuranceTransition,
+    PerformanceTestPassed
+  )
+
+// ==================== TECHNICAL MILESTONES ====================
+// Physical construction progress tracked against targets
+
+TECHNICAL_MILESTONE SitePrepComplete
+  TARGET 2025-03-15
+  LONGSTOP 2025-05-15
+  MEASUREMENT "acres cleared"
+  TARGET_VALUE 1200
+  CURRENT_VALUE 1200
+
+TECHNICAL_MILESTONE PileInstallation
+  TARGET 2025-06-30
+  LONGSTOP 2025-09-30
+  MEASUREMENT "piles driven"
+  TARGET_VALUE 45000
+  CURRENT_VALUE 38500
+  REQUIRES SitePrepComplete
+  TRIGGERS Draw2Available
+
+TECHNICAL_MILESTONE TrackerInstallation
+  TARGET 2025-09-30
+  LONGSTOP 2025-12-31
+  MEASUREMENT "tracker rows installed"
+  TARGET_VALUE 2400
+  CURRENT_VALUE 1680
+  REQUIRES PileInstallation
+  TRIGGERS Draw3Available
+
+TECHNICAL_MILESTONE ModuleInstallation
+  TARGET 2025-12-15
+  LONGSTOP 2026-03-15
+  MEASUREMENT "MW installed"
+  TARGET_VALUE 200
+  CURRENT_VALUE 140
+  REQUIRES TrackerInstallation
+  TRIGGERS Draw4Available
+
+TECHNICAL_MILESTONE InverterCommissioning
+  TARGET 2026-02-28
+  LONGSTOP 2026-05-31
+  MEASUREMENT "inverters commissioned"
+  TARGET_VALUE 40
+  CURRENT_VALUE 28
+  REQUIRES ModuleInstallation
+
+TECHNICAL_MILESTONE SubstationComplete
+  TARGET 2026-03-31
+  LONGSTOP 2026-06-30
+  MEASUREMENT "substation completion"
+  TARGET_VALUE 100
+  CURRENT_VALUE 85
+  REQUIRES TrackerInstallation
+
+TECHNICAL_MILESTONE GridSynchronization
+  TARGET 2026-04-15
+  LONGSTOP 2026-07-15
+  MEASUREMENT "grid sync complete"
+  TARGET_VALUE 1
+  CURRENT_VALUE 0
+  REQUIRES ALL_OF(InverterCommissioning, SubstationComplete)
+  TRIGGERS COD_Achieved
+
+TECHNICAL_MILESTONE SubstantialCompletion
+  TARGET 2026-04-30
+  LONGSTOP 2026-07-31
+  PROGRESS_METRIC 0.70
+  REQUIRES ALL_OF(ModuleInstallation, InverterCommissioning, SubstationComplete)
+  TRIGGERS COD_Achieved
+
+// ==================== REGULATORY REQUIREMENTS ====================
+// Permits and regulatory approvals required for each phase
+
+REGULATORY_REQUIREMENT NEPA_EA
+  AGENCY "USFWS"
+  TYPE "Environmental Assessment"
+  REQUIRED_FOR Development
+  STATUS approved
+  APPROVAL_DATE 2024-08-15
+
+REGULATORY_REQUIREMENT CUP_Permit
+  AGENCY "County Planning"
+  TYPE "Conditional Use Permit"
+  REQUIRED_FOR Development
+  STATUS approved
+  APPROVAL_DATE 2024-10-22
+
+REGULATORY_REQUIREMENT LGIA_Interconnection
+  AGENCY "CAISO"
+  TYPE "Large Generator Interconnection Agreement"
+  REQUIRED_FOR Development
+  STATUS approved
+  APPROVAL_DATE 2024-12-10
+  SATISFIES InterconnectionApproved
+
+REGULATORY_REQUIREMENT Stormwater_NPDES
+  AGENCY "State Water Board"
+  TYPE "NPDES Construction Permit"
+  REQUIRED_FOR Construction
+  STATUS approved
+  APPROVAL_DATE 2025-01-05
+
+REGULATORY_REQUIREMENT Building_Permit
+  AGENCY "County Building"
+  TYPE "Commercial Building Permit"
+  REQUIRED_FOR Construction
+  STATUS approved
+  APPROVAL_DATE 2025-02-01
+
+REGULATORY_REQUIREMENT FAA_Obstruction
+  AGENCY "FAA"
+  TYPE "Obstruction Evaluation"
+  REQUIRED_FOR Construction
+  STATUS approved
+  APPROVAL_DATE 2024-11-15
+
+REGULATORY_REQUIREMENT BLM_ROW
+  AGENCY "BLM"
+  TYPE "Right-of-Way Grant"
+  REQUIRED_FOR Construction
+  STATUS approved
+  APPROVAL_DATE 2024-09-30
+
+REGULATORY_REQUIREMENT CPV_Certification
+  AGENCY "UL/IEC"
+  TYPE "Module Certification"
+  REQUIRED_FOR Operations
+  STATUS pending
+
+REGULATORY_REQUIREMENT Grid_Compliance
+  AGENCY "NERC/WECC"
+  TYPE "Grid Code Compliance"
+  REQUIRED_FOR Operations
+  STATUS pending
+  SATISFIES GridSynchronization
+
+// ==================== PERFORMANCE GUARANTEES ====================
+// P50/P75/P90/P99 energy production warranties
+
+PERFORMANCE_GUARANTEE AnnualEnergyProduction
+  METRIC annual_gwh
+  P50 520
+  P75 495
+  P90 470
+  P99 440
+  ACTUAL 485
+  GUARANTEE_PERIOD "20 years"
+  SHORTFALL_RATE 50
+  INSURANCE_COVERAGE 47500000
+
+PERFORMANCE_GUARANTEE CapacityFactor
+  METRIC capacity_factor_pct
+  P50 29.7
+  P75 28.3
+  P90 26.9
+  P99 25.1
+  ACTUAL 27.6
+  GUARANTEE_PERIOD "20 years"
+  SHORTFALL_RATE 30
+
+PERFORMANCE_GUARANTEE PerformanceRatio
+  METRIC performance_ratio_pct
+  P50 84.5
+  P75 82.0
+  P90 79.5
+  P99 76.0
+  ACTUAL 81.2
+  GUARANTEE_PERIOD "10 years"
+  SHORTFALL_RATE 20
+
+PERFORMANCE_GUARANTEE Availability
+  METRIC availability_pct
+  P50 99.0
+  P75 98.5
+  P90 97.5
+  P99 96.0
+  ACTUAL 98.8
+
+// ==================== DEGRADATION SCHEDULES ====================
+// Panel and system degradation over project life
+
+DEGRADATION_SCHEDULE PanelDegradation
+  ASSET_TYPE bifacial_mono_perc
+  INITIAL_CAPACITY 200
+  YEAR_1_DEGRADATION 2
+  ANNUAL_DEGRADATION 0.5
+  MINIMUM_CAPACITY 160
+  AFFECTS annual_gwh, capacity_factor_pct
+
+DEGRADATION_SCHEDULE InverterEfficiency
+  ASSET_TYPE central_inverter
+  INITIAL_CAPACITY 100
+  YEAR_1_DEGRADATION 0.5
+  ANNUAL_DEGRADATION 0.2
+  MINIMUM_CAPACITY 92
+  AFFECTS performance_ratio_pct
+
+DEGRADATION_SCHEDULE TrackerReliability
+  ASSET_TYPE single_axis_tracker
+  INITIAL_CAPACITY 100
+  YEAR_1_DEGRADATION 1
+  ANNUAL_DEGRADATION 0.3
+  MINIMUM_CAPACITY 90
+  AFFECTS availability_pct
+
+// ==================== SEASONAL ADJUSTMENTS ====================
+// Production factors vary by season
+
+SEASONAL_ADJUSTMENT WinterReduction
+  METRIC energy_production
+  SEASON Q1
+  ADJUSTMENT_FACTOR 0.72
+  REASON "Shorter days, lower sun angle"
+
+SEASONAL_ADJUSTMENT SpringTransition
+  METRIC energy_production
+  SEASON Q2
+  ADJUSTMENT_FACTOR 1.08
+  REASON "Increasing daylight, moderate temperatures"
+
+SEASONAL_ADJUSTMENT SummerPeak
+  METRIC energy_production
+  SEASON Q3
+  ADJUSTMENT_FACTOR 1.25
+  REASON "Peak solar irradiance, longest days"
+
+SEASONAL_ADJUSTMENT FallTransition
+  METRIC energy_production
+  SEASON Q4
+  ADJUSTMENT_FACTOR 0.95
+  REASON "Decreasing daylight, harvest dust"
+
+// ==================== TAX EQUITY STRUCTURE ====================
+// Partnership flip structure for ITC monetization
+
+TAX_EQUITY_STRUCTURE SolarPartnership
+  STRUCTURE_TYPE partnership_flip
+  TAX_INVESTOR "Tax Equity Fund LP"
+  SPONSOR "Desert Sun Holdings LLC"
+  TAX_CREDIT_ALLOCATION 99/1
+  DEPRECIATION_ALLOCATION 99/1
+  CASH_ALLOCATION 10/90
+  TARGET_RETURN 8.0
+  BUYOUT_PRICE 5000000
+
+// ==================== TAX CREDITS ====================
+// ITC with domestic content and energy community adders
+
+TAX_CREDIT SolarITC
+  CREDIT_TYPE itc
+  RATE 30
+  ELIGIBLE_BASIS 240000000
+  ADDER domestic_content + 10
+  ADDER energy_community + 10
+  VESTING_PERIOD "5 years"
+  RECAPTURE_RISK "20% per year for first 5 years"
+  SATISFIES TaxEquityCommitment
+
+TAX_CREDIT BatteryITC
+  CREDIT_TYPE itc
+  RATE 30
+  ELIGIBLE_BASIS 40000000
+  ADDER domestic_content + 10
+  VESTING_PERIOD "5 years"
+  RECAPTURE_RISK "20% per year"
+
+// ==================== DEPRECIATION SCHEDULES ====================
+// MACRS accelerated depreciation
+
+DEPRECIATION_SCHEDULE SolarMACRS
+  METHOD macrs_5yr
+  DEPRECIABLE_BASIS 240000000
+  BONUS_DEPRECIATION 60
+
+DEPRECIATION_SCHEDULE BatteryMACRS
+  METHOD macrs_5yr
+  DEPRECIABLE_BASIS 40000000
+  BONUS_DEPRECIATION 60
+
+DEPRECIATION_SCHEDULE SubstationMACRS
+  METHOD macrs_15yr
+  DEPRECIABLE_BASIS 15000000
+  BONUS_DEPRECIATION 40
+
+// ==================== FLIP EVENTS ====================
+// Triggers for partnership flip
+
+FLIP_EVENT TargetReturnFlip
+  TRIGGER target_return 8.0
+  PRE_FLIP_ALLOCATION 99/1
+  POST_FLIP_ALLOCATION 5/95
+  BUYOUT_OPTION fair_market_value
+  SATISFIES FlipConditionMet
+
+FLIP_EVENT DateCertainFlip
+  TRIGGER date_certain 2031-12-31
+  PRE_FLIP_ALLOCATION 99/1
+  POST_FLIP_ALLOCATION 5/95
+  BUYOUT_OPTION fixed 5000000
+
+// ==================== DEFINITIONS ====================
+
+DEFINE EBITDA AS
+  net_income + interest_expense + tax_expense + depreciation + amortization
+
+DEFINE TotalDebt AS
+  senior_debt + subordinated_debt + tax_equity_debt
+
+DEFINE SeniorDebt AS
+  senior_debt
+
+DEFINE DebtService AS
+  senior_interest + senior_principal
+
+DEFINE DSCR AS
+  EBITDA / DebtService
+
+DEFINE Leverage AS
+  TotalDebt / EBITDA
+
+DEFINE SeniorLeverage AS
+  SeniorDebt / EBITDA
+
+DEFINE NetEnergy AS
+  gross_generation - station_service - curtailment_losses
+
+DEFINE RevenuePerkWh AS
+  (ppa_revenue + rec_revenue) / NetEnergy
+
+// ==================== CONDITIONS ====================
+
+CONDITION NoDefault AS
+  NOT payment_default AND NOT covenant_default
+
+// ==================== COVENANTS ====================
+
+COVENANT TotalLeverage
+  REQUIRES Leverage <= 5.00
+  TESTED QUARTERLY
+
+COVENANT SeniorDSCR
+  REQUIRES DSCR >= 1.30
+  TESTED QUARTERLY
+
+COVENANT InterestCoverage
+  REQUIRES EBITDA / interest_expense >= 2.00
+  TESTED QUARTERLY
+
+COVENANT MinDSCR
+  REQUIRES DSCR >= 1.20
+  TESTED QUARTERLY
+
+COVENANT MinEquityContribution
+  REQUIRES equity_contributed >= 0.30 * total_project_cost
+  TESTED MONTHLY
+
+COVENANT ProductionMinimum
+  REQUIRES annual_gwh >= 440
+  TESTED ANNUALLY
+
+COVENANT AvailabilityMinimum
+  REQUIRES availability_pct >= 96.0
+  TESTED MONTHLY
+
+// ==================== BASKETS ====================
+
+BASKET GeneralInvestment
+  CAPACITY $5_000_000
+
+BASKET DistributionCapacity
+  CAPACITY GreaterOf($10_000_000, 10% * EBITDA)
+  FLOOR $5_000_000
+
+BASKET CapexBasket
+  CAPACITY 5% * total_assets
+
+// ==================== RESERVES ====================
+
+RESERVE DebtServiceReserve
+  TARGET 6 * monthly_debt_service
+  MINIMUM 3 * monthly_debt_service
+  FUNDED_BY Waterfall, EquityContribution
+  RELEASED_TO Waterfall
+
+RESERVE MajorMaintenanceReserve
+  TARGET annual_major_maintenance
+  MINIMUM 0.5 * annual_major_maintenance
+  FUNDED_BY Waterfall
+  RELEASED_FOR PermittedMaintenanceExpenses
+
+RESERVE DecommissioningReserve
+  TARGET decommissioning_cost
+  MINIMUM 0.5 * decommissioning_cost
+  FUNDED_BY Waterfall
+  RELEASED_FOR DecommissioningExpenses
+
+// ==================== WATERFALL ====================
+
+WATERFALL OperatingWaterfall
+  FREQUENCY monthly
+
+  TIER 1 "Operating Expenses"
+    PAY operating_expenses
+    FROM Revenue
+
+  TIER 2 "Property Taxes & Insurance"
+    PAY property_taxes + insurance_premium
+    FROM REMAINDER
+
+  TIER 3 "Senior Debt Service"
+    PAY senior_interest + senior_principal
+    FROM REMAINDER
+    SHORTFALL -> DebtServiceReserve
+
+  TIER 4 "DSRA Replenishment"
+    PAY TO DebtServiceReserve
+    UNTIL DebtServiceReserve >= 6 * monthly_debt_service
+    FROM REMAINDER
+
+  TIER 5 "Major Maintenance Reserve"
+    PAY TO MajorMaintenanceReserve
+    UNTIL MajorMaintenanceReserve >= annual_major_maintenance
+    FROM REMAINDER
+
+  TIER 6 "Decommissioning Reserve"
+    PAY TO DecommissioningReserve
+    UNTIL DecommissioningReserve >= decommissioning_cost
+    FROM REMAINDER
+
+  TIER 7 "Tax Equity Distribution"
+    PAY tax_equity_distribution
+    FROM REMAINDER
+
+  TIER 8 "Sponsor Distribution"
+    IF DSCR >= 1.50
+    PAY sponsor_distribution
+    FROM REMAINDER
+
+// ==================== CONDITIONS PRECEDENT ====================
+
+CONDITIONS_PRECEDENT InitialFunding
+  SECTION "4.01"
+
+  CP ExecutedCreditAgreement
+    DESCRIPTION "Executed Credit Agreement and all Loan Documents"
+    RESPONSIBLE Agent
+
+  CP TaxEquityCommitmentLetter
+    DESCRIPTION "Binding commitment from Tax Equity Investor"
+    RESPONSIBLE Sponsor
+    SATISFIES TaxEquityCommitment
+
+  CP LegalOpinions
+    DESCRIPTION "Opinions of Borrower's Counsel and Local Counsel"
+    RESPONSIBLE BorrowerCounsel
+
+  CP EquityContribution
+    DESCRIPTION "Evidence of Initial Equity Contribution (30%)"
+    RESPONSIBLE Sponsor
+    SATISFIES MinEquityContribution
+
+  CP InsuranceCertificates
+    DESCRIPTION "Builder's Risk, GL, and Umbrella Insurance"
+    RESPONSIBLE Borrower
+
+  CP EPCContract
+    DESCRIPTION "Executed EPC Contract with creditworthy contractor"
+    RESPONSIBLE Borrower
+
+  CP PPA_Contract
+    DESCRIPTION "Executed Power Purchase Agreement (25 years)"
+    RESPONSIBLE Borrower
+    SATISFIES OffTakeExecuted
+
+  CP InterconnectionAgreement
+    DESCRIPTION "Executed LGIA with transmission owner"
+    RESPONSIBLE Borrower
+
+  CP AllPermits
+    DESCRIPTION "All permits required for construction commencement"
+    RESPONSIBLE Borrower
+    SATISFIES AllPermitsSecured
+
+  CP EnvironmentalReport
+    DESCRIPTION "Phase I ESA and NEPA compliance"
+    RESPONSIBLE Borrower
+
+CONDITIONS_PRECEDENT SubsequentDraws
+  SECTION "4.02"
+
+  CP MilestoneAchievement
+    DESCRIPTION "Applicable milestone achieved per construction schedule"
+    RESPONSIBLE EngineeringConsultant
+
+  CP LienWaivers
+    DESCRIPTION "Conditional lien waivers from all contractors"
+    RESPONSIBLE GeneralContractor
+
+  CP TitleEndorsement
+    DESCRIPTION "Date-down title endorsement"
+    RESPONSIBLE TitleCompany
+
+  CP InspectionReport
+    DESCRIPTION "Independent Engineer construction progress report"
+    RESPONSIBLE EngineeringConsultant
+
+  CP BudgetCertification
+    DESCRIPTION "Updated construction budget and schedule"
+    RESPONSIBLE Borrower
+
+CONDITIONS_PRECEDENT COD_Funding
+  SECTION "4.03"
+
+  CP SubstantialCompletionCertificate
+    DESCRIPTION "Engineer's certificate of substantial completion"
+    RESPONSIBLE EngineeringConsultant
+    SATISFIES SubstantialCompletion
+
+  CP FinalLienWaivers
+    DESCRIPTION "Unconditional final lien waivers"
+    RESPONSIBLE GeneralContractor
+
+  CP PerformanceTest
+    DESCRIPTION "Successful completion of performance test"
+    RESPONSIBLE EngineeringConsultant
+    SATISFIES PerformanceTestPassed
+
+  CP OperationsInsurance
+    DESCRIPTION "Operations phase insurance coverage"
+    RESPONSIBLE Borrower
+    SATISFIES InsuranceTransition
+
+  CP GridConnectionCertificate
+    DESCRIPTION "ISO confirmation of commercial operation"
+    RESPONSIBLE CAISO
+
+  CP TaxEquityFunding
+    DESCRIPTION "Tax equity capital contribution"
+    RESPONSIBLE TaxEquityInvestor
+
+// ==================== PROHIBITIONS ====================
+
+// Section 7.01 - Limitation on Asset Dispositions
+PROHIBIT DispositionOfAssets
+  EXCEPT WHEN
+    | amount <= $5_000_000
+    | AND NoDefault
+
+// Section 7.02 - Change of Control
+PROHIBIT ChangeOfControl
+  EXCEPT WHEN approved_transfers
+
+// Section 7.03 - Limitation on Additional Indebtedness
+PROHIBIT AdditionalDebt
+  EXCEPT WHEN
+    | amount <= $5_000_000
+    | AND NoDefault
+
+// Section 7.04 - PPA Modifications
+PROHIBIT ModifyPPA
+  EXCEPT WHEN de_minimis_amendment
+
+// ==================== EVENTS OF DEFAULT ====================
+
+// Section 8.01(a) - Payment Default
+EVENT PaymentDefault
+  TRIGGERS WHEN DebtService > available_cash
+  GRACE_PERIOD 5 DAYS
+  CONSEQUENCE EventOfDefault
+
+// Section 8.01(b) - Covenant Default
+EVENT CovenantDefault
+  TRIGGERS WHEN Leverage > 6.00 OR DSCR < 1.00
+  GRACE_PERIOD 30 DAYS
+  CONSEQUENCE EventOfDefault
+
+// Section 8.01(c) - Milestone Default
+EVENT MilestoneDefault
+  TRIGGERS WHEN milestone_default
+  CONSEQUENCE EventOfDefault
+
+// Section 8.01(d) - Tax Recapture Event
+EVENT TaxRecapture
+  TRIGGERS WHEN itc_recapture_event
+  CONSEQUENCE TaxEquityPrepayment
+
+// Section 8.01(e) - Permit Revocation
+EVENT PermitRevocation
+  TRIGGERS WHEN critical_permit_revoked
+  CONSEQUENCE EventOfDefault

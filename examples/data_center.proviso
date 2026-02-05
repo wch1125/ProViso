@@ -1,0 +1,578 @@
+// Metro Edge Data Center
+// 50MW Critical Infrastructure Facility
+// $320M Construction + Term Loan
+// CreditLang v2.1 - Data Center Project Finance constructs
+
+// ==================== PROJECT PHASES ====================
+
+PHASE Development
+  UNTIL NTP_Achieved
+  COVENANTS SUSPENDED TotalLeverage, SeniorDSCR
+  REQUIRED PermitReadiness
+
+PHASE Construction
+  FROM NTP_Achieved
+  UNTIL COD_Achieved
+  COVENANTS SUSPENDED TotalLeverage
+  REQUIRED MinEquityContribution, ConstructionProgress
+
+PHASE Operations
+  FROM COD_Achieved
+  COVENANTS ACTIVE TotalLeverage, SeniorDSCR, InterestCoverage, MinDSCR, UptimeMinimum
+
+TRANSITION NTP_Achieved
+  WHEN ALL_OF(
+    AllPermitsSecured,
+    AnchorTenantSigned,
+    PowerContractExecuted,
+    FinancingCommitment
+  )
+
+TRANSITION COD_Achieved
+  WHEN ALL_OF(
+    SubstantialCompletion,
+    PowerCertification,
+    CoolingCommissioned,
+    UptimeTestPassed,
+    TenantReadiness
+  )
+
+// ==================== TECHNICAL MILESTONES ====================
+// Data center construction milestones
+
+TECHNICAL_MILESTONE SitePreparation
+  TARGET 2025-03-01
+  LONGSTOP 2025-05-01
+  MEASUREMENT "site ready percent"
+  TARGET_VALUE 100
+  CURRENT_VALUE 100
+
+TECHNICAL_MILESTONE FoundationComplete
+  TARGET 2025-05-15
+  LONGSTOP 2025-07-15
+  MEASUREMENT "foundation percent"
+  TARGET_VALUE 100
+  CURRENT_VALUE 100
+  REQUIRES SitePreparation
+  TRIGGERS Draw2Available
+
+TECHNICAL_MILESTONE ShellComplete
+  TARGET 2025-08-30
+  LONGSTOP 2025-11-30
+  MEASUREMENT "shell percent"
+  TARGET_VALUE 100
+  CURRENT_VALUE 85
+  REQUIRES FoundationComplete
+  TRIGGERS Draw3Available
+
+TECHNICAL_MILESTONE PowerInfrastructure
+  TARGET 2025-10-31
+  LONGSTOP 2026-01-31
+  MEASUREMENT "MW commissioned"
+  TARGET_VALUE 50
+  CURRENT_VALUE 35
+  REQUIRES ShellComplete
+
+TECHNICAL_MILESTONE CoolingInfrastructure
+  TARGET 2025-11-30
+  LONGSTOP 2026-02-28
+  MEASUREMENT "cooling tons"
+  TARGET_VALUE 15000
+  CURRENT_VALUE 10500
+  REQUIRES ShellComplete
+
+TECHNICAL_MILESTONE GeneratorInstallation
+  TARGET 2025-12-15
+  LONGSTOP 2026-03-15
+  MEASUREMENT "generators installed"
+  TARGET_VALUE 8
+  CURRENT_VALUE 6
+  REQUIRES PowerInfrastructure
+  TRIGGERS Draw4Available
+
+TECHNICAL_MILESTONE UPSCommissioning
+  TARGET 2026-01-15
+  LONGSTOP 2026-04-15
+  MEASUREMENT "ups systems"
+  TARGET_VALUE 4
+  CURRENT_VALUE 3
+  REQUIRES PowerInfrastructure
+
+TECHNICAL_MILESTONE NetworkInfrastructure
+  TARGET 2026-02-15
+  LONGSTOP 2026-05-15
+  MEASUREMENT "network percent"
+  TARGET_VALUE 100
+  CURRENT_VALUE 75
+  REQUIRES ShellComplete
+
+TECHNICAL_MILESTONE SecuritySystems
+  TARGET 2026-02-28
+  LONGSTOP 2026-05-31
+  MEASUREMENT "security percent"
+  TARGET_VALUE 100
+  CURRENT_VALUE 80
+  REQUIRES ShellComplete
+
+TECHNICAL_MILESTONE SubstantialCompletion
+  TARGET 2026-03-31
+  LONGSTOP 2026-06-30
+  PROGRESS_METRIC 0.78
+  REQUIRES ALL_OF(PowerInfrastructure, CoolingInfrastructure, NetworkInfrastructure, SecuritySystems)
+  TRIGGERS COD_Achieved
+
+// ==================== REGULATORY REQUIREMENTS ====================
+// Data center regulatory and compliance requirements
+
+REGULATORY_REQUIREMENT BuildingPermit
+  AGENCY "City Building Dept"
+  TYPE "Commercial Building Permit"
+  REQUIRED_FOR Construction
+  STATUS approved
+  APPROVAL_DATE 2024-11-15
+
+REGULATORY_REQUIREMENT ElectricalPermit
+  AGENCY "City Building Dept"
+  TYPE "High Voltage Electrical Permit"
+  REQUIRED_FOR Construction
+  STATUS approved
+  APPROVAL_DATE 2024-12-01
+
+REGULATORY_REQUIREMENT FireSuppression
+  AGENCY "Fire Marshal"
+  TYPE "Fire Suppression System Approval"
+  REQUIRED_FOR Construction
+  STATUS approved
+  APPROVAL_DATE 2025-01-10
+
+REGULATORY_REQUIREMENT EnvironmentalCompliance
+  AGENCY "State EPA"
+  TYPE "Generator Air Quality Permit"
+  REQUIRED_FOR Operations
+  STATUS approved
+  APPROVAL_DATE 2025-02-15
+
+REGULATORY_REQUIREMENT UtilityInterconnect
+  AGENCY "Utility Company"
+  TYPE "Service Agreement"
+  REQUIRED_FOR Construction
+  STATUS approved
+  APPROVAL_DATE 2024-10-20
+  SATISFIES PowerContractExecuted
+
+REGULATORY_REQUIREMENT SOC2_Compliance
+  AGENCY "AICPA"
+  TYPE "SOC 2 Type II Certification"
+  REQUIRED_FOR Operations
+  STATUS pending
+  SATISFIES SecurityCertification
+
+REGULATORY_REQUIREMENT PCI_DSS
+  AGENCY "PCI Council"
+  TYPE "PCI DSS Compliance"
+  REQUIRED_FOR Operations
+  STATUS pending
+
+REGULATORY_REQUIREMENT ISO27001
+  AGENCY "ISO"
+  TYPE "Information Security Certification"
+  REQUIRED_FOR Operations
+  STATUS pending
+
+// ==================== PERFORMANCE GUARANTEES ====================
+// Data center SLA-based performance guarantees
+
+PERFORMANCE_GUARANTEE Uptime
+  METRIC uptime_pct
+  P50 99.999
+  P75 99.995
+  P90 99.99
+  P99 99.95
+  ACTUAL 99.997
+  GUARANTEE_PERIOD "5 years"
+  SHORTFALL_RATE 500000
+
+PERFORMANCE_GUARANTEE PowerAvailability
+  METRIC power_availability_pct
+  P50 99.9999
+  P75 99.999
+  P90 99.995
+  P99 99.99
+  ACTUAL 99.9995
+
+PERFORMANCE_GUARANTEE CoolingEfficiency
+  METRIC pue
+  P50 1.20
+  P75 1.25
+  P90 1.30
+  P99 1.40
+  ACTUAL 1.22
+  GUARANTEE_PERIOD "3 years"
+
+PERFORMANCE_GUARANTEE NetworkLatency
+  METRIC latency_ms
+  P50 0.5
+  P75 1.0
+  P90 2.0
+  P99 5.0
+  ACTUAL 0.8
+
+// ==================== DEGRADATION SCHEDULES ====================
+// Equipment degradation over facility life
+
+DEGRADATION_SCHEDULE UPSEfficiency
+  ASSET_TYPE ups_systems
+  INITIAL_CAPACITY 100
+  YEAR_1_DEGRADATION 0.5
+  ANNUAL_DEGRADATION 0.3
+  MINIMUM_CAPACITY 92
+  AFFECTS power_availability_pct
+
+DEGRADATION_SCHEDULE CoolingEfficiency
+  ASSET_TYPE hvac_systems
+  INITIAL_CAPACITY 100
+  YEAR_1_DEGRADATION 1.0
+  ANNUAL_DEGRADATION 0.5
+  MINIMUM_CAPACITY 85
+  AFFECTS pue
+
+DEGRADATION_SCHEDULE GeneratorReliability
+  ASSET_TYPE backup_generators
+  INITIAL_CAPACITY 100
+  YEAR_1_DEGRADATION 0.5
+  ANNUAL_DEGRADATION 0.25
+  MINIMUM_CAPACITY 90
+  AFFECTS uptime_pct
+
+// ==================== SEASONAL ADJUSTMENTS ====================
+// Power and cooling demand varies by season
+
+SEASONAL_ADJUSTMENT SummerCooling
+  METRIC power_cost
+  SEASON Q2, Q3
+  ADJUSTMENT_FACTOR 1.25
+  REASON "Higher cooling demand in summer"
+
+SEASONAL_ADJUSTMENT WinterEfficiency
+  METRIC pue
+  SEASON Q1, Q4
+  ADJUSTMENT_FACTOR 0.92
+  REASON "Free cooling available in winter"
+
+// ==================== DEFINITIONS ====================
+
+DEFINE EBITDA AS
+  net_income + interest_expense + tax_expense + depreciation + amortization
+
+DEFINE TotalDebt AS
+  senior_debt + subordinated_debt
+
+DEFINE SeniorDebt AS
+  senior_debt
+
+DEFINE DebtService AS
+  senior_interest + senior_principal
+
+DEFINE DSCR AS
+  EBITDA / DebtService
+
+DEFINE Leverage AS
+  TotalDebt / EBITDA
+
+DEFINE ContractedRevenue AS
+  anchor_tenant_revenue + colocation_revenue + interconnect_revenue
+
+DEFINE OccupancyRate AS
+  leased_capacity / total_capacity
+
+DEFINE RevenuePerKW AS
+  ContractedRevenue / leased_capacity
+
+// ==================== CONDITIONS ====================
+
+CONDITION NoDefault AS
+  NOT payment_default AND NOT covenant_default
+
+// ==================== COVENANTS ====================
+
+COVENANT TotalLeverage
+  REQUIRES Leverage <= 5.00
+  TESTED QUARTERLY
+
+COVENANT SeniorDSCR
+  REQUIRES DSCR >= 1.35
+  TESTED QUARTERLY
+
+COVENANT InterestCoverage
+  REQUIRES EBITDA / interest_expense >= 2.25
+  TESTED QUARTERLY
+
+COVENANT MinDSCR
+  REQUIRES DSCR >= 1.25
+  TESTED QUARTERLY
+
+COVENANT MinEquityContribution
+  REQUIRES equity_contributed >= 0.30 * total_project_cost
+  TESTED MONTHLY
+
+COVENANT UptimeMinimum
+  REQUIRES uptime_pct >= 99.95
+  TESTED MONTHLY
+
+COVENANT OccupancyMinimum
+  REQUIRES OccupancyRate >= 0.60
+  TESTED QUARTERLY
+
+COVENANT PUEMaximum
+  REQUIRES pue <= 1.50
+  TESTED MONTHLY
+
+COVENANT TenantConcentration
+  REQUIRES largest_tenant_revenue <= 0.40 * ContractedRevenue
+  TESTED QUARTERLY
+
+// ==================== BASKETS ====================
+
+BASKET GeneralInvestment
+  CAPACITY $5_000_000
+
+BASKET DistributionCapacity
+  CAPACITY GreaterOf($12_000_000, 10% * EBITDA)
+  FLOOR $6_000_000
+
+BASKET CapexBasket
+  CAPACITY 5% * total_assets
+
+BASKET TenantImprovements
+  CAPACITY $10_000_000
+  SUBJECT TO NoDefault
+
+// ==================== RESERVES ====================
+
+RESERVE DebtServiceReserve
+  TARGET 6 * monthly_debt_service
+  MINIMUM 3 * monthly_debt_service
+  FUNDED_BY Waterfall, EquityContribution
+  RELEASED_TO Waterfall
+
+RESERVE MajorMaintenanceReserve
+  TARGET annual_major_maintenance
+  MINIMUM 0.5 * annual_major_maintenance
+  FUNDED_BY Waterfall
+  RELEASED_FOR PermittedMaintenanceExpenses
+
+RESERVE GeneratorOverhaulReserve
+  TARGET generator_overhaul_cost
+  MINIMUM 0.33 * generator_overhaul_cost
+  FUNDED_BY Waterfall
+  RELEASED_FOR GeneratorOverhaul
+
+RESERVE TenantImprovementReserve
+  TARGET tenant_improvement_budget
+  MINIMUM 0.25 * tenant_improvement_budget
+  FUNDED_BY Waterfall
+  RELEASED_FOR TenantImprovements
+
+// ==================== WATERFALL ====================
+
+WATERFALL OperatingWaterfall
+  FREQUENCY monthly
+
+  TIER 1 "Operating Expenses"
+    PAY operating_expenses
+    FROM Revenue
+
+  TIER 2 "Utility Costs"
+    PAY power_costs + water_costs
+    FROM REMAINDER
+
+  TIER 3 "Property Taxes & Insurance"
+    PAY property_taxes + insurance_premium
+    FROM REMAINDER
+
+  TIER 4 "Senior Debt Service"
+    PAY senior_interest + senior_principal
+    FROM REMAINDER
+    SHORTFALL -> DebtServiceReserve
+
+  TIER 5 "DSRA Replenishment"
+    PAY TO DebtServiceReserve
+    UNTIL DebtServiceReserve >= 6 * monthly_debt_service
+    FROM REMAINDER
+
+  TIER 6 "Major Maintenance Reserve"
+    PAY TO MajorMaintenanceReserve
+    UNTIL MajorMaintenanceReserve >= annual_major_maintenance
+    FROM REMAINDER
+
+  TIER 7 "Generator Overhaul Reserve"
+    PAY TO GeneratorOverhaulReserve
+    UNTIL GeneratorOverhaulReserve >= generator_overhaul_cost
+    FROM REMAINDER
+
+  TIER 8 "Tenant Improvement Reserve"
+    PAY TO TenantImprovementReserve
+    UNTIL TenantImprovementReserve >= tenant_improvement_budget
+    FROM REMAINDER
+
+  TIER 9 "Distributions"
+    IF DSCR >= 1.50
+    PAY distributions
+    FROM REMAINDER
+
+// ==================== CONDITIONS PRECEDENT ====================
+
+CONDITIONS_PRECEDENT InitialFunding
+  SECTION "4.01"
+
+  CP ExecutedCreditAgreement
+    DESCRIPTION "Executed Credit Agreement and all Loan Documents"
+    RESPONSIBLE Agent
+
+  CP LegalOpinions
+    DESCRIPTION "Opinions of Borrower's Counsel and Local Counsel"
+    RESPONSIBLE BorrowerCounsel
+
+  CP EquityContribution
+    DESCRIPTION "Evidence of Initial Equity Contribution (30%)"
+    RESPONSIBLE Sponsor
+    SATISFIES MinEquityContribution
+
+  CP InsuranceCertificates
+    DESCRIPTION "Builder's Risk, GL, Umbrella, and Cyber Insurance"
+    RESPONSIBLE Borrower
+
+  CP AnchorTenantLease
+    DESCRIPTION "Executed lease with anchor tenant (min 30% capacity)"
+    RESPONSIBLE Borrower
+    SATISFIES AnchorTenantSigned
+
+  CP PowerServiceAgreement
+    DESCRIPTION "Executed utility service agreement for 50MW"
+    RESPONSIBLE Borrower
+
+  CP AllPermits
+    DESCRIPTION "All permits required for construction commencement"
+    RESPONSIBLE Borrower
+    SATISFIES AllPermitsSecured
+
+  CP EnvironmentalReport
+    DESCRIPTION "Phase I ESA"
+    RESPONSIBLE Borrower
+
+CONDITIONS_PRECEDENT SubsequentDraws
+  SECTION "4.02"
+
+  CP MilestoneAchievement
+    DESCRIPTION "Applicable milestone achieved per construction schedule"
+    RESPONSIBLE EngineeringConsultant
+
+  CP LienWaivers
+    DESCRIPTION "Conditional lien waivers from all contractors"
+    RESPONSIBLE GeneralContractor
+
+  CP TitleEndorsement
+    DESCRIPTION "Date-down title endorsement"
+    RESPONSIBLE TitleCompany
+
+  CP InspectionReport
+    DESCRIPTION "Independent Engineer construction progress report"
+    RESPONSIBLE EngineeringConsultant
+
+  CP EquipmentCertification
+    DESCRIPTION "OEM certification of critical equipment"
+    RESPONSIBLE EquipmentSupplier
+
+CONDITIONS_PRECEDENT COD_Funding
+  SECTION "4.03"
+
+  CP SubstantialCompletionCertificate
+    DESCRIPTION "Engineer's certificate of substantial completion"
+    RESPONSIBLE EngineeringConsultant
+    SATISFIES SubstantialCompletion
+
+  CP FinalLienWaivers
+    DESCRIPTION "Unconditional final lien waivers"
+    RESPONSIBLE GeneralContractor
+
+  CP UptimeTest
+    DESCRIPTION "Successful 30-day uptime test (99.95%+)"
+    RESPONSIBLE EngineeringConsultant
+    SATISFIES UptimeTestPassed
+
+  CP PowerCertificate
+    DESCRIPTION "Utility certification of power service"
+    RESPONSIBLE Utility
+    SATISFIES PowerCertification
+
+  CP CoolingCertificate
+    DESCRIPTION "Mechanical completion of cooling systems"
+    RESPONSIBLE MechanicalContractor
+    SATISFIES CoolingCommissioned
+
+  CP OperationsInsurance
+    DESCRIPTION "Operations phase insurance coverage"
+    RESPONSIBLE Borrower
+
+  CP TenantOccupancy
+    DESCRIPTION "Anchor tenant ready for occupancy"
+    RESPONSIBLE Borrower
+    SATISFIES TenantReadiness
+
+// ==================== PROHIBITIONS ====================
+
+// Section 7.01 - Limitation on Asset Dispositions
+PROHIBIT DispositionOfAssets
+  EXCEPT WHEN
+    | amount <= $5_000_000
+    | AND NoDefault
+
+// Section 7.02 - Change of Control
+PROHIBIT ChangeOfControl
+  EXCEPT WHEN approved_transfers
+
+// Section 7.03 - Limitation on Additional Indebtedness
+PROHIBIT AdditionalDebt
+  EXCEPT WHEN
+    | amount <= $5_000_000
+    | AND NoDefault
+
+// Section 7.04 - Tenant Lease Modifications
+PROHIBIT ModifyAnchorLease
+  EXCEPT WHEN de_minimis_amendment
+
+// ==================== EVENTS OF DEFAULT ====================
+
+// Section 8.01(a) - Payment Default
+EVENT PaymentDefault
+  TRIGGERS WHEN DebtService > available_cash
+  GRACE_PERIOD 5 DAYS
+  CONSEQUENCE EventOfDefault
+
+// Section 8.01(b) - Covenant Default
+EVENT CovenantDefault
+  TRIGGERS WHEN Leverage > 6.00 OR DSCR < 1.10
+  GRACE_PERIOD 30 DAYS
+  CONSEQUENCE EventOfDefault
+
+// Section 8.01(c) - Uptime Default
+EVENT UptimeDefault
+  TRIGGERS WHEN uptime_pct < 99.90
+  GRACE_PERIOD 60 DAYS
+  CONSEQUENCE EventOfDefault
+
+// Section 8.01(d) - Anchor Tenant Default
+EVENT AnchorTenantDefault
+  TRIGGERS WHEN anchor_tenant_terminated
+  CONSEQUENCE EventOfDefault
+
+// Section 8.01(e) - Permit Revocation
+EVENT PermitRevocation
+  TRIGGERS WHEN critical_permit_revoked
+  CONSEQUENCE EventOfDefault
+
+// Section 8.01(f) - Security Breach
+EVENT MajorSecurityBreach
+  TRIGGERS WHEN security_breach_material
+  GRACE_PERIOD 30 DAYS
+  CONSEQUENCE AcceleratedReview

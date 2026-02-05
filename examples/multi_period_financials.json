@@ -1,0 +1,72 @@
+{
+  "periods": [
+    {
+      "period": "2024-Q1",
+      "periodType": "quarterly",
+      "periodEnd": "2024-03-31",
+      "data": {
+        "net_income": 3100000,
+        "interest_expense": 1100000,
+        "tax_expense": 800000,
+        "depreciation": 1200000,
+        "amortization": 400000,
+        "funded_debt": 150000000,
+        "capital_leases": 5000000,
+        "cash": 28000000,
+        "total_assets": 340000000,
+        "extraordinary_items": 0
+      }
+    },
+    {
+      "period": "2024-Q2",
+      "periodType": "quarterly",
+      "periodEnd": "2024-06-30",
+      "data": {
+        "net_income": 3200000,
+        "interest_expense": 1150000,
+        "tax_expense": 850000,
+        "depreciation": 1200000,
+        "amortization": 400000,
+        "funded_debt": 152000000,
+        "capital_leases": 5000000,
+        "cash": 26000000,
+        "total_assets": 345000000,
+        "extraordinary_items": 0
+      }
+    },
+    {
+      "period": "2024-Q3",
+      "periodType": "quarterly",
+      "periodEnd": "2024-09-30",
+      "data": {
+        "net_income": 3000000,
+        "interest_expense": 1100000,
+        "tax_expense": 780000,
+        "depreciation": 1250000,
+        "amortization": 420000,
+        "funded_debt": 156000000,
+        "capital_leases": 5500000,
+        "cash": 24000000,
+        "total_assets": 350000000,
+        "extraordinary_items": 0
+      }
+    },
+    {
+      "period": "2024-Q4",
+      "periodType": "quarterly",
+      "periodEnd": "2024-12-31",
+      "data": {
+        "net_income": 3200000,
+        "interest_expense": 1150000,
+        "tax_expense": 820000,
+        "depreciation": 1250000,
+        "amortization": 420000,
+        "funded_debt": 160000000,
+        "capital_leases": 6000000,
+        "cash": 22000000,
+        "total_assets": 355000000,
+        "extraordinary_items": 0
+      }
+    }
+  ]
+}

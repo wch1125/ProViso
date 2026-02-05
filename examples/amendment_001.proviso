@@ -1,0 +1,26 @@
+// First Amendment to Corporate Credit Agreement
+// CreditLang v0.2
+//
+// Effective: June 15, 2024
+// Purpose: Covenant relief due to temporary market conditions
+
+AMENDMENT 1
+  EFFECTIVE 2024-06-15
+  DESCRIPTION "First Amendment - Covenant Relief Package"
+
+  // Increase maximum leverage ratio from 4.50x to 5.00x
+  REPLACES COVENANT MaxLeverage WITH
+    COVENANT MaxLeverage
+      REQUIRES Leverage <= 5.00
+      TESTED QUARTERLY
+      CURE EquityCure MAX_USES 3 OVER life_of_facility MAX_AMOUNT $25_000_000
+      BREACH -> UnmaturedDefault
+
+  // Increase the general investments basket from $25M to $35M
+  MODIFIES BASKET GeneralInvestments
+    CAPACITY $35_000_000
+
+  // Add a new incremental basket for strategic acquisitions
+  ADDS BASKET IncrementalAcquisitions
+    CAPACITY $50_000_000
+    SUBJECT TO NoDefault, ProFormaCompliance

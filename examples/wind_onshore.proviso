@@ -1,0 +1,660 @@
+// High Plains Wind Farm
+// 150MW Onshore Wind Project
+// $225M Construction + Term Loan with PTC Tax Equity
+// CreditLang v2.1 - Wind-specific Project Finance constructs
+
+// ==================== PROJECT PHASES ====================
+
+PHASE Development
+  UNTIL NTP_Achieved
+  COVENANTS SUSPENDED TotalLeverage, SeniorDSCR, InterestCoverage
+  REQUIRED PermitReadiness
+
+PHASE Construction
+  FROM NTP_Achieved
+  UNTIL COD_Achieved
+  COVENANTS SUSPENDED TotalLeverage, SeniorDSCR
+  REQUIRED MinEquityContribution, ConstructionProgress
+
+PHASE Operations
+  FROM COD_Achieved
+  COVENANTS ACTIVE TotalLeverage, SeniorDSCR, InterestCoverage, MinDSCR, ProductionMinimum
+
+TRANSITION NTP_Achieved
+  WHEN ALL_OF(
+    AllPermitsSecured,
+    OffTakeExecuted,
+    InterconnectionApproved,
+    TaxEquityCommitment,
+    FAA_Approved
+  )
+
+TRANSITION COD_Achieved
+  WHEN ALL_OF(
+    SubstantialCompletion,
+    GridSynchronization,
+    PerformanceTestPassed,
+    InsuranceTransition,
+    AvianCompliance
+  )
+
+// ==================== TECHNICAL MILESTONES ====================
+// Wind-specific construction milestones
+
+TECHNICAL_MILESTONE AccessRoadsComplete
+  TARGET 2025-04-15
+  LONGSTOP 2025-06-15
+  MEASUREMENT "miles of roads"
+  TARGET_VALUE 28
+  CURRENT_VALUE 28
+
+TECHNICAL_MILESTONE FoundationsPoured
+  TARGET 2025-06-30
+  LONGSTOP 2025-09-30
+  MEASUREMENT "foundations complete"
+  TARGET_VALUE 50
+  CURRENT_VALUE 42
+  REQUIRES AccessRoadsComplete
+  TRIGGERS Draw2Available
+
+TECHNICAL_MILESTONE TowerErection
+  TARGET 2025-09-30
+  LONGSTOP 2025-12-31
+  MEASUREMENT "towers erected"
+  TARGET_VALUE 50
+  CURRENT_VALUE 35
+  REQUIRES FoundationsPoured
+  TRIGGERS Draw3Available
+
+TECHNICAL_MILESTONE NacelleInstallation
+  TARGET 2025-11-30
+  LONGSTOP 2026-02-28
+  MEASUREMENT "nacelles installed"
+  TARGET_VALUE 50
+  CURRENT_VALUE 28
+  REQUIRES TowerErection
+
+TECHNICAL_MILESTONE BladeInstallation
+  TARGET 2026-01-31
+  LONGSTOP 2026-04-30
+  MEASUREMENT "rotor sets complete"
+  TARGET_VALUE 50
+  CURRENT_VALUE 22
+  REQUIRES NacelleInstallation
+  TRIGGERS Draw4Available
+
+TECHNICAL_MILESTONE CollectorSystemComplete
+  TARGET 2026-02-28
+  LONGSTOP 2026-05-31
+  MEASUREMENT "collector circuits"
+  TARGET_VALUE 5
+  CURRENT_VALUE 4
+  REQUIRES FoundationsPoured
+
+TECHNICAL_MILESTONE SubstationComplete
+  TARGET 2026-03-15
+  LONGSTOP 2026-06-15
+  MEASUREMENT "substation percent"
+  TARGET_VALUE 100
+  CURRENT_VALUE 90
+  REQUIRES CollectorSystemComplete
+
+TECHNICAL_MILESTONE GridSynchronization
+  TARGET 2026-04-01
+  LONGSTOP 2026-07-01
+  MEASUREMENT "grid sync"
+  TARGET_VALUE 1
+  CURRENT_VALUE 0
+  REQUIRES ALL_OF(BladeInstallation, SubstationComplete)
+  TRIGGERS COD_Achieved
+
+TECHNICAL_MILESTONE SubstantialCompletion
+  TARGET 2026-04-30
+  LONGSTOP 2026-07-31
+  PROGRESS_METRIC 0.68
+  REQUIRES ALL_OF(BladeInstallation, CollectorSystemComplete, SubstationComplete)
+  TRIGGERS COD_Achieved
+
+// ==================== REGULATORY REQUIREMENTS ====================
+// Wind-specific regulatory and environmental permits
+
+REGULATORY_REQUIREMENT FAA_Determination
+  AGENCY "FAA"
+  TYPE "Determination of No Hazard"
+  REQUIRED_FOR Development
+  STATUS approved
+  APPROVAL_DATE 2024-06-20
+  SATISFIES FAA_Approved
+
+REGULATORY_REQUIREMENT FAA_ObstructionLighting
+  AGENCY "FAA"
+  TYPE "Obstruction Lighting Plan"
+  REQUIRED_FOR Construction
+  STATUS approved
+  APPROVAL_DATE 2024-08-15
+
+REGULATORY_REQUIREMENT TribalConsultation
+  AGENCY "BIA"
+  TYPE "Section 106 Consultation"
+  REQUIRED_FOR Development
+  STATUS approved
+  APPROVAL_DATE 2024-09-30
+
+REGULATORY_REQUIREMENT CUP_Permit
+  AGENCY "County Planning"
+  TYPE "Conditional Use Permit"
+  REQUIRED_FOR Development
+  STATUS approved
+  APPROVAL_DATE 2024-07-15
+
+REGULATORY_REQUIREMENT NEPA_EA
+  AGENCY "USFWS"
+  TYPE "Environmental Assessment"
+  REQUIRED_FOR Development
+  STATUS approved
+  APPROVAL_DATE 2024-05-22
+
+REGULATORY_REQUIREMENT AvianProtection
+  AGENCY "USFWS"
+  TYPE "Avian and Bat Protection Plan"
+  REQUIRED_FOR Operations
+  STATUS approved
+  APPROVAL_DATE 2024-11-10
+  SATISFIES AvianCompliance
+
+REGULATORY_REQUIREMENT NoiseCompliance
+  AGENCY "State EPA"
+  TYPE "Noise Variance Permit"
+  REQUIRED_FOR Operations
+  STATUS approved
+  APPROVAL_DATE 2024-10-05
+
+REGULATORY_REQUIREMENT LGIA_Interconnection
+  AGENCY "SPP"
+  TYPE "Large Generator Interconnection Agreement"
+  REQUIRED_FOR Development
+  STATUS approved
+  APPROVAL_DATE 2024-12-01
+  SATISFIES InterconnectionApproved
+
+REGULATORY_REQUIREMENT SCADA_Compliance
+  AGENCY "NERC"
+  TYPE "CIP Compliance Certification"
+  REQUIRED_FOR Operations
+  STATUS pending
+
+REGULATORY_REQUIREMENT DecommissioningBond
+  AGENCY "County"
+  TYPE "Decommissioning Surety Bond"
+  REQUIRED_FOR Operations
+  STATUS pending
+
+// ==================== PERFORMANCE GUARANTEES ====================
+// Wind-specific P-values for net capacity factor
+
+PERFORMANCE_GUARANTEE AnnualEnergyProduction
+  METRIC annual_gwh
+  P50 485
+  P75 455
+  P90 420
+  P99 380
+  ACTUAL 440
+  GUARANTEE_PERIOD "10 years"
+  SHORTFALL_RATE 45
+  INSURANCE_COVERAGE 42000000
+
+PERFORMANCE_GUARANTEE NetCapacityFactor
+  METRIC net_capacity_factor_pct
+  P50 37.0
+  P75 34.6
+  P90 32.0
+  P99 29.0
+  ACTUAL 33.5
+  GUARANTEE_PERIOD "10 years"
+  SHORTFALL_RATE 35
+
+PERFORMANCE_GUARANTEE Availability
+  METRIC availability_pct
+  P50 97.0
+  P75 96.0
+  P90 94.5
+  P99 92.0
+  ACTUAL 95.2
+  GUARANTEE_PERIOD "25 years"
+
+PERFORMANCE_GUARANTEE CurtailmentLimit
+  METRIC curtailment_pct
+  P50 3.0
+  P75 4.5
+  P90 6.0
+  P99 8.0
+  ACTUAL 4.2
+
+// ==================== DEGRADATION SCHEDULES ====================
+// Wind turbine component degradation
+
+DEGRADATION_SCHEDULE TurbineEfficiency
+  ASSET_TYPE wind_turbine
+  INITIAL_CAPACITY 100
+  YEAR_1_DEGRADATION 0.5
+  ANNUAL_DEGRADATION 0.3
+  MINIMUM_CAPACITY 85
+  AFFECTS annual_gwh, net_capacity_factor_pct
+
+DEGRADATION_SCHEDULE GearboxReliability
+  ASSET_TYPE gearbox
+  INITIAL_CAPACITY 100
+  YEAR_1_DEGRADATION 1.0
+  ANNUAL_DEGRADATION 0.5
+  MINIMUM_CAPACITY 80
+  AFFECTS availability_pct
+
+DEGRADATION_SCHEDULE BladeCondition
+  ASSET_TYPE rotor_blades
+  INITIAL_CAPACITY 100
+  YEAR_1_DEGRADATION 0.3
+  ANNUAL_DEGRADATION 0.2
+  MINIMUM_CAPACITY 90
+  AFFECTS net_capacity_factor_pct
+
+// ==================== SEASONAL ADJUSTMENTS ====================
+// Wind resource varies significantly by season
+
+SEASONAL_ADJUSTMENT WinterPeak
+  METRIC energy_production
+  SEASON Q1, Q4
+  ADJUSTMENT_FACTOR 1.35
+  REASON "Higher wind speeds in winter months"
+
+SEASONAL_ADJUSTMENT SpringTransition
+  METRIC energy_production
+  SEASON Q2
+  ADJUSTMENT_FACTOR 0.95
+  REASON "Moderate wind, maintenance windows"
+
+SEASONAL_ADJUSTMENT SummerLow
+  METRIC energy_production
+  SEASON Q3
+  ADJUSTMENT_FACTOR 0.65
+  REASON "Lower wind speeds, higher curtailment"
+
+// ==================== TAX EQUITY STRUCTURE ====================
+// PTC-based tax equity partnership
+
+TAX_EQUITY_STRUCTURE WindPartnership
+  STRUCTURE_TYPE partnership_flip
+  TAX_INVESTOR "Wind Tax Equity Partners LP"
+  SPONSOR "High Plains Wind Holdings LLC"
+  TAX_CREDIT_ALLOCATION 99/1
+  DEPRECIATION_ALLOCATION 99/1
+  CASH_ALLOCATION 15/85
+  TARGET_RETURN 7.5
+  BUYOUT_PRICE 3500000
+
+// ==================== TAX CREDITS ====================
+// PTC with prevailing wage bonus
+
+TAX_CREDIT WindPTC
+  CREDIT_TYPE ptc
+  RATE 2.75
+  ADDER prevailing_wage + 0
+  VESTING_PERIOD "10 years"
+  RECAPTURE_RISK "N/A - production based"
+  SATISFIES TaxEquityCommitment
+
+// ==================== DEPRECIATION SCHEDULES ====================
+
+DEPRECIATION_SCHEDULE WindMACRS
+  METHOD macrs_5yr
+  DEPRECIABLE_BASIS 180000000
+  BONUS_DEPRECIATION 60
+
+DEPRECIATION_SCHEDULE TransmissionMACRS
+  METHOD macrs_15yr
+  DEPRECIABLE_BASIS 25000000
+  BONUS_DEPRECIATION 40
+
+// ==================== FLIP EVENTS ====================
+
+FLIP_EVENT TargetReturnFlip
+  TRIGGER target_return 7.5
+  PRE_FLIP_ALLOCATION 99/1
+  POST_FLIP_ALLOCATION 5/95
+  BUYOUT_OPTION fair_market_value
+  SATISFIES FlipConditionMet
+
+FLIP_EVENT DateCertainFlip
+  TRIGGER date_certain 2036-12-31
+  PRE_FLIP_ALLOCATION 99/1
+  POST_FLIP_ALLOCATION 5/95
+  BUYOUT_OPTION fixed 3500000
+
+// ==================== DEFINITIONS ====================
+
+DEFINE EBITDA AS
+  net_income + interest_expense + tax_expense + depreciation + amortization
+
+DEFINE TotalDebt AS
+  senior_debt + subordinated_debt + tax_equity_debt
+
+DEFINE SeniorDebt AS
+  senior_debt
+
+DEFINE DebtService AS
+  senior_interest + senior_principal
+
+DEFINE DSCR AS
+  EBITDA / DebtService
+
+DEFINE Leverage AS
+  TotalDebt / EBITDA
+
+DEFINE NetEnergy AS
+  gross_generation - station_service - curtailment_losses
+
+DEFINE PTCRevenue AS
+  NetEnergy * ptc_rate
+
+DEFINE RevenuePerMWh AS
+  (ppa_revenue + ptc_revenue + rec_revenue) / NetEnergy
+
+// ==================== CONDITIONS ====================
+
+CONDITION NoDefault AS
+  NOT payment_default AND NOT covenant_default
+
+// ==================== COVENANTS ====================
+
+COVENANT TotalLeverage
+  REQUIRES Leverage <= 5.50
+  TESTED QUARTERLY
+
+COVENANT SeniorDSCR
+  REQUIRES DSCR >= 1.25
+  TESTED QUARTERLY
+
+COVENANT InterestCoverage
+  REQUIRES EBITDA / interest_expense >= 2.00
+  TESTED QUARTERLY
+
+COVENANT MinDSCR
+  REQUIRES DSCR >= 1.15
+  TESTED QUARTERLY
+
+COVENANT MinEquityContribution
+  REQUIRES equity_contributed >= 0.25 * total_project_cost
+  TESTED MONTHLY
+
+COVENANT ProductionMinimum
+  REQUIRES annual_gwh >= 380
+  TESTED ANNUALLY
+
+COVENANT AvailabilityMinimum
+  REQUIRES availability_pct >= 92.0
+  TESTED MONTHLY
+
+COVENANT CurtailmentMaximum
+  REQUIRES curtailment_pct <= 10.0
+  TESTED MONTHLY
+
+// ==================== BASKETS ====================
+
+BASKET GeneralInvestment
+  CAPACITY $3_000_000
+
+BASKET DistributionCapacity
+  CAPACITY GreaterOf($8_000_000, 10% * EBITDA)
+  FLOOR $4_000_000
+
+BASKET CapexBasket
+  CAPACITY 5% * total_assets
+
+BASKET MajorComponentReplacement
+  CAPACITY $15_000_000
+  SUBJECT TO NoDefault
+
+// ==================== RESERVES ====================
+
+RESERVE DebtServiceReserve
+  TARGET 6 * monthly_debt_service
+  MINIMUM 3 * monthly_debt_service
+  FUNDED_BY Waterfall, EquityContribution
+  RELEASED_TO Waterfall
+
+RESERVE MajorMaintenanceReserve
+  TARGET annual_major_maintenance
+  MINIMUM 0.5 * annual_major_maintenance
+  FUNDED_BY Waterfall
+  RELEASED_FOR PermittedMaintenanceExpenses
+
+RESERVE GearboxReplacementReserve
+  TARGET gearbox_replacement_cost
+  MINIMUM 0.25 * gearbox_replacement_cost
+  FUNDED_BY Waterfall
+  RELEASED_FOR GearboxReplacement
+
+RESERVE DecommissioningReserve
+  TARGET decommissioning_cost
+  MINIMUM 0.5 * decommissioning_cost
+  FUNDED_BY Waterfall
+  RELEASED_FOR DecommissioningExpenses
+
+// ==================== WATERFALL ====================
+
+WATERFALL OperatingWaterfall
+  FREQUENCY monthly
+
+  TIER 1 "Operating Expenses"
+    PAY operating_expenses
+    FROM Revenue
+
+  TIER 2 "Property Taxes & Insurance"
+    PAY property_taxes + insurance_premium
+    FROM REMAINDER
+
+  TIER 3 "Senior Debt Service"
+    PAY senior_interest + senior_principal
+    FROM REMAINDER
+    SHORTFALL -> DebtServiceReserve
+
+  TIER 4 "DSRA Replenishment"
+    PAY TO DebtServiceReserve
+    UNTIL DebtServiceReserve >= 6 * monthly_debt_service
+    FROM REMAINDER
+
+  TIER 5 "Major Maintenance Reserve"
+    PAY TO MajorMaintenanceReserve
+    UNTIL MajorMaintenanceReserve >= annual_major_maintenance
+    FROM REMAINDER
+
+  TIER 6 "Gearbox Replacement Reserve"
+    PAY TO GearboxReplacementReserve
+    UNTIL GearboxReplacementReserve >= gearbox_replacement_cost
+    FROM REMAINDER
+
+  TIER 7 "Decommissioning Reserve"
+    PAY TO DecommissioningReserve
+    UNTIL DecommissioningReserve >= decommissioning_cost
+    FROM REMAINDER
+
+  TIER 8 "Tax Equity Distribution"
+    PAY tax_equity_distribution
+    FROM REMAINDER
+
+  TIER 9 "Sponsor Distribution"
+    IF DSCR >= 1.40
+    PAY sponsor_distribution
+    FROM REMAINDER
+
+// ==================== CONDITIONS PRECEDENT ====================
+
+CONDITIONS_PRECEDENT InitialFunding
+  SECTION "4.01"
+
+  CP ExecutedCreditAgreement
+    DESCRIPTION "Executed Credit Agreement and all Loan Documents"
+    RESPONSIBLE Agent
+
+  CP TaxEquityCommitmentLetter
+    DESCRIPTION "Binding commitment from Tax Equity Investor"
+    RESPONSIBLE Sponsor
+    SATISFIES TaxEquityCommitment
+
+  CP LegalOpinions
+    DESCRIPTION "Opinions of Borrower's Counsel and Local Counsel"
+    RESPONSIBLE BorrowerCounsel
+
+  CP EquityContribution
+    DESCRIPTION "Evidence of Initial Equity Contribution (25%)"
+    RESPONSIBLE Sponsor
+    SATISFIES MinEquityContribution
+
+  CP InsuranceCertificates
+    DESCRIPTION "Builder's Risk, GL, and Umbrella Insurance"
+    RESPONSIBLE Borrower
+
+  CP TurbineSupplyAgreement
+    DESCRIPTION "Executed TSA with OEM warranty"
+    RESPONSIBLE Borrower
+
+  CP PPA_Contract
+    DESCRIPTION "Executed Power Purchase Agreement"
+    RESPONSIBLE Borrower
+    SATISFIES OffTakeExecuted
+
+  CP InterconnectionAgreement
+    DESCRIPTION "Executed LGIA with transmission owner"
+    RESPONSIBLE Borrower
+
+  CP FAA_Determinations
+    DESCRIPTION "All FAA Determinations of No Hazard"
+    RESPONSIBLE Borrower
+    SATISFIES FAA_Approved
+
+  CP TribalClearance
+    DESCRIPTION "Section 106 consultation complete"
+    RESPONSIBLE Borrower
+
+  CP EnvironmentalReport
+    DESCRIPTION "NEPA EA and Avian Protection Plan"
+    RESPONSIBLE Borrower
+    SATISFIES AllPermitsSecured
+
+CONDITIONS_PRECEDENT SubsequentDraws
+  SECTION "4.02"
+
+  CP MilestoneAchievement
+    DESCRIPTION "Applicable milestone achieved per construction schedule"
+    RESPONSIBLE EngineeringConsultant
+
+  CP LienWaivers
+    DESCRIPTION "Conditional lien waivers from all contractors"
+    RESPONSIBLE GeneralContractor
+
+  CP TitleEndorsement
+    DESCRIPTION "Date-down title endorsement"
+    RESPONSIBLE TitleCompany
+
+  CP InspectionReport
+    DESCRIPTION "Independent Engineer construction progress report"
+    RESPONSIBLE EngineeringConsultant
+
+  CP OEMCertification
+    DESCRIPTION "OEM certification of installed components"
+    RESPONSIBLE TurbineSupplier
+
+CONDITIONS_PRECEDENT COD_Funding
+  SECTION "4.03"
+
+  CP SubstantialCompletionCertificate
+    DESCRIPTION "Engineer's certificate of substantial completion"
+    RESPONSIBLE EngineeringConsultant
+    SATISFIES SubstantialCompletion
+
+  CP FinalLienWaivers
+    DESCRIPTION "Unconditional final lien waivers"
+    RESPONSIBLE GeneralContractor
+
+  CP PerformanceTest
+    DESCRIPTION "Successful completion of 30-day performance test"
+    RESPONSIBLE EngineeringConsultant
+    SATISFIES PerformanceTestPassed
+
+  CP OperationsInsurance
+    DESCRIPTION "Operations phase insurance coverage"
+    RESPONSIBLE Borrower
+    SATISFIES InsuranceTransition
+
+  CP GridConnectionCertificate
+    DESCRIPTION "RTO confirmation of commercial operation"
+    RESPONSIBLE SPP
+
+  CP TaxEquityFunding
+    DESCRIPTION "Tax equity capital contribution"
+    RESPONSIBLE TaxEquityInvestor
+
+  CP AvianMonitoringPlan
+    DESCRIPTION "Approved post-construction avian monitoring plan"
+    RESPONSIBLE Borrower
+
+// ==================== PROHIBITIONS ====================
+
+// Section 7.01 - Limitation on Asset Dispositions
+PROHIBIT DispositionOfAssets
+  EXCEPT WHEN
+    | amount <= $3_000_000
+    | AND NoDefault
+
+// Section 7.02 - Change of Control
+PROHIBIT ChangeOfControl
+  EXCEPT WHEN approved_transfers
+
+// Section 7.03 - Limitation on Additional Indebtedness
+PROHIBIT AdditionalDebt
+  EXCEPT WHEN
+    | amount <= $3_000_000
+    | AND NoDefault
+
+// Section 7.04 - PPA Modifications
+PROHIBIT ModifyPPA
+  EXCEPT WHEN de_minimis_amendment
+
+// Section 7.05 - Turbine Supply Agreement Modifications
+PROHIBIT ModifyTSA
+  EXCEPT WHEN warranty_extension
+
+// ==================== EVENTS OF DEFAULT ====================
+
+// Section 8.01(a) - Payment Default
+EVENT PaymentDefault
+  TRIGGERS WHEN DebtService > available_cash
+  GRACE_PERIOD 5 DAYS
+  CONSEQUENCE EventOfDefault
+
+// Section 8.01(b) - Covenant Default
+EVENT CovenantDefault
+  TRIGGERS WHEN Leverage > 7.00 OR DSCR < 1.00
+  GRACE_PERIOD 30 DAYS
+  CONSEQUENCE EventOfDefault
+
+// Section 8.01(c) - Milestone Default
+EVENT MilestoneDefault
+  TRIGGERS WHEN milestone_default
+  CONSEQUENCE EventOfDefault
+
+// Section 8.01(d) - Availability Default
+EVENT AvailabilityDefault
+  TRIGGERS WHEN availability_pct < 85.0
+  GRACE_PERIOD 90 DAYS
+  CONSEQUENCE EventOfDefault
+
+// Section 8.01(e) - Permit Revocation
+EVENT PermitRevocation
+  TRIGGERS WHEN critical_permit_revoked
+  CONSEQUENCE EventOfDefault
+
+// Section 8.01(f) - Environmental Violation
+EVENT EnvironmentalViolation
+  TRIGGERS WHEN avian_mortality_threshold_exceeded
+  GRACE_PERIOD 60 DAYS
+  CONSEQUENCE AdditionalMitigation

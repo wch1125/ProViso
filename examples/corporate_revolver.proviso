@@ -1,0 +1,143 @@
+// Sample Corporate Credit Agreement
+// CreditLang v0.2
+
+// ==================== DEFINED TERMS ====================
+
+// Consolidated EBITDA - Section 1.01
+DEFINE EBITDA AS
+  net_income + interest_expense + tax_expense + depreciation + amortization
+  EXCLUDING extraordinary_items
+
+// Total Debt - Section 1.01
+DEFINE TotalDebt AS
+  funded_debt + capital_leases
+
+// Leverage Ratio - Section 1.01
+DEFINE Leverage AS
+  TotalDebt / EBITDA
+
+// Interest Coverage Ratio - Section 1.01  
+DEFINE InterestCoverage AS
+  EBITDA / interest_expense
+
+// ==================== FINANCIAL COVENANTS ====================
+
+// Maximum Leverage Ratio - Section 7.11(a)
+// Includes equity cure right for covenant breaches
+COVENANT MaxLeverage
+  REQUIRES Leverage <= 4.50
+  TESTED QUARTERLY
+  CURE EquityCure MAX_USES 3 OVER life_of_facility MAX_AMOUNT $20_000_000
+  BREACH -> UnmaturedDefault
+
+// Minimum Interest Coverage - Section 7.11(b)
+COVENANT MinInterestCoverage
+  REQUIRES InterestCoverage >= 2.50
+  TESTED QUARTERLY
+  CURE EquityCure MAX_USES 3 OVER life_of_facility
+  BREACH -> UnmaturedDefault
+
+// Minimum Liquidity - Section 7.11(c)
+COVENANT MinLiquidity
+  REQUIRES cash >= 15_000_000
+  TESTED QUARTERLY
+
+// ==================== BASKETS ====================
+
+// General Investment Basket - Section 7.02(g)
+BASKET GeneralInvestments
+  CAPACITY $25_000_000
+
+// Restricted Payments Basket - Section 7.06(e)
+BASKET RestrictedPayments
+  CAPACITY GreaterOf($10_000_000, 5% * total_assets)
+
+// Capital Expenditures Basket - Section 7.07
+BASKET CapEx
+  CAPACITY $20_000_000
+
+// Permitted Acquisitions Basket - Section 7.02(h)
+BASKET PermittedAcquisitions
+  CAPACITY $75_000_000
+  SUBJECT TO NoDefault, ProFormaCompliance
+
+// ==================== GROWER BASKETS ====================
+
+// EBITDA-Based Investment Basket - Section 7.02(i)
+// Capacity grows with EBITDA, with a floor of $15M
+BASKET EBITDAInvestments
+  CAPACITY 15% * EBITDA
+  FLOOR $15_000_000
+  SUBJECT TO NoDefault
+
+// Asset-Based Basket - Section 7.02(j)
+// Capacity is 2.5% of total assets, minimum $5M
+BASKET AssetBasedBasket
+  CAPACITY 2.5% * total_assets
+  FLOOR $5_000_000
+
+// ==================== BUILDER BASKETS ====================
+
+// Retained Earnings Basket - Section 7.06(f)
+// Accumulates 50% of net income each period, starting at $10M, max $75M
+BASKET RetainedEarningsBasket
+  BUILDS_FROM 50% * net_income
+  STARTING $10_000_000
+  MAXIMUM $75_000_000
+  SUBJECT TO NoDefault
+
+// Asset Sale Proceeds Basket - Section 7.02(k)
+// Accumulates from reinvested asset sale proceeds
+BASKET AssetSaleProceeds
+  BUILDS_FROM asset_sale_reinvestment
+  STARTING $0
+  MAXIMUM $50_000_000
+
+// ==================== CONDITIONS ====================
+
+// No Default Condition
+CONDITION NoDefault AS
+  NOT EXISTS(EventOfDefault) AND NOT EXISTS(UnmaturedDefault)
+
+// Pro Forma Compliance
+CONDITION ProFormaCompliance AS
+  COMPLIANT(MaxLeverage) AND COMPLIANT(MinInterestCoverage)
+
+// ==================== NEGATIVE COVENANTS ====================
+
+// Limitation on Investments - Section 7.02
+PROHIBIT Investments
+  EXCEPT WHEN
+    | amount <= AVAILABLE(GeneralInvestments)
+    | AND NoDefault
+
+// Limitation on Restricted Payments - Section 7.06
+PROHIBIT Dividends
+  EXCEPT WHEN
+    | amount <= AVAILABLE(RestrictedPayments)
+    | AND NoDefault
+    | AND COMPLIANT(MaxLeverage)
+
+// Limitation on Capital Expenditures - Section 7.07
+PROHIBIT CapitalExpenditures
+  EXCEPT WHEN
+    | amount <= AVAILABLE(CapEx)
+
+// ==================== EVENTS OF DEFAULT ====================
+
+// Payment Default - Section 8.01(a)
+EVENT PaymentDefault
+  TRIGGERS WHEN payment_due AND NOT payment_received
+  GRACE_PERIOD 5 DAYS
+  CONSEQUENCE EventOfDefault
+
+// Covenant Default - Section 8.01(c)
+EVENT CovenantDefault
+  TRIGGERS WHEN NOT COMPLIANT(MaxLeverage) OR NOT COMPLIANT(MinInterestCoverage)
+  GRACE_PERIOD 30 DAYS
+  CONSEQUENCE EventOfDefault
+
+// Cross Default - Section 8.01(e)
+EVENT CrossDefault
+  TRIGGERS WHEN external_debt_default > 10_000_000
+  CONSEQUENCE EventOfDefault

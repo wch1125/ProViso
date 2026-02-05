@@ -1,0 +1,254 @@
+[
+  {
+    "term": "Administrative Agent",
+    "definition": "Big Bank, N.A., in its capacity as administrative agent under any of the Loan Documents, or any successor administrative agent.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "party",
+    "cross_references": ["Loan Documents"],
+    "notes": ""
+  },
+  {
+    "term": "Borrower",
+    "definition": "ABC Corporation, a Delaware corporation.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "party",
+    "cross_references": [],
+    "notes": ""
+  },
+  {
+    "term": "Business Day",
+    "definition": "any day that is not a Saturday, Sunday or other day on which commercial banks in New York City are authorized or required by law to remain closed.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "general",
+    "cross_references": [],
+    "notes": "Standard definition - safe to use as-is"
+  },
+  {
+    "term": "Closing Date",
+    "definition": "March 15, 2025.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "date",
+    "cross_references": [],
+    "notes": ""
+  },
+  {
+    "term": "Collateral",
+    "definition": "all assets and property of any Loan Party, whether real, personal or mixed, tangible or intangible, now owned or hereafter acquired, in which a Lien is purported to be granted pursuant to any Security Document.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "collateral",
+    "cross_references": ["Loan Party", "Lien", "Security Document"],
+    "notes": ""
+  },
+  {
+    "term": "Commitment",
+    "definition": "as to each Lender, its obligation to make Revolving Loans to the Borrower pursuant to Section 2.01 in an aggregate principal amount at any one time outstanding not to exceed the amount set forth opposite such Lender's name on Schedule 2.01.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "facility",
+    "cross_references": ["Lender", "Revolving Loan", "Borrower"],
+    "notes": ""
+  },
+  {
+    "term": "Credit Agreement",
+    "definition": "this Credit Agreement, dated as of the Closing Date, among the Borrower, the Lenders and the Administrative Agent.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "document",
+    "cross_references": ["Closing Date", "Borrower", "Lender", "Administrative Agent"],
+    "notes": ""
+  },
+  {
+    "term": "Default",
+    "definition": "any event or condition that constitutes an Event of Default or that, with the giving of any notice, the passage of time, or both, would be an Event of Default.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "general",
+    "cross_references": ["Event of Default"],
+    "notes": ""
+  },
+  {
+    "term": "Event of Default",
+    "definition": "has the meaning assigned to such term in Section 8.01.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "general",
+    "cross_references": [],
+    "notes": ""
+  },
+  {
+    "term": "GAAP",
+    "definition": "generally accepted accounting principles in the United States set forth in the opinions and pronouncements of the Accounting Principles Board and the American Institute of Certified Public Accountants and statements and pronouncements of the Financial Accounting Standards Board.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "general",
+    "cross_references": [],
+    "notes": "Standard definition - safe to use as-is"
+  },
+  {
+    "term": "Governmental Authority",
+    "definition": "the government of the United States or any other nation, or of any political subdivision thereof, whether state or local, and any agency, authority, instrumentality, regulatory body, court, central bank or other entity exercising executive, legislative, judicial, taxing, regulatory or administrative powers or functions of or pertaining to government.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "general",
+    "cross_references": [],
+    "notes": "Standard definition - safe to use as-is"
+  },
+  {
+    "term": "Guarantors",
+    "definition": "collectively, XYZ Holdings, LLC and each Subsidiary of the Borrower that is or becomes a party to the Guaranty.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "party",
+    "cross_references": ["Borrower", "Guaranty"],
+    "notes": ""
+  },
+  {
+    "term": "Guaranty",
+    "definition": "the Guaranty made by the Guarantors in favor of the Administrative Agent and the Lenders, dated as of the Closing Date.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "document",
+    "cross_references": ["Guarantors", "Administrative Agent", "Lender", "Closing Date"],
+    "notes": ""
+  },
+  {
+    "term": "Lender",
+    "definition": "each financial institution listed on Schedule 2.01 and any other Person that becomes a party hereto pursuant to an Assignment and Assumption.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "party",
+    "cross_references": ["Person"],
+    "notes": ""
+  },
+  {
+    "term": "Lien",
+    "definition": "any mortgage, pledge, hypothecation, assignment, deposit arrangement, encumbrance, lien (statutory or other), charge, or preference, priority or other security interest or preferential arrangement in the nature of a security interest of any kind or nature whatsoever.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "collateral",
+    "cross_references": [],
+    "notes": "Standard definition - safe to use as-is"
+  },
+  {
+    "term": "Loan Documents",
+    "definition": "this Credit Agreement, the Security Agreement, the Guaranty, the Pledge Agreement, each Promissory Note, and all other agreements, instruments and documents executed in connection herewith.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "document",
+    "cross_references": ["Credit Agreement", "Security Agreement", "Guaranty", "Pledge Agreement"],
+    "notes": ""
+  },
+  {
+    "term": "Loan Parties",
+    "definition": "the Borrower and the Guarantors.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "party",
+    "cross_references": ["Borrower", "Guarantors"],
+    "notes": ""
+  },
+  {
+    "term": "Material Adverse Effect",
+    "definition": "a material adverse effect on (a) the business, assets, operations, prospects or condition, financial or otherwise, of the Borrower and its Subsidiaries taken as a whole, (b) the ability of any Loan Party to perform its Obligations, or (c) the rights and remedies of the Administrative Agent and the Lenders under the Loan Documents.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "general",
+    "cross_references": ["Borrower", "Loan Party", "Obligations", "Administrative Agent", "Lender", "Loan Documents"],
+    "notes": ""
+  },
+  {
+    "term": "Maturity Date",
+    "definition": "March 15, 2030.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "date",
+    "cross_references": [],
+    "notes": ""
+  },
+  {
+    "term": "Obligations",
+    "definition": "all unpaid principal of and accrued and unpaid interest on the Loans, all accrued and unpaid fees and all expenses, reimbursements, indemnities and other obligations of the Loan Parties to the Lenders or to any Lender, the Administrative Agent, or any indemnified party arising under the Loan Documents.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "general",
+    "cross_references": ["Loan Parties", "Lender", "Administrative Agent", "Loan Documents"],
+    "notes": ""
+  },
+  {
+    "term": "Permitted Liens",
+    "definition": "the Liens permitted pursuant to Section 7.01.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "covenant",
+    "cross_references": ["Lien"],
+    "notes": ""
+  },
+  {
+    "term": "Person",
+    "definition": "any natural person, corporation, limited liability company, trust, joint venture, association, company, partnership, Governmental Authority or other entity.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "general",
+    "cross_references": ["Governmental Authority"],
+    "notes": "Standard definition - safe to use as-is"
+  },
+  {
+    "term": "Pledge Agreement",
+    "definition": "the Pledge Agreement, dated as of the Closing Date, among the Loan Parties and the Administrative Agent.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "document",
+    "cross_references": ["Closing Date", "Loan Parties", "Administrative Agent"],
+    "notes": ""
+  },
+  {
+    "term": "Revolving Loan",
+    "definition": "a loan made by a Lender to the Borrower pursuant to Section 2.01.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "facility",
+    "cross_references": ["Lender", "Borrower"],
+    "notes": ""
+  },
+  {
+    "term": "Security Agreement",
+    "definition": "the Security Agreement, dated as of the Closing Date, among the Loan Parties and the Administrative Agent.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "document",
+    "cross_references": ["Closing Date", "Loan Parties", "Administrative Agent"],
+    "notes": ""
+  },
+  {
+    "term": "Security Documents",
+    "definition": "the Security Agreement, the Pledge Agreement, and all other security agreements, pledge agreements, collateral assignments, mortgages, deeds of trust, and other similar agreements now or hereafter entered into by any Loan Party.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "document",
+    "cross_references": ["Security Agreement", "Pledge Agreement", "Loan Party"],
+    "notes": ""
+  },
+  {
+    "term": "Subsidiary",
+    "definition": "as to any Person, a corporation, partnership, limited liability company or other entity of which shares of stock or other ownership interests having ordinary voting power to elect a majority of the board of directors or other managers of such entity are at the time owned, directly or indirectly, by such Person.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "general",
+    "cross_references": ["Person"],
+    "notes": "Standard definition - safe to use as-is"
+  },
+  {
+    "term": "Total Commitment",
+    "definition": "the aggregate of the Commitments of all the Lenders, which as of the Closing Date is $150,000,000.",
+    "source": "credit_agreement",
+    "section_reference": "Section 1.01",
+    "category": "facility",
+    "cross_references": ["Commitment", "Lender", "Closing Date"],
+    "notes": ""
+  }
+]

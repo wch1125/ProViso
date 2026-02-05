@@ -1,0 +1,245 @@
+{
+  "name": "credit_agreement_v1",
+  "document_templates": [
+    {
+      "key": "credit_agreement",
+      "document_type": "credit_agreement",
+      "default_title": "Credit Agreement",
+      "category": "Core Agreement",
+      "default_responsible_role": "agent",
+      "default_due_date_field": "closing_date"
+    },
+    {
+      "key": "officers_certificate",
+      "document_type": "officers_certificate",
+      "default_title": "Officer's Certificate - Borrower",
+      "category": "Corporate Documents",
+      "default_responsible_role": "borrower",
+      "default_due_date_field": "closing_date"
+    },
+    {
+      "key": "secretary_certificate",
+      "document_type": "secretary_certificate",
+      "default_title": "Secretary's Certificate - Borrower",
+      "category": "Corporate Documents",
+      "default_responsible_role": "borrower",
+      "default_due_date_field": "closing_date"
+    },
+    {
+      "key": "good_standing",
+      "document_type": "good_standing",
+      "default_title": "Good Standing Certificate - Borrower",
+      "category": "Corporate Documents",
+      "default_responsible_role": "borrower",
+      "default_due_date_field": "closing_date"
+    },
+    {
+      "key": "resolutions",
+      "document_type": "resolutions",
+      "default_title": "Board Resolutions - Borrower",
+      "category": "Corporate Documents",
+      "default_responsible_role": "borrower",
+      "default_due_date_field": "closing_date"
+    },
+    {
+      "key": "security_agreement",
+      "document_type": "security_agreement",
+      "default_title": "Security Agreement",
+      "category": "Security Documents",
+      "default_responsible_role": "borrower",
+      "default_due_date_field": "closing_date"
+    },
+    {
+      "key": "pledge_agreement",
+      "document_type": "pledge_agreement",
+      "default_title": "Pledge Agreement",
+      "category": "Security Documents",
+      "default_responsible_role": "borrower",
+      "default_due_date_field": "closing_date"
+    },
+    {
+      "key": "perfection_certificate",
+      "document_type": "perfection_certificate",
+      "default_title": "Perfection Certificate",
+      "category": "Security Documents",
+      "default_responsible_role": "borrower",
+      "default_due_date_field": "closing_date"
+    },
+    {
+      "key": "guaranty",
+      "document_type": "guaranty",
+      "default_title": "Guaranty",
+      "category": "Security Documents",
+      "default_responsible_role": "borrower",
+      "default_due_date_field": "closing_date"
+    },
+    {
+      "key": "ucc_financing_statement",
+      "document_type": "ucc_financing_statement",
+      "default_title": "UCC-1 Financing Statement",
+      "category": "UCC Filings",
+      "default_responsible_role": "agent",
+      "default_due_date_field": "closing_date"
+    },
+    {
+      "key": "legal_opinion_borrower",
+      "document_type": "legal_opinion",
+      "default_title": "Legal Opinion - Borrower's Counsel",
+      "category": "Legal Opinions",
+      "default_responsible_role": "borrower_counsel",
+      "default_due_date_field": "closing_date"
+    },
+    {
+      "key": "legal_opinion_agent",
+      "document_type": "legal_opinion",
+      "default_title": "Legal Opinion - Agent's Counsel",
+      "category": "Legal Opinions",
+      "default_responsible_role": "agent_counsel",
+      "default_due_date_field": "closing_date"
+    },
+    {
+      "key": "solvency_certificate",
+      "document_type": "solvency_certificate",
+      "default_title": "Solvency Certificate",
+      "category": "Certificates",
+      "default_responsible_role": "borrower",
+      "default_due_date_field": "closing_date"
+    },
+    {
+      "key": "closing_certificate",
+      "document_type": "closing_certificate",
+      "default_title": "Closing Certificate",
+      "category": "Certificates",
+      "default_responsible_role": "borrower",
+      "default_due_date_field": "closing_date"
+    },
+    {
+      "key": "financial_statements",
+      "document_type": "financial_statements",
+      "default_title": "Financial Statements",
+      "category": "Financial",
+      "default_responsible_role": "borrower",
+      "default_due_date_field": "closing_date"
+    },
+    {
+      "key": "fee_letter",
+      "document_type": "fee_letter",
+      "default_title": "Fee Letter",
+      "category": "Fee Letters",
+      "default_responsible_role": "agent",
+      "default_due_date_field": "closing_date"
+    }
+  ],
+  "condition_templates": [
+    {
+      "section_reference": "4.01(a)",
+      "title": "Corporate Documents",
+      "description": "Receipt of certified copies of charter documents, good standing certificates, board resolutions, and incumbency certificates",
+      "category": "Corporate Documents",
+      "expected_document_keys": [
+        "officers_certificate",
+        "secretary_certificate",
+        "good_standing",
+        "resolutions"
+      ]
+    },
+    {
+      "section_reference": "4.01(b)",
+      "title": "Credit Agreement",
+      "description": "Receipt of executed Credit Agreement",
+      "category": "Core Agreement",
+      "expected_document_keys": [
+        "credit_agreement"
+      ]
+    },
+    {
+      "section_reference": "4.01(c)",
+      "title": "Security Documents",
+      "description": "Receipt of executed Security Agreement, Pledge Agreement, Perfection Certificate and related security documents",
+      "category": "Security Documents",
+      "expected_document_keys": [
+        "security_agreement",
+        "pledge_agreement",
+        "perfection_certificate",
+        "guaranty",
+        "ucc_financing_statement"
+      ]
+    },
+    {
+      "section_reference": "4.01(d)",
+      "title": "UCC Filings",
+      "description": "Filing of UCC-1 financing statements in all applicable jurisdictions",
+      "category": "UCC Filings",
+      "expected_document_keys": [
+        "ucc_financing_statement"
+      ]
+    },
+    {
+      "section_reference": "4.01(e)",
+      "title": "Legal Opinions",
+      "description": "Receipt of legal opinions from Borrower's counsel and Agent's counsel",
+      "category": "Legal Opinions",
+      "expected_document_keys": [
+        "legal_opinion_borrower",
+        "legal_opinion_agent"
+      ]
+    },
+    {
+      "section_reference": "4.01(f)",
+      "title": "Officer's Certificate",
+      "description": "Receipt of Officer's Certificate certifying satisfaction of conditions",
+      "category": "Certificates",
+      "expected_document_keys": [
+        "officers_certificate"
+      ]
+    },
+    {
+      "section_reference": "4.01(g)",
+      "title": "Financial Statements",
+      "description": "Receipt of audited financial statements",
+      "category": "Financial",
+      "expected_document_keys": [
+        "financial_statements"
+      ]
+    },
+    {
+      "section_reference": "4.01(h)",
+      "title": "Fee Payment",
+      "description": "Payment of all fees due on the Closing Date",
+      "category": "Fees",
+      "expected_document_keys": [
+        "fee_letter"
+      ]
+    },
+    {
+      "section_reference": "4.01(i)",
+      "title": "Solvency Certificate",
+      "description": "Receipt of Solvency Certificate from CFO",
+      "category": "Certificates",
+      "expected_document_keys": [
+        "solvency_certificate"
+      ]
+    },
+    {
+      "section_reference": "4.01(j)",
+      "title": "Insurance",
+      "description": "Evidence of insurance coverage satisfying requirements",
+      "category": "Insurance",
+      "expected_document_keys": []
+    },
+    {
+      "section_reference": "4.01(k)",
+      "title": "No Material Adverse Effect",
+      "description": "No Material Adverse Effect since financial statements date",
+      "category": "General Conditions",
+      "expected_document_keys": []
+    },
+    {
+      "section_reference": "4.01(l)",
+      "title": "KYC/AML",
+      "description": "Completion of Know Your Customer and Anti-Money Laundering requirements",
+      "category": "KYC/AML",
+      "expected_document_keys": []
+    }
+  ]
+}

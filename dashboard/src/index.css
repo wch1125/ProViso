@@ -1,0 +1,255 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Default body styling - supports both old and new themes */
+  body {
+    @apply bg-surface-0 text-text-primary antialiased;
+  }
+
+  /* Support legacy dark theme class */
+  body.bg-hub-bg {
+    @apply bg-hub-bg;
+  }
+
+  /* Custom scrollbar for premium feel */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-surface-1;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-surface-3 rounded-full hover:bg-surface-4;
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Legacy card styles (keeping for existing dashboard pages) */
+  .card {
+    @apply bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl;
+  }
+
+  .card-header {
+    @apply px-5 py-4 border-b border-slate-800;
+  }
+
+  .card-body {
+    @apply p-5;
+  }
+
+  /* Premium card styles (v2.3) */
+  .card-premium {
+    @apply bg-surface-1 border border-border-DEFAULT rounded-xl;
+    @apply shadow-sm hover:shadow-elevation-2;
+    @apply transition-all duration-200;
+  }
+
+  .card-premium:hover {
+    @apply -translate-y-0.5 border-border-strong;
+  }
+
+  /* Status badges */
+  .status-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .status-badge-compliant {
+    @apply bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20;
+  }
+
+  .status-badge-breach {
+    @apply bg-red-500/10 text-red-400 ring-1 ring-red-500/20;
+  }
+
+  .status-badge-warning {
+    @apply bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20;
+  }
+
+  .status-badge-suspended {
+    @apply bg-gray-500/10 text-gray-400 ring-1 ring-gray-500/20;
+  }
+
+  .status-badge-pending {
+    @apply bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20;
+  }
+
+  /* Metrics */
+  .metric-value {
+    @apply text-2xl font-semibold text-white tabular-nums;
+  }
+
+  .metric-label {
+    @apply text-sm text-gray-400;
+  }
+
+  /* Progress bars */
+  .progress-bar {
+    @apply h-2 bg-slate-800 rounded-full overflow-hidden;
+  }
+
+  .progress-bar-fill {
+    @apply h-full rounded-full transition-all duration-500;
+  }
+
+  /* Premium buttons (v2.3) */
+  .btn-gold {
+    @apply inline-flex items-center justify-content gap-2;
+    @apply bg-gradient-to-r from-gold-600 to-gold-500;
+    @apply hover:from-gold-500 hover:to-gold-400;
+    @apply text-white font-semibold;
+    @apply px-6 py-3 rounded-lg;
+    @apply shadow-md hover:shadow-gold;
+    @apply transform hover:-translate-y-0.5;
+    @apply transition-all duration-150;
+    @apply focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 focus:ring-offset-surface-1;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent border border-border-DEFAULT;
+    @apply hover:border-gold-600 hover:bg-gold-600/10;
+    @apply text-text-secondary hover:text-gold-500;
+    @apply px-4 py-2 rounded-md;
+    @apply transition-all duration-150;
+  }
+
+  /* Focus ring for accessibility */
+  .focus-ring:focus-visible {
+    @apply outline-none ring-2 ring-gold-600 ring-offset-2 ring-offset-surface-1;
+  }
+
+  /* Skeleton loader */
+  .skeleton {
+    @apply bg-gradient-to-r from-surface-2 via-surface-3 to-surface-2;
+    @apply bg-[length:200%_100%];
+    @apply animate-shimmer;
+  }
+}
+
+@layer utilities {
+  /* Font display utility */
+  .font-display {
+    font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+    font-feature-settings: 'liga' 1, 'kern' 1;
+    letter-spacing: -0.02em;
+  }
+
+  /* Font body utility */
+  .font-body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-feature-settings: 'kern' 1;
+  }
+
+  /* Tabular numbers for data alignment */
+  .tabular-nums {
+    font-feature-settings: 'tnum' 1;
+  }
+}
+
+/* Print styles */
+@media print {
+  /* Hide interactive elements */
+  nav,
+  .theme-toggle,
+  .export-button,
+  button,
+  .btn-gold,
+  .btn-ghost,
+  [role="dialog"],
+  .fixed {
+    display: none !important;
+  }
+
+  /* Reset backgrounds for printing */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+
+  /* Card styling for print */
+  .card,
+  .card-premium {
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    background: white !important;
+    page-break-inside: avoid;
+  }
+
+  /* Text colors for print */
+  .text-white,
+  .text-text-primary,
+  .text-gold-500,
+  .text-gold-400 {
+    color: black !important;
+  }
+
+  .text-gray-400,
+  .text-text-secondary,
+  .text-text-tertiary {
+    color: #666 !important;
+  }
+
+  /* Chart styling */
+  .chart,
+  .recharts-wrapper {
+    page-break-inside: avoid;
+  }
+
+  /* Section breaks */
+  .section,
+  [class*="grid"] {
+    page-break-inside: avoid;
+  }
+
+  /* Headroom bars for print - show value instead */
+  .progress-bar {
+    background: #e5e5e5 !important;
+  }
+
+  .progress-bar-fill {
+    background: #333 !important;
+  }
+
+  /* Status badges for print */
+  .status-badge,
+  .status-badge-compliant,
+  .status-badge-breach,
+  .status-badge-warning {
+    border: 1px solid currentColor !important;
+    background: transparent !important;
+  }
+
+  /* Page margins */
+  @page {
+    margin: 0.75in;
+    size: letter;
+  }
+
+  /* Footer branding */
+  body::after {
+    content: 'Generated by ProViso | proviso-demo.haslun.online';
+    position: fixed;
+    bottom: 0.25in;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 9pt;
+    color: #999;
+  }
+}

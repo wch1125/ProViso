@@ -1,0 +1,517 @@
+{
+  "project": {
+    "name": "Desert Sun Solar Project",
+    "facility": "$280M Construction + Term Loan",
+    "sponsor": "Desert Sun Holdings LLC",
+    "borrower": "Desert Sun Project Co LLC",
+    "capacity_mw": 200,
+    "technology": "Utility-Scale Bifacial Solar",
+    "location": "Imperial County, CA"
+  },
+  "phase": {
+    "current": "construction",
+    "developmentStart": "2024-01-15",
+    "ntpDate": "2025-01-15",
+    "codTarget": "2026-06-30",
+    "maturity": "2046-06-30"
+  },
+  "financials": {
+    "net_income": 18500000,
+    "interest_expense": 14200000,
+    "tax_expense": 4800000,
+    "depreciation": 28000000,
+    "amortization": 2500000,
+    "senior_debt": 180000000,
+    "subordinated_debt": 20000000,
+    "tax_equity_debt": 80000000,
+    "senior_interest": 9000000,
+    "senior_principal": 6000000,
+    "total_project_cost": 280000000,
+    "equity_contributed": 84000000,
+    "monthly_debt_service": 1250000,
+    "annual_major_maintenance": 2400000,
+    "decommissioning_cost": 15000000,
+    "operating_expenses": 4800000,
+    "property_taxes": 1200000,
+    "insurance_premium": 800000,
+    "tax_equity_distribution": 8500000,
+    "sponsor_distribution": 6200000,
+    "Revenue": 42000000,
+    "total_assets": 295000000,
+    "available_cash": 18000000,
+    "gross_generation": 520000,
+    "station_service": 8500,
+    "curtailment_losses": 12500,
+    "ppa_revenue": 38500000,
+    "rec_revenue": 3500000,
+    "annual_gwh": 485,
+    "capacity_factor_pct": 27.6,
+    "performance_ratio_pct": 81.2,
+    "availability_pct": 98.8
+  },
+  "technicalMilestones": [
+    {
+      "name": "SitePrepComplete",
+      "target": "2025-03-15",
+      "longstop": "2025-05-15",
+      "measurement": "acres cleared",
+      "targetValue": 1200,
+      "currentValue": 1200,
+      "status": "achieved",
+      "achievedDate": "2025-03-10"
+    },
+    {
+      "name": "PileInstallation",
+      "target": "2025-06-30",
+      "longstop": "2025-09-30",
+      "measurement": "piles driven",
+      "targetValue": 45000,
+      "currentValue": 38500,
+      "status": "in_progress",
+      "percentComplete": 85.6
+    },
+    {
+      "name": "TrackerInstallation",
+      "target": "2025-09-30",
+      "longstop": "2025-12-31",
+      "measurement": "tracker rows installed",
+      "targetValue": 2400,
+      "currentValue": 1680,
+      "status": "in_progress",
+      "percentComplete": 70.0
+    },
+    {
+      "name": "ModuleInstallation",
+      "target": "2025-12-15",
+      "longstop": "2026-03-15",
+      "measurement": "MW installed",
+      "targetValue": 200,
+      "currentValue": 140,
+      "status": "in_progress",
+      "percentComplete": 70.0
+    },
+    {
+      "name": "InverterCommissioning",
+      "target": "2026-02-28",
+      "longstop": "2026-05-31",
+      "measurement": "inverters commissioned",
+      "targetValue": 40,
+      "currentValue": 28,
+      "status": "in_progress",
+      "percentComplete": 70.0
+    },
+    {
+      "name": "SubstationComplete",
+      "target": "2026-03-31",
+      "longstop": "2026-06-30",
+      "measurement": "substation completion",
+      "targetValue": 100,
+      "currentValue": 85,
+      "status": "in_progress",
+      "percentComplete": 85.0
+    },
+    {
+      "name": "GridSynchronization",
+      "target": "2026-04-15",
+      "longstop": "2026-07-15",
+      "measurement": "grid sync complete",
+      "targetValue": 1,
+      "currentValue": 0,
+      "status": "pending"
+    },
+    {
+      "name": "SubstantialCompletion",
+      "target": "2026-04-30",
+      "longstop": "2026-07-31",
+      "progressMetric": 0.70,
+      "status": "pending"
+    }
+  ],
+  "regulatoryRequirements": [
+    {
+      "name": "NEPA_EA",
+      "agency": "USFWS",
+      "type": "Environmental Assessment",
+      "requiredFor": "Development",
+      "status": "approved",
+      "approvalDate": "2024-08-15"
+    },
+    {
+      "name": "CUP_Permit",
+      "agency": "County Planning",
+      "type": "Conditional Use Permit",
+      "requiredFor": "Development",
+      "status": "approved",
+      "approvalDate": "2024-10-22"
+    },
+    {
+      "name": "LGIA_Interconnection",
+      "agency": "CAISO",
+      "type": "Large Generator Interconnection Agreement",
+      "requiredFor": "Development",
+      "status": "approved",
+      "approvalDate": "2024-12-10"
+    },
+    {
+      "name": "Stormwater_NPDES",
+      "agency": "State Water Board",
+      "type": "NPDES Construction Permit",
+      "requiredFor": "Construction",
+      "status": "approved",
+      "approvalDate": "2025-01-05"
+    },
+    {
+      "name": "Building_Permit",
+      "agency": "County Building",
+      "type": "Commercial Building Permit",
+      "requiredFor": "Construction",
+      "status": "approved",
+      "approvalDate": "2025-02-01"
+    },
+    {
+      "name": "FAA_Obstruction",
+      "agency": "FAA",
+      "type": "Obstruction Evaluation",
+      "requiredFor": "Construction",
+      "status": "approved",
+      "approvalDate": "2024-11-15"
+    },
+    {
+      "name": "BLM_ROW",
+      "agency": "BLM",
+      "type": "Right-of-Way Grant",
+      "requiredFor": "Construction",
+      "status": "approved",
+      "approvalDate": "2024-09-30"
+    },
+    {
+      "name": "CPV_Certification",
+      "agency": "UL/IEC",
+      "type": "Module Certification",
+      "requiredFor": "Operations",
+      "status": "pending"
+    },
+    {
+      "name": "Grid_Compliance",
+      "agency": "NERC/WECC",
+      "type": "Grid Code Compliance",
+      "requiredFor": "Operations",
+      "status": "pending"
+    }
+  ],
+  "performanceGuarantees": {
+    "AnnualEnergyProduction": {
+      "metric": "annual_gwh",
+      "p50": 520,
+      "p75": 495,
+      "p90": 470,
+      "p99": 440,
+      "actual": 485,
+      "performanceLevel": "p90",
+      "meetsGuarantee": true
+    },
+    "CapacityFactor": {
+      "metric": "capacity_factor_pct",
+      "p50": 29.7,
+      "p75": 28.3,
+      "p90": 26.9,
+      "p99": 25.1,
+      "actual": 27.6,
+      "performanceLevel": "p90",
+      "meetsGuarantee": true
+    },
+    "PerformanceRatio": {
+      "metric": "performance_ratio_pct",
+      "p50": 84.5,
+      "p75": 82.0,
+      "p90": 79.5,
+      "p99": 76.0,
+      "actual": 81.2,
+      "performanceLevel": "p90",
+      "meetsGuarantee": true
+    },
+    "Availability": {
+      "metric": "availability_pct",
+      "p50": 99.0,
+      "p75": 98.5,
+      "p90": 97.5,
+      "p99": 96.0,
+      "actual": 98.8,
+      "performanceLevel": "p75",
+      "meetsGuarantee": true
+    }
+  },
+  "degradation": {
+    "PanelDegradation": {
+      "assetType": "bifacial_mono_perc",
+      "initialCapacity": 200,
+      "currentYear": 1,
+      "cumulativeDegradation": 2.0,
+      "effectiveCapacity": 196.0,
+      "minimumCapacity": 160
+    },
+    "InverterEfficiency": {
+      "assetType": "central_inverter",
+      "initialCapacity": 100,
+      "currentYear": 1,
+      "cumulativeDegradation": 0.5,
+      "effectiveCapacity": 99.5,
+      "minimumCapacity": 92
+    },
+    "TrackerReliability": {
+      "assetType": "single_axis_tracker",
+      "initialCapacity": 100,
+      "currentYear": 1,
+      "cumulativeDegradation": 1.0,
+      "effectiveCapacity": 99.0,
+      "minimumCapacity": 90
+    }
+  },
+  "seasonalAdjustments": {
+    "currentQuarter": "Q1",
+    "adjustments": {
+      "Q1": { "factor": 0.72, "reason": "Shorter days, lower sun angle" },
+      "Q2": { "factor": 1.08, "reason": "Increasing daylight, moderate temperatures" },
+      "Q3": { "factor": 1.25, "reason": "Peak solar irradiance, longest days" },
+      "Q4": { "factor": 0.95, "reason": "Decreasing daylight, harvest dust" }
+    }
+  },
+  "taxEquity": {
+    "structure": {
+      "name": "SolarPartnership",
+      "type": "partnership_flip",
+      "taxInvestor": "Tax Equity Fund LP",
+      "sponsor": "Desert Sun Holdings LLC",
+      "taxCreditAllocation": { "investor": 99, "sponsor": 1 },
+      "depreciationAllocation": { "investor": 99, "sponsor": 1 },
+      "cashAllocation": { "investor": 10, "sponsor": 90 },
+      "targetReturn": 8.0,
+      "buyoutPrice": 5000000,
+      "hasFlipped": false
+    },
+    "credits": {
+      "SolarITC": {
+        "type": "itc",
+        "baseRate": 30,
+        "adders": [
+          { "name": "domestic_content", "bonus": 10 },
+          { "name": "energy_community", "bonus": 10 }
+        ],
+        "effectiveRate": 50,
+        "eligibleBasis": 240000000,
+        "creditAmount": 120000000,
+        "vestingPeriod": 5,
+        "recaptureRiskPerYear": 20
+      },
+      "BatteryITC": {
+        "type": "itc",
+        "baseRate": 30,
+        "adders": [
+          { "name": "domestic_content", "bonus": 10 }
+        ],
+        "effectiveRate": 40,
+        "eligibleBasis": 40000000,
+        "creditAmount": 16000000,
+        "vestingPeriod": 5,
+        "recaptureRiskPerYear": 20
+      }
+    },
+    "depreciation": {
+      "SolarMACRS": {
+        "method": "macrs_5yr",
+        "depreciableBasis": 240000000,
+        "bonusDepreciation": 60,
+        "year1Depreciation": 163200000
+      },
+      "BatteryMACRS": {
+        "method": "macrs_5yr",
+        "depreciableBasis": 40000000,
+        "bonusDepreciation": 60,
+        "year1Depreciation": 27200000
+      },
+      "SubstationMACRS": {
+        "method": "macrs_15yr",
+        "depreciableBasis": 15000000,
+        "bonusDepreciation": 40,
+        "year1Depreciation": 6450000
+      }
+    },
+    "flipEvents": {
+      "TargetReturnFlip": {
+        "trigger": "target_return",
+        "targetIRR": 8.0,
+        "currentIRR": 6.2,
+        "projectedFlipDate": "2030-06-30",
+        "hasTriggered": false,
+        "preFlipAllocation": { "investor": 99, "sponsor": 1 },
+        "postFlipAllocation": { "investor": 5, "sponsor": 95 }
+      },
+      "DateCertainFlip": {
+        "trigger": "date_certain",
+        "flipDate": "2031-12-31",
+        "hasTriggered": false,
+        "preFlipAllocation": { "investor": 99, "sponsor": 1 },
+        "postFlipAllocation": { "investor": 5, "sponsor": 95 }
+      }
+    }
+  },
+  "covenants": {
+    "TotalLeverage": {
+      "actual": 4.12,
+      "required": 5.00,
+      "operator": "<=",
+      "compliant": true,
+      "headroom": 17.6
+    },
+    "SeniorDSCR": {
+      "actual": 4.52,
+      "required": 1.30,
+      "operator": ">=",
+      "compliant": true,
+      "headroom": 247.7
+    },
+    "InterestCoverage": {
+      "actual": 4.78,
+      "required": 2.00,
+      "operator": ">=",
+      "compliant": true,
+      "headroom": 139.0
+    },
+    "MinDSCR": {
+      "actual": 4.52,
+      "required": 1.20,
+      "operator": ">=",
+      "compliant": true,
+      "headroom": 276.7
+    },
+    "MinEquityContribution": {
+      "actual": 84000000,
+      "required": 84000000,
+      "operator": ">=",
+      "compliant": true,
+      "headroom": 0.0
+    },
+    "ProductionMinimum": {
+      "actual": 485,
+      "required": 440,
+      "operator": ">=",
+      "compliant": true,
+      "headroom": 10.2
+    },
+    "AvailabilityMinimum": {
+      "actual": 98.8,
+      "required": 96.0,
+      "operator": ">=",
+      "compliant": true,
+      "headroom": 2.9
+    }
+  },
+  "reserves": {
+    "DebtServiceReserve": {
+      "balance": 6200000,
+      "target": 7500000,
+      "minimum": 3750000,
+      "fundingStatus": "adequate",
+      "percentOfTarget": 82.7
+    },
+    "MajorMaintenanceReserve": {
+      "balance": 1800000,
+      "target": 2400000,
+      "minimum": 1200000,
+      "fundingStatus": "adequate",
+      "percentOfTarget": 75.0
+    },
+    "DecommissioningReserve": {
+      "balance": 4500000,
+      "target": 15000000,
+      "minimum": 7500000,
+      "fundingStatus": "building",
+      "percentOfTarget": 30.0
+    }
+  },
+  "waterfall": {
+    "revenue": 42000000,
+    "frequency": "monthly",
+    "tiers": [
+      {
+        "priority": 1,
+        "name": "Operating Expenses",
+        "amount": 4800000,
+        "paid": true
+      },
+      {
+        "priority": 2,
+        "name": "Property Taxes & Insurance",
+        "amount": 2000000,
+        "paid": true
+      },
+      {
+        "priority": 3,
+        "name": "Senior Debt Service",
+        "amount": 15000000,
+        "paid": true
+      },
+      {
+        "priority": 4,
+        "name": "DSRA Replenishment",
+        "amount": 1300000,
+        "paid": true
+      },
+      {
+        "priority": 5,
+        "name": "Major Maintenance Reserve",
+        "amount": 600000,
+        "paid": true
+      },
+      {
+        "priority": 6,
+        "name": "Decommissioning Reserve",
+        "amount": 750000,
+        "paid": true
+      },
+      {
+        "priority": 7,
+        "name": "Tax Equity Distribution",
+        "amount": 8500000,
+        "paid": true
+      },
+      {
+        "priority": 8,
+        "name": "Sponsor Distribution",
+        "amount": 6200000,
+        "paid": true,
+        "condition": "DSCR >= 1.50"
+      }
+    ],
+    "totalDistributed": 39150000,
+    "remainder": 2850000
+  },
+  "conditionsPrecedent": {
+    "InitialFunding": {
+      "section": "4.01",
+      "totalItems": 10,
+      "satisfiedItems": 10,
+      "status": "complete",
+      "completedDate": "2025-01-15"
+    },
+    "SubsequentDraws": {
+      "section": "4.02",
+      "totalItems": 5,
+      "satisfiedItems": 3,
+      "status": "in_progress",
+      "items": [
+        { "name": "MilestoneAchievement", "status": "satisfied" },
+        { "name": "LienWaivers", "status": "satisfied" },
+        { "name": "TitleEndorsement", "status": "satisfied" },
+        { "name": "InspectionReport", "status": "pending" },
+        { "name": "BudgetCertification", "status": "pending" }
+      ]
+    },
+    "COD_Funding": {
+      "section": "4.03",
+      "totalItems": 6,
+      "satisfiedItems": 0,
+      "status": "not_started"
+    }
+  }
+}
