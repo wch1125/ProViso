@@ -947,7 +947,7 @@ BASKET EBITDAInvestments
   SUBJECT TO NoDefault
 
 BASKET AssetBasedBasket
-  CAPACITY 2.0.05 * total_assets
+  CAPACITY 0.05 * total_assets
   FLOOR $5_000_000
 
 // ==================== BUILDER BASKETS ====================
