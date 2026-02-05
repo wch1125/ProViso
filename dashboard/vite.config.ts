@@ -2,9 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
-export default defineConfig(({ mode }) => ({
-  // Use /ProViso/ base path for production (GitHub Pages), / for dev
-  base: mode === 'production' ? '/ProViso/' : '/',
+export default defineConfig({
+  // Use root base path (works with custom domain proviso-demo.haslun.online)
+  base: '/',
   plugins: [react()],
   resolve: {
     alias: {
@@ -34,4 +34,4 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-}))
+})
