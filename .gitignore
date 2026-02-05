@@ -35,4 +35,19 @@ Thumbs.db
 
 # Optional eslint cache
 .eslintcache
-/.claude
+
+# Claude Code workflow system (logs, prompts, local settings)
+.claude/
+
+# Version archives (local backups)
+archive-v*.zip
+
+# Claude-specific build instructions (not end-user docs)
+V*_BUILD_INSTRUCTIONS.md
+V*_COMPLETION_INSTRUCTIONS.md
+
+# Reference code from other projects
+reference/
+
+# Dashboard build output (built in CI)
+dashboard/dist/
