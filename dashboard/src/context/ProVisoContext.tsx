@@ -278,7 +278,7 @@ interface ProVisoState {
   currentPhase: string | null;
 
   // Actions
-  loadFromCode: (code: string) => Promise<boolean>;
+  loadFromCode: (code: string, initialFinancials?: SimpleFinancialData) => Promise<boolean>;
   loadFinancials: (data: SimpleFinancialData) => void;
   updateFinancial: (key: string, value: number) => void;
   refresh: () => void;
@@ -318,7 +318,7 @@ const defaultState: ProVisoState = {
   industry: null,
   projectName: '',
   currentPhase: null,
-  loadFromCode: async () => false,
+  loadFromCode: async (_code: string, _financials?: SimpleFinancialData) => false,
   loadFinancials: () => {},
   updateFinancial: () => {},
   refresh: () => {},
@@ -482,8 +482,8 @@ export function ProVisoProvider({
     }
   }, [interpreter]);
 
-  // Load ProViso code
-  const loadFromCode = useCallback(async (code: string): Promise<boolean> => {
+  // Load ProViso code (with optional initial financials to avoid race condition)
+  const loadFromCode = useCallback(async (code: string, initialFinancials?: SimpleFinancialData): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
 
@@ -499,9 +499,14 @@ export function ProVisoProvider({
 
       const newInterpreter = new ProVisoInterpreter(result.ast as Program);
 
-      // If we have financials, load them
-      if (Object.keys(financials).length > 0) {
-        newInterpreter.loadFinancials(financials);
+      // Load financials - prefer initialFinancials (if provided), then existing state
+      const financialsToLoad = initialFinancials ?? (Object.keys(financials).length > 0 ? financials : null);
+      if (financialsToLoad) {
+        newInterpreter.loadFinancials(financialsToLoad);
+        // Also update state if initialFinancials provided
+        if (initialFinancials) {
+          setFinancials(initialFinancials);
+        }
       }
 
       setInterpreter(newInterpreter);

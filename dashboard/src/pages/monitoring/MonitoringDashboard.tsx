@@ -110,7 +110,6 @@ export function MonitoringDashboard() {
     error,
     dashboardData,
     loadFromCode,
-    loadFinancials,
     refresh,
   } = useProViso();
   const { logActivity, getActivitiesForDeal } = useDeal();
@@ -140,37 +139,25 @@ export function MonitoringDashboard() {
         const scenario = dealId ? getScenarioById(dealId) : undefined;
 
         if (scenario) {
-          // Load the scenario's code and financials
-          const success = await loadFromCode(scenario.code);
-          if (success) {
-            loadFinancials(scenario.financials);
-          }
+          // Load the scenario's code AND financials together (avoids race condition)
+          await loadFromCode(scenario.code, scenario.financials);
         } else {
           // Fall back to default code and financials
-          const success = await loadFromCode(DEFAULT_PROVISO_CODE);
-          if (success) {
-            loadFinancials(DEFAULT_FINANCIALS);
-          }
+          await loadFromCode(DEFAULT_PROVISO_CODE, DEFAULT_FINANCIALS);
         }
       }
     }
     initialize();
-  }, [dealId, isLoaded, isLoading, error, loadFromCode, loadFinancials]);
+  }, [dealId, isLoaded, isLoading, error, loadFromCode]);
 
   // Retry handler
   const handleRetry = async () => {
     const scenario = dealId ? getScenarioById(dealId) : undefined;
 
     if (scenario) {
-      const success = await loadFromCode(scenario.code);
-      if (success) {
-        loadFinancials(scenario.financials);
-      }
+      await loadFromCode(scenario.code, scenario.financials);
     } else {
-      const success = await loadFromCode(DEFAULT_PROVISO_CODE);
-      if (success) {
-        loadFinancials(DEFAULT_FINANCIALS);
-      }
+      await loadFromCode(DEFAULT_PROVISO_CODE, DEFAULT_FINANCIALS);
     }
   };
 
