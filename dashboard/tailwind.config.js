@@ -17,6 +17,23 @@ export default {
 
       // Colors - Premium Legal Tech Palette
       colors: {
+        // Industry Theme Colors (CSS variable-based)
+        industry: {
+          pageBg: 'var(--industry-page-bg)',
+          headerBg: 'var(--industry-header-bg)',
+          cardBg: 'var(--industry-card-bg)',
+          cardBgHover: 'var(--industry-card-bg-hover)',
+          primary: 'var(--industry-primary)',
+          primaryHover: 'var(--industry-primary-hover)',
+          primaryLight: 'var(--industry-primary-light)',
+          secondary: 'var(--industry-secondary)',
+          borderDefault: 'var(--industry-border-default)',
+          borderStrong: 'var(--industry-border-strong)',
+          textPrimary: 'var(--industry-text-primary)',
+          textSecondary: 'var(--industry-text-secondary)',
+          textMuted: 'var(--industry-text-muted)',
+        },
+
         // Primary: Gold (Lion's Mane)
         gold: {
           50: '#FDF8E8',

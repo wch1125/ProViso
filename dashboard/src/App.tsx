@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ProVisoProvider, ClosingProvider, DealProvider } from './context';
+import { ProVisoProvider, ClosingProvider, DealProvider, IndustryThemeProvider } from './context';
 import { LoadingScreen } from './components/landing';
 
 // Lazy-loaded page components for code splitting
@@ -44,31 +44,33 @@ function App() {
     <DealProvider>
       <ProVisoProvider>
         <BrowserRouter>
-          {/* Loading screen on first visit */}
-          {showLoadingScreen && (
-            <LoadingScreen
-              minDisplayTime={1600}
-              onComplete={handleLoadingComplete}
-            />
-          )}
+          <IndustryThemeProvider>
+            {/* Loading screen on first visit */}
+            {showLoadingScreen && (
+              <LoadingScreen
+                minDisplayTime={1600}
+                onComplete={handleLoadingComplete}
+              />
+            )}
 
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              {/* Landing page - public entry point */}
-              <Route path="/" element={<Landing />} />
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                {/* Landing page - public entry point */}
+                <Route path="/" element={<Landing />} />
 
-              {/* Deal list */}
-              <Route path="/deals" element={<DealList />} />
+                {/* Deal list */}
+                <Route path="/deals" element={<DealList />} />
 
-              {/* Deal-specific routes */}
-              <Route path="/deals/:dealId/negotiate" element={<NegotiationStudio />} />
-              <Route path="/deals/:dealId/closing" element={<ClosingProvider><ClosingDashboard /></ClosingProvider>} />
-              <Route path="/deals/:dealId/monitor" element={<MonitoringDashboard />} />
+                {/* Deal-specific routes */}
+                <Route path="/deals/:dealId/negotiate" element={<NegotiationStudio />} />
+                <Route path="/deals/:dealId/closing" element={<ClosingProvider><ClosingDashboard /></ClosingProvider>} />
+                <Route path="/deals/:dealId/monitor" element={<MonitoringDashboard />} />
 
-              {/* Fallback - redirect unknown routes to landing */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
+                {/* Fallback - redirect unknown routes to landing */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </IndustryThemeProvider>
         </BrowserRouter>
       </ProVisoProvider>
     </DealProvider>

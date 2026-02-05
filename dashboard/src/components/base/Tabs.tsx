@@ -45,9 +45,9 @@ export interface TabListProps {
 
 export function TabList({ children, className = '', variant = 'default' }: TabListProps) {
   const variantStyles: Record<string, string> = {
-    default: 'border-b border-slate-700 gap-1',
-    pills: 'bg-slate-800 rounded-lg p-1 gap-1',
-    underline: 'border-b border-slate-700 gap-6',
+    default: 'border-b border-industry-borderDefault gap-1',
+    pills: 'bg-industry-cardBg rounded-lg p-1 gap-1',
+    underline: 'border-b border-industry-borderDefault gap-6',
   };
 
   return (
@@ -84,22 +84,22 @@ export function TabTrigger({
     flex items-center gap-2
     text-sm font-medium
     transition-all duration-200
-    focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 focus:ring-offset-slate-900
+    focus:outline-none focus:ring-2 focus:ring-industry-primary focus:ring-offset-2 focus:ring-offset-industry-pageBg
     disabled:opacity-50 disabled:cursor-not-allowed
   `;
 
   const variantStyles: Record<string, { active: string; inactive: string }> = {
     default: {
-      active: 'px-4 py-2 -mb-px border-b-2 border-accent-500 text-accent-400',
-      inactive: 'px-4 py-2 -mb-px border-b-2 border-transparent text-slate-400 hover:text-white hover:border-slate-600',
+      active: 'px-4 py-2 -mb-px border-b-2 border-industry-primary text-industry-primary',
+      inactive: 'px-4 py-2 -mb-px border-b-2 border-transparent text-industry-textSecondary hover:text-industry-textPrimary hover:border-industry-borderStrong',
     },
     pills: {
-      active: 'px-4 py-2 rounded-md bg-accent-500 text-white',
-      inactive: 'px-4 py-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-700',
+      active: 'px-4 py-2 rounded-md bg-industry-primary text-white',
+      inactive: 'px-4 py-2 rounded-md text-industry-textSecondary hover:text-industry-textPrimary hover:bg-industry-cardBgHover',
     },
     underline: {
-      active: 'pb-3 -mb-px border-b-2 border-accent-500 text-white',
-      inactive: 'pb-3 -mb-px border-b-2 border-transparent text-slate-400 hover:text-white',
+      active: 'pb-3 -mb-px border-b-2 border-industry-primary text-industry-textPrimary',
+      inactive: 'pb-3 -mb-px border-b-2 border-transparent text-industry-textSecondary hover:text-industry-textPrimary',
     },
   };
 

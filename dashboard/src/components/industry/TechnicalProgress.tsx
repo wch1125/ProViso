@@ -116,12 +116,12 @@ export function TechnicalProgress({ milestones, title = "Technical Progress" }: 
     const data = payload[0].payload;
 
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 shadow-lg">
-        <p className="text-sm font-medium text-white">{data.fullName}</p>
-        <p className="text-sm text-gray-400">
+      <div className="bg-industry-cardBg border border-industry-borderDefault rounded-lg px-3 py-2 shadow-lg">
+        <p className="text-sm font-medium text-industry-textPrimary">{data.fullName}</p>
+        <p className="text-sm text-industry-textSecondary">
           {data.current.toLocaleString()} / {data.target.toLocaleString()} {data.measurement}
         </p>
-        <p className="text-xs text-gray-500 mt-1">{data.percent}% complete</p>
+        <p className="text-xs text-industry-textMuted mt-1">{data.percent}% complete</p>
       </div>
     );
   };
@@ -162,10 +162,10 @@ export function TechnicalProgress({ milestones, title = "Technical Progress" }: 
         {/* Overall progress bar */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-400">Overall Technical Progress</span>
-            <span className="text-sm font-medium text-white">{overallProgress.toFixed(1)}%</span>
+            <span className="text-sm text-industry-textSecondary">Overall Technical Progress</span>
+            <span className="text-sm font-medium text-industry-textPrimary">{overallProgress.toFixed(1)}%</span>
           </div>
-          <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
+          <div className="h-3 bg-industry-headerBg rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-500"
               style={{ width: `${Math.min(overallProgress, 100)}%` }}
@@ -266,7 +266,7 @@ export function TechnicalProgress({ milestones, title = "Technical Progress" }: 
 
         {/* Critical path indicator */}
         {milestones.filter((m) => m.status === 'in_progress').length > 0 && (
-          <div className="mt-4 pt-4 border-t border-slate-800">
+          <div className="mt-4 pt-4 border-t border-industry-borderDefault">
             <p className="text-xs text-gray-400 mb-2">Critical Path</p>
             <div className="flex items-center gap-2 flex-wrap">
               {milestones

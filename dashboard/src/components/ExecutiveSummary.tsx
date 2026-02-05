@@ -1,5 +1,6 @@
 import { CheckCircle2, AlertTriangle, XCircle, DollarSign, Calendar, TrendingUp, AlertCircle } from 'lucide-react';
 import { Card, CardBody } from './Card';
+import { useIndustryTheme } from '../context';
 import { generateAlerts } from '../utils/thresholds';
 import type { DashboardData } from '../types';
 
@@ -8,6 +9,8 @@ interface ExecutiveSummaryProps {
 }
 
 export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
+  const { colors } = useIndustryTheme();
+
   // Calculate key metrics
   const totalCovenants = data.covenants.length;
   const activeCovenants = data.covenants.filter(c => !c.suspended);
@@ -49,7 +52,7 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
   return (
     <Card className="col-span-full">
       <CardBody className="p-0">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-slate-800">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-industry-borderDefault">
           {/* Overall Compliance */}
           <div className="p-5">
             <div className="flex items-start justify-between">
@@ -99,7 +102,7 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
               <div>
                 <p className="metric-label mb-1">Milestones</p>
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="w-6 h-6 text-accent-500" />
+                  <TrendingUp className="w-6 h-6 text-industry-primary" style={{ color: colors.primary }} />
                   <span className="metric-value">
                     {milestonesAchieved}/{data.milestones.length}
                   </span>
@@ -121,7 +124,7 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
               <div>
                 <p className="metric-label mb-1">Reserve Funding</p>
                 <div className="flex items-center gap-2">
-                  <DollarSign className="w-6 h-6 text-accent-500" />
+                  <DollarSign className="w-6 h-6 text-industry-primary" style={{ color: colors.primary }} />
                   <span className="metric-value">{reserveFunding.toFixed(0)}%</span>
                 </div>
               </div>
@@ -137,7 +140,7 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
               <div>
                 <p className="metric-label mb-1">Monthly Revenue</p>
                 <div className="flex items-center gap-2">
-                  <DollarSign className="w-6 h-6 text-accent-500" />
+                  <DollarSign className="w-6 h-6 text-industry-primary" style={{ color: colors.primary }} />
                   <span className="metric-value">${(data.waterfall.revenue / 1_000_000).toFixed(1)}M</span>
                 </div>
               </div>
@@ -159,7 +162,7 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
               <div>
                 <p className="metric-label mb-1">COD Target</p>
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-6 h-6 text-accent-500" />
+                  <Calendar className="w-6 h-6 text-industry-primary" style={{ color: colors.primary }} />
                   <span className="metric-value text-lg">
                     {data.phase.codTarget ? new Date(data.phase.codTarget).toLocaleDateString('en-US', {
                       month: 'short',

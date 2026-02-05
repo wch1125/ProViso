@@ -48,7 +48,7 @@ export function CovenantPanel({ covenants, showNarratives = true, showCodeButton
       />
       <CardBody className="p-0">
         {/* Active Covenants */}
-        <div className="divide-y divide-slate-800">
+        <div className="divide-y divide-industry-borderDefault">
           {activeCovenants.map((covenant) => (
             <CovenantRow
               key={covenant.name}
@@ -61,14 +61,14 @@ export function CovenantPanel({ covenants, showNarratives = true, showCodeButton
 
         {/* Suspended Covenants Section */}
         {suspendedCovenants.length > 0 && (
-          <div className="border-t border-slate-700 bg-slate-900/30">
+          <div className="border-t border-industry-borderStrong bg-industry-headerBg/30">
             <div className="px-5 py-3 flex items-center gap-2">
-              <Pause className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-500">
+              <Pause className="w-4 h-4 text-industry-textMuted" />
+              <span className="text-sm font-medium text-industry-textMuted">
                 Suspended During Construction ({suspendedCovenants.length})
               </span>
             </div>
-            <div className="divide-y divide-slate-800/50">
+            <div className="divide-y divide-industry-borderDefault/50">
               {suspendedCovenants.map((covenant) => (
                 <CovenantRow
                   key={covenant.name}
@@ -163,7 +163,7 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true }: 
           <div className="flex items-center gap-3">
             <Icon className={`w-5 h-5 ${iconColor} ${zoneStyle.pulseAnimation ? 'animate-pulse' : ''}`} />
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-white">{displayName}</span>
+              <span className="text-sm font-medium text-industry-textPrimary">{displayName}</span>
               {showCodeButton && (
                 <CodeViewButton onClick={() => setShowCode(true)} />
               )}
@@ -182,18 +182,18 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true }: 
             <div className="flex items-baseline gap-2">
               <span className={`text-lg font-semibold tabular-nums ${
                 suspended
-                  ? 'text-gray-500'
+                  ? 'text-industry-textMuted'
                   : zone === 'breach'
                   ? 'text-red-400'
                   : zone === 'danger'
                   ? 'text-orange-400'
                   : zone === 'caution'
                   ? 'text-amber-400'
-                  : 'text-white'
+                  : 'text-industry-textPrimary'
               }`}>
                 {formatValue(actual)}x
               </span>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-industry-textMuted">
                 {operator} {formatValue(required)}x
               </span>
             </div>

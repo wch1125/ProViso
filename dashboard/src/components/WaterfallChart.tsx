@@ -1,6 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { AlertTriangle, Lock } from 'lucide-react';
 import { Card, CardHeader, CardBody } from './Card';
+import { useIndustryTheme } from '../context';
 import type { WaterfallData } from '../types';
 
 interface WaterfallChartProps {
@@ -17,6 +18,7 @@ interface ChartDataItem {
 
 export function WaterfallChart({ waterfall }: WaterfallChartProps) {
   const { revenue, tiers } = waterfall;
+  const { chartColors } = useIndustryTheme();
 
   // Note: ChartDataItem interface is used for CustomTooltip typing
 
@@ -25,11 +27,10 @@ export function WaterfallChart({ waterfall }: WaterfallChartProps) {
   const blockedAmount = tiers.filter(t => t.blocked).reduce((sum, t) => sum + t.amount, 0);
   const remainder = revenue - totalDistributed - blockedAmount;
 
-  // Colors for the bars
+  // Colors for the bars - use theme colors
   const getBarColor = (index: number, blocked: boolean) => {
     if (blocked) return '#4b5563'; // gray-600
-    const colors = ['#0ea5e9', '#06b6d4', '#14b8a6', '#10b981', '#22c55e'];
-    return colors[index % colors.length];
+    return chartColors[index % chartColors.length];
   };
 
   // Custom tooltip
@@ -38,9 +39,9 @@ export function WaterfallChart({ waterfall }: WaterfallChartProps) {
     const data = payload[0].payload;
 
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 shadow-lg">
-        <p className="text-sm font-medium text-white">{data.name}</p>
-        <p className="text-sm text-gray-400">
+      <div className="bg-industry-cardBg border border-industry-borderDefault rounded-lg px-3 py-2 shadow-lg">
+        <p className="text-sm font-medium text-industry-textPrimary">{data.name}</p>
+        <p className="text-sm text-industry-textSecondary">
           ${(data.amount / 1_000_000).toFixed(2)}M
         </p>
         {data.blocked && (
@@ -57,8 +58,8 @@ export function WaterfallChart({ waterfall }: WaterfallChartProps) {
         subtitle="Monthly distribution priority"
         action={
           <div className="text-right">
-            <p className="text-sm text-gray-400">Revenue</p>
-            <p className="text-lg font-semibold text-white">${(revenue / 1_000_000).toFixed(1)}M</p>
+            <p className="text-sm text-industry-textSecondary">Revenue</p>
+            <p className="text-lg font-semibold text-industry-textPrimary">${(revenue / 1_000_000).toFixed(1)}M</p>
           </div>
         }
       />
@@ -111,7 +112,7 @@ export function WaterfallChart({ waterfall }: WaterfallChartProps) {
                   className="w-3 h-3 rounded-sm"
                   style={{ backgroundColor: getBarColor(index, !!tier.blocked) }}
                 />
-                <span className={`text-sm ${tier.blocked ? 'text-gray-400' : 'text-gray-300'}`}>
+                <span className={`text-sm ${tier.blocked ? 'text-industry-textMuted' : 'text-industry-textSecondary'}`}>
                   {tier.name}
                 </span>
                 {tier.blocked && (
@@ -122,7 +123,7 @@ export function WaterfallChart({ waterfall }: WaterfallChartProps) {
                 )}
               </div>
               <span className={`text-sm font-medium tabular-nums ${
-                tier.blocked ? 'text-gray-500' : 'text-white'
+                tier.blocked ? 'text-industry-textMuted' : 'text-industry-textPrimary'
               }`}>
                 ${(tier.amount / 1_000_000).toFixed(2)}M
               </span>
@@ -131,22 +132,22 @@ export function WaterfallChart({ waterfall }: WaterfallChartProps) {
         </div>
 
         {/* Summary */}
-        <div className="mt-4 pt-4 border-t border-slate-800 grid grid-cols-3 gap-4">
+        <div className="mt-4 pt-4 border-t border-industry-borderDefault grid grid-cols-3 gap-4">
           <div>
-            <p className="text-xs text-gray-500">Distributed</p>
+            <p className="text-xs text-industry-textMuted">Distributed</p>
             <p className="text-lg font-semibold text-emerald-400">
               ${(totalDistributed / 1_000_000).toFixed(2)}M
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500">Blocked</p>
+            <p className="text-xs text-industry-textMuted">Blocked</p>
             <p className="text-lg font-semibold text-amber-400">
               ${(blockedAmount / 1_000_000).toFixed(2)}M
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500">Remainder</p>
-            <p className="text-lg font-semibold text-white">
+            <p className="text-xs text-industry-textMuted">Remainder</p>
+            <p className="text-lg font-semibold text-industry-textPrimary">
               ${(remainder / 1_000_000).toFixed(2)}M
             </p>
           </div>

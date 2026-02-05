@@ -48,23 +48,23 @@ export function DealPageLayout({
   const status = statusConfig[dealStatus];
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-industry-pageBg">
       {/* Header */}
-      <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-20">
+      <header className="bg-industry-headerBg border-b border-industry-borderDefault sticky top-0 z-20">
         <div className="px-6">
           {/* Top row: Back + Deal info + Actions */}
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center gap-4">
               <Link
                 to="/deals"
-                className="p-2 -ml-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                className="p-2 -ml-2 text-industry-textSecondary hover:text-industry-textPrimary hover:bg-industry-cardBg rounded-lg transition-colors"
                 aria-label="Back to deals"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-xl font-semibold text-white">
+                  <h1 className="text-xl font-semibold text-industry-textPrimary">
                     {dealName}
                   </h1>
                   <Badge variant={status.variant} dot>
@@ -72,7 +72,7 @@ export function DealPageLayout({
                   </Badge>
                 </div>
                 {subtitle && (
-                  <p className="text-sm text-slate-400 mt-0.5">
+                  <p className="text-sm text-industry-textSecondary mt-0.5">
                     {subtitle}
                   </p>
                 )}
@@ -119,8 +119,8 @@ function DealNavigation({ dealId, currentView }: DealNavigationProps) {
               text-sm font-medium border-b-2
               transition-colors
               ${isActive
-                ? 'border-accent-500 text-accent-400'
-                : 'border-transparent text-slate-400 hover:text-white hover:border-slate-600'
+                ? 'border-industry-primary text-industry-primary'
+                : 'border-transparent text-industry-textSecondary hover:text-industry-textPrimary hover:border-industry-borderStrong'
               }
             `}
             aria-current={isActive ? 'page' : undefined}
@@ -170,7 +170,7 @@ export function DealPageSidebar({
 }) {
   return (
     <aside
-      className="min-h-[calc(100vh-121px)] bg-slate-900 border-r border-slate-800 p-4"
+      className="min-h-[calc(100vh-121px)] bg-industry-headerBg border-r border-industry-borderDefault p-4"
       style={{ width }}
     >
       {children}

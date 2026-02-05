@@ -21,3 +21,8 @@ export {
   type CreateDealInput,
   type DealStatus,
 } from './DealContext';
+
+export {
+  IndustryThemeProvider,
+  useIndustryTheme,
+} from './IndustryThemeContext';

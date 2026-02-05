@@ -68,7 +68,7 @@ export function Modal({
         <div
           className={`
             relative w-full ${sizeStyles[size]}
-            bg-slate-800 border border-slate-700
+            bg-industry-cardBg border border-industry-borderDefault
             rounded-xl shadow-2xl
             transform transition-all
           `}
@@ -78,11 +78,11 @@ export function Modal({
         >
           {/* Header */}
           {(title || showCloseButton) && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-industry-borderDefault">
               {title && (
                 <h2
                   id="modal-title"
-                  className="text-lg font-semibold text-white"
+                  className="text-lg font-semibold text-industry-textPrimary"
                 >
                   {title}
                 </h2>
@@ -92,10 +92,10 @@ export function Modal({
                   type="button"
                   className="
                     p-1 rounded-lg
-                    text-slate-400 hover:text-white
-                    hover:bg-slate-700
+                    text-industry-textSecondary hover:text-industry-textPrimary
+                    hover:bg-industry-cardBgHover
                     transition-colors
-                    focus:outline-none focus:ring-2 focus:ring-accent-500
+                    focus:outline-none focus:ring-2 focus:ring-industry-primary
                   "
                   onClick={onClose}
                   aria-label="Close modal"
@@ -111,7 +111,7 @@ export function Modal({
 
           {/* Footer */}
           {footer && (
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-700">
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-industry-borderDefault">
               {footer}
             </div>
           )}

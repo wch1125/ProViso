@@ -10,11 +10,11 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const variantStyles: Record<string, string> = {
   primary:
-    'bg-accent-500 hover:bg-accent-600 text-white border-transparent shadow-glow-sm hover:shadow-glow',
+    'bg-industry-primary hover:bg-industry-primaryHover text-white border-transparent shadow-sm hover:shadow-md',
   secondary:
-    'bg-slate-700 hover:bg-slate-600 text-white border-slate-600',
+    'bg-industry-cardBg hover:bg-industry-cardBgHover text-industry-textPrimary border-industry-borderDefault',
   ghost:
-    'bg-transparent hover:bg-slate-800 text-slate-300 hover:text-white border-transparent',
+    'bg-transparent hover:bg-industry-cardBg text-industry-textSecondary hover:text-industry-textPrimary border-transparent',
   danger:
     'bg-red-600 hover:bg-red-700 text-white border-transparent',
   gold:
@@ -46,7 +46,7 @@ export function Button({
         inline-flex items-center justify-center
         font-medium rounded-lg border
         transition-all duration-200
-        focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 focus:ring-offset-slate-900
+        focus:outline-none focus:ring-2 focus:ring-industry-primary focus:ring-offset-2 focus:ring-offset-industry-pageBg
         disabled:opacity-50 disabled:cursor-not-allowed
         ${variantStyles[variant]}
         ${sizeStyles[size]}
