@@ -45,37 +45,37 @@ export interface IndustryTheme {
 }
 
 // =============================================================================
-// SOLAR THEME - Warm Sun Energy (Amber/Orange)
+// SOLAR THEME - Green Energy (Emerald/Green)
 // =============================================================================
 
 export const solarTheme: IndustryTheme = {
   id: 'solar',
   name: 'Solar',
   colors: {
-    // Warm dark backgrounds
-    pageBg: '#1a1207',
-    headerBg: '#261a0d',
-    cardBg: '#1f1610',
-    cardBgHover: '#2a1f15',
+    // Dark green backgrounds
+    pageBg: '#0a1610',
+    headerBg: '#0d1f14',
+    cardBg: '#101f16',
+    cardBgHover: '#152a1d',
 
-    // Amber accents
-    primary: '#f59e0b',
-    primaryHover: '#d97706',
-    primaryLight: 'rgba(245, 158, 11, 0.15)',
+    // Emerald accents
+    primary: '#10b981',
+    primaryHover: '#059669',
+    primaryLight: 'rgba(16, 185, 129, 0.15)',
 
-    secondary: '#fbbf24',
+    secondary: '#34d399',
 
-    // Warm brown borders
-    borderDefault: '#4d3620',
-    borderStrong: '#6b4a2a',
+    // Green borders
+    borderDefault: '#1e4d3a',
+    borderStrong: '#2a6b4f',
 
-    // Warm white text
-    textPrimary: '#fef3c7',
-    textSecondary: '#d4b896',
-    textMuted: '#a68a5b',
+    // Green-tinted white text
+    textPrimary: '#ecfdf5',
+    textSecondary: '#a7d4c2',
+    textMuted: '#6b9e8a',
 
-    // Chart palette - warm oranges/yellows
-    chartColors: ['#f59e0b', '#fbbf24', '#d97706', '#f97316', '#fb923c'],
+    // Chart palette - greens
+    chartColors: ['#10b981', '#34d399', '#059669', '#22c55e', '#4ade80'],
   },
 };
 
@@ -115,37 +115,37 @@ export const windTheme: IndustryTheme = {
 };
 
 // =============================================================================
-// CORPORATE THEME - Professional Navy/Indigo
+// CORPORATE THEME - Professional Steel Gray
 // =============================================================================
 
 export const corporateTheme: IndustryTheme = {
   id: 'corporate',
   name: 'Corporate',
   colors: {
-    // Deep navy backgrounds
-    pageBg: '#0f1219',
-    headerBg: '#151b27',
-    cardBg: '#1a2030',
-    cardBgHover: '#212942',
+    // Steel gray backgrounds
+    pageBg: '#111214',
+    headerBg: '#18191c',
+    cardBg: '#1e2024',
+    cardBgHover: '#26282d',
 
-    // Indigo accents
-    primary: '#6366f1',
-    primaryHover: '#4f46e5',
-    primaryLight: 'rgba(99, 102, 241, 0.15)',
+    // Steel blue accents
+    primary: '#64748b',
+    primaryHover: '#475569',
+    primaryLight: 'rgba(100, 116, 139, 0.15)',
 
-    secondary: '#818cf8',
+    secondary: '#94a3b8',
 
-    // Slate borders
-    borderDefault: '#334155',
-    borderStrong: '#475569',
+    // Gray borders
+    borderDefault: '#2e3138',
+    borderStrong: '#3f434b',
 
-    // Slate white text
-    textPrimary: '#f1f5f9',
-    textSecondary: '#94a3b8',
-    textMuted: '#64748b',
+    // Cool gray text
+    textPrimary: '#f1f3f5',
+    textSecondary: '#9ca3af',
+    textMuted: '#6b7280',
 
-    // Chart palette - indigo/purple
-    chartColors: ['#6366f1', '#818cf8', '#4f46e5', '#8b5cf6', '#a78bfa'],
+    // Chart palette - steel grays with blue hints
+    chartColors: ['#64748b', '#94a3b8', '#475569', '#78909c', '#90a4ae'],
   },
 };
 

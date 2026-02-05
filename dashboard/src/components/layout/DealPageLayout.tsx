@@ -56,9 +56,9 @@ export function DealPageLayout({
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center gap-4">
               <Link
-                to="/deals"
+                to="/"
                 className="p-2 -ml-2 text-industry-textSecondary hover:text-industry-textPrimary hover:bg-industry-cardBg rounded-lg transition-colors"
-                aria-label="Back to deals"
+                aria-label="Back to home"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Link>

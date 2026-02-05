@@ -48,18 +48,6 @@ export function Footer() {
               haslun.studio
               <ExternalLink className="w-3 h-3" />
             </a>
-            <a
-              href="https://github.com/haslun/proviso"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="
-                text-sm text-text-tertiary hover:text-gold-500
-                transition-colors flex items-center gap-1
-              "
-            >
-              GitHub
-              <ExternalLink className="w-3 h-3" />
-            </a>
           </div>
         </div>
 

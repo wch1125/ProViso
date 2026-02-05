@@ -4,38 +4,38 @@
 
 /* =============================================================================
    INDUSTRY THEME CSS VARIABLES
-   Default values (Corporate theme) - overridden by IndustryThemeProvider
+   Default values (Corporate steel gray theme) - overridden by IndustryThemeProvider
    ============================================================================= */
 :root {
   /* Page and layout backgrounds */
-  --industry-page-bg: #0f1219;
-  --industry-header-bg: #151b27;
-  --industry-card-bg: #1a2030;
-  --industry-card-bg-hover: #212942;
+  --industry-page-bg: #111214;
+  --industry-header-bg: #18191c;
+  --industry-card-bg: #1e2024;
+  --industry-card-bg-hover: #26282d;
 
   /* Primary accent colors */
-  --industry-primary: #6366f1;
-  --industry-primary-hover: #4f46e5;
-  --industry-primary-light: rgba(99, 102, 241, 0.15);
+  --industry-primary: #64748b;
+  --industry-primary-hover: #475569;
+  --industry-primary-light: rgba(100, 116, 139, 0.15);
 
   /* Secondary accent */
-  --industry-secondary: #818cf8;
+  --industry-secondary: #94a3b8;
 
   /* Border colors */
-  --industry-border-default: #334155;
-  --industry-border-strong: #475569;
+  --industry-border-default: #2e3138;
+  --industry-border-strong: #3f434b;
 
   /* Text colors */
-  --industry-text-primary: #f1f5f9;
-  --industry-text-secondary: #94a3b8;
-  --industry-text-muted: #64748b;
+  --industry-text-primary: #f1f3f5;
+  --industry-text-secondary: #9ca3af;
+  --industry-text-muted: #6b7280;
 
   /* Chart colors */
-  --industry-chart-1: #6366f1;
-  --industry-chart-2: #818cf8;
-  --industry-chart-3: #4f46e5;
-  --industry-chart-4: #8b5cf6;
-  --industry-chart-5: #a78bfa;
+  --industry-chart-1: #64748b;
+  --industry-chart-2: #94a3b8;
+  --industry-chart-3: #475569;
+  --industry-chart-4: #78909c;
+  --industry-chart-5: #90a4ae;
 }
 
 @layer base {
