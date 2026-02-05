@@ -131,10 +131,16 @@ export function MonitoringDashboard() {
   const currentCode = currentScenario?.code ?? DEFAULT_PROVISO_CODE;
   const currentFinancials = currentScenario?.financials ?? DEFAULT_FINANCIALS;
 
-  // Initialize on mount with scenario data based on dealId (or defaults)
+  // Track the currently loaded dealId to detect changes
+  const [loadedDealId, setLoadedDealId] = useState<string | null>(null);
+
+  // Initialize on mount OR when dealId changes
   useEffect(() => {
     async function initialize() {
-      if (!isLoaded && !isLoading && !error) {
+      // Load if not loaded yet, OR if dealId changed
+      const shouldLoad = (!isLoaded && !isLoading && !error) || (dealId !== loadedDealId && !isLoading);
+
+      if (shouldLoad) {
         // Check if there's a demo scenario for this dealId
         const scenario = dealId ? getScenarioById(dealId) : undefined;
 
@@ -145,10 +151,12 @@ export function MonitoringDashboard() {
           // Fall back to default code and financials
           await loadFromCode(DEFAULT_PROVISO_CODE, DEFAULT_FINANCIALS);
         }
+
+        setLoadedDealId(dealId ?? null);
       }
     }
     initialize();
-  }, [dealId, isLoaded, isLoading, error, loadFromCode]);
+  }, [dealId, loadedDealId, isLoaded, isLoading, error, loadFromCode]);
 
   // Retry handler
   const handleRetry = async () => {
@@ -192,8 +200,8 @@ export function MonitoringDashboard() {
     }, 1500);
   };
 
-  // Loading state
-  if (isLoading || (!isLoaded && !error)) {
+  // Loading state - also show loading when dealId changes
+  if (isLoading || (!isLoaded && !error) || (dealId !== loadedDealId && loadedDealId !== null)) {
     return (
       <DealPageLayout
         dealId={dealId || 'unknown'}
