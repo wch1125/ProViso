@@ -5,7 +5,7 @@
  * Entry point to the Hub platform.
  * Includes search and filter functionality.
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   FileText,
@@ -25,7 +25,9 @@ import { NoResultsFound, NoDataYet } from '../../components/base/EmptyState';
 import { SkeletonCard } from '../../components/base/Skeleton';
 import { CreateDealModal } from '../../components/CreateDealModal';
 import { ActivityPanel } from '../../components/ActivityFeed';
+import { TopNav } from '../../components/layout';
 import { useDeal, type CreateDealInput, type DealStatus } from '../../context';
+import { demoScenarios } from '../../data/demo-scenarios';
 
 const statusConfig: Record<
   DealStatus,
@@ -65,7 +67,15 @@ export function DealList() {
     getCurrentVersion,
     clearActivities,
     resetToDefaults,
+    loadScenario,
   } = useDeal();
+
+  // Load all demo scenarios on mount
+  useEffect(() => {
+    Object.keys(demoScenarios).forEach(scenarioId => {
+      loadScenario(scenarioId);
+    });
+  }, [loadScenario]);
 
   // UI state
   const [isLoading] = useState(false);
@@ -129,17 +139,20 @@ export function DealList() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      {/* Header */}
-      <header className="bg-slate-900 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+    <div className="min-h-screen bg-surface-0">
+      {/* Global navigation */}
+      <TopNav />
+
+      {/* Page header */}
+      <header className="bg-surface-1 border-b border-border-DEFAULT">
+        <div className="max-w-screen-2xl mx-auto px-8 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-display font-bold text-white">
-                ProViso Hub
+              <h1 className="text-2xl font-display font-semibold text-text-primary">
+                Deal Pipeline
               </h1>
               <Badge variant="gold" size="sm">
-                v2.2
+                v2.1
               </Badge>
             </div>
             <div className="flex items-center gap-2">
@@ -160,7 +173,7 @@ export function DealList() {
               >
                 Activity
                 {activities.length > 0 && (
-                  <span className="ml-1 text-xs bg-accent-500 text-white px-1.5 py-0.5 rounded-full">
+                  <span className="ml-1 text-xs bg-gold-500 text-navy-900 px-1.5 py-0.5 rounded-full">
                     {activities.length}
                   </span>
                 )}
@@ -177,7 +190,7 @@ export function DealList() {
       </header>
 
       {/* Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-screen-2xl mx-auto px-8 py-8">
         {/* Stats Row */}
         <div className="grid grid-cols-4 gap-4 mb-8">
           <StatCard
@@ -249,27 +262,27 @@ export function DealList() {
               const latestVersion = getCurrentVersion(deal.id);
 
               return (
-                <Card key={deal.id} className="hover:bg-slate-800/50 transition-colors">
+                <Card key={deal.id} className="hover:bg-surface-2/50 transition-colors">
                   <CardBody>
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-white">
+                          <h3 className="text-lg font-semibold text-text-primary">
                             {deal.name}
                           </h3>
                           <Badge variant={status.variant} dot>
                             {status.label}
                           </Badge>
                         </div>
-                        <div className="flex items-center gap-6 text-sm text-slate-400">
+                        <div className="flex items-center gap-6 text-sm text-text-tertiary">
                           <span>{formatCurrency(deal.facilityAmount)}</span>
-                          <span className="text-slate-600">|</span>
+                          <span className="text-text-muted">|</span>
                           <span>
                             Target Close: {formatDate(deal.targetClosingDate)}
                           </span>
                           {latestVersion && (
                             <>
-                              <span className="text-slate-600">|</span>
+                              <span className="text-text-muted">|</span>
                               <span>
                                 {latestVersion.versionLabel} (v
                                 {latestVersion.versionNumber})
@@ -295,7 +308,7 @@ export function DealList() {
                             Monitor
                           </Button>
                         </Link>
-                        <ChevronRight className="w-5 h-5 text-slate-500" />
+                        <ChevronRight className="w-5 h-5 text-text-muted" />
                       </div>
                     </div>
                   </CardBody>
@@ -333,10 +346,10 @@ interface StatCardProps {
 
 function StatCard({ icon, label, value, variant = 'default' }: StatCardProps) {
   const colors: Record<string, string> = {
-    default: 'text-slate-400',
-    success: 'text-emerald-400',
-    warning: 'text-amber-400',
-    info: 'text-accent-400',
+    default: 'text-text-tertiary',
+    success: 'text-success',
+    warning: 'text-warning',
+    info: 'text-gold-500',
   };
 
   return (
@@ -345,8 +358,8 @@ function StatCard({ icon, label, value, variant = 'default' }: StatCardProps) {
         <div className="flex items-center gap-3">
           <div className={colors[variant]}>{icon}</div>
           <div>
-            <div className="text-2xl font-bold text-white">{value}</div>
-            <div className="text-sm text-slate-400">{label}</div>
+            <div className="text-2xl font-bold text-text-primary">{value}</div>
+            <div className="text-sm text-text-tertiary">{label}</div>
           </div>
         </div>
       </CardBody>

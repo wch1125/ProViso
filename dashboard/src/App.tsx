@@ -5,6 +5,8 @@ import { LoadingScreen } from './components/landing';
 
 // Lazy-loaded page components for code splitting
 const Landing = lazy(() => import('./pages/Landing'));
+const About = lazy(() => import('./pages/About'));
+const GuidedDemo = lazy(() => import('./pages/demo/GuidedDemo'));
 const DealList = lazy(() => import('./pages/deals/DealList'));
 const NegotiationStudio = lazy(() => import('./pages/negotiation/NegotiationStudio'));
 const ClosingDashboard = lazy(() => import('./pages/closing/ClosingDashboard'));
@@ -57,6 +59,12 @@ function App() {
               <Routes>
                 {/* Landing page - public entry point */}
                 <Route path="/" element={<Landing />} />
+
+                {/* About page - value proposition */}
+                <Route path="/about" element={<About />} />
+
+                {/* Interactive guided demo */}
+                <Route path="/demo" element={<GuidedDemo />} />
 
                 {/* Deal list */}
                 <Route path="/deals" element={<DealList />} />

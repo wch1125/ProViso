@@ -26,26 +26,26 @@ export interface ConfirmationModalProps {
 const variantConfig = {
   default: {
     icon: Info,
-    iconBg: 'bg-accent-500/20',
-    iconColor: 'text-accent-400',
+    iconBg: 'bg-info/20',
+    iconColor: 'text-info',
     buttonVariant: 'primary' as const,
   },
   danger: {
     icon: XCircle,
-    iconBg: 'bg-red-500/20',
-    iconColor: 'text-red-400',
+    iconBg: 'bg-danger/20',
+    iconColor: 'text-danger',
     buttonVariant: 'danger' as const,
   },
   warning: {
     icon: AlertTriangle,
-    iconBg: 'bg-amber-500/20',
-    iconColor: 'text-amber-400',
+    iconBg: 'bg-warning/20',
+    iconColor: 'text-warning',
     buttonVariant: 'gold' as const,
   },
   success: {
     icon: CheckCircle,
-    iconBg: 'bg-emerald-500/20',
-    iconColor: 'text-emerald-400',
+    iconBg: 'bg-success/20',
+    iconColor: 'text-success',
     buttonVariant: 'primary' as const,
   },
 };
@@ -78,22 +78,22 @@ export function ConfirmationModal({
         </div>
 
         {/* Title */}
-        <h3 className="text-lg font-semibold text-white mb-2">
+        <h3 className="text-lg font-semibold text-text-primary mb-2">
           {title}
         </h3>
 
         {/* Message */}
-        <div className="text-sm text-slate-400 mb-4">
+        <div className="text-sm text-text-tertiary mb-4">
           {typeof message === 'string' ? <p>{message}</p> : message}
         </div>
 
         {/* Details list */}
         {details && details.length > 0 && (
-          <div className="bg-slate-800/50 rounded-lg p-3 mb-4 text-left">
-            <ul className="text-sm text-slate-400 space-y-1">
+          <div className="bg-surface-2/50 rounded-lg p-3 mb-4 text-left">
+            <ul className="text-sm text-text-tertiary space-y-1">
               {details.map((detail, index) => (
                 <li key={index} className="flex items-start gap-2">
-                  <span className="text-slate-600 mt-1">•</span>
+                  <span className="text-text-muted mt-1">•</span>
                   <span>{detail}</span>
                 </li>
               ))}

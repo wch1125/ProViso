@@ -65,11 +65,11 @@ export function PhaseTimeline({ phase }: PhaseTimelineProps) {
         {/* Timeline Track */}
         <div className="relative">
           {/* Background Track */}
-          <div className="absolute top-4 left-0 right-0 h-1 bg-slate-800 rounded-full" />
+          <div className="absolute top-4 left-0 right-0 h-1 bg-surface-2 rounded-full" />
 
           {/* Progress Fill */}
           <div
-            className="absolute top-4 left-0 h-1 bg-gradient-to-r from-accent-600 to-accent-400 rounded-full transition-all duration-1000"
+            className="absolute top-4 left-0 h-1 bg-gradient-to-r from-gold-600 to-gold-400 rounded-full transition-all duration-1000"
             style={{ width: `${progressPercent}%` }}
           />
 
@@ -81,18 +81,18 @@ export function PhaseTimeline({ phase }: PhaseTimelineProps) {
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center z-10 ${
                     p.status === 'completed'
-                      ? 'bg-accent-600'
+                      ? 'bg-gold-600'
                       : p.status === 'current'
-                      ? 'bg-accent-500 ring-4 ring-accent-500/20'
-                      : 'bg-slate-800'
+                      ? 'bg-gold-500 ring-4 ring-gold-500/20'
+                      : 'bg-surface-2'
                   }`}
                 >
                   {p.status === 'completed' ? (
-                    <CheckCircle2 className="w-5 h-5 text-white" />
+                    <CheckCircle2 className="w-5 h-5 text-text-primary" />
                   ) : p.status === 'current' ? (
-                    <Clock className="w-4 h-4 text-white animate-pulse" />
+                    <Clock className="w-4 h-4 text-text-primary animate-pulse" />
                   ) : (
-                    <Circle className="w-4 h-4 text-slate-600" />
+                    <Circle className="w-4 h-4 text-text-muted" />
                   )}
                 </div>
 
@@ -101,15 +101,15 @@ export function PhaseTimeline({ phase }: PhaseTimelineProps) {
                   <p
                     className={`text-sm font-medium ${
                       p.status === 'current'
-                        ? 'text-accent-400'
+                        ? 'text-gold-500'
                         : p.status === 'completed'
-                        ? 'text-gray-300'
-                        : 'text-gray-500'
+                        ? 'text-text-secondary'
+                        : 'text-text-muted'
                     }`}
                   >
                     {p.name}
                   </p>
-                  <p className="text-xs text-gray-600 mt-0.5">
+                  <p className="text-xs text-text-muted mt-0.5">
                     {new Date(p.date).toLocaleDateString('en-US', {
                       month: 'short',
                       year: 'numeric',
@@ -122,15 +122,15 @@ export function PhaseTimeline({ phase }: PhaseTimelineProps) {
         </div>
 
         {/* Current Phase Details */}
-        <div className="mt-8 pt-4 border-t border-slate-800">
+        <div className="mt-8 pt-4 border-t border-border-DEFAULT">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Current Phase</p>
-              <p className="text-lg font-medium text-white capitalize">{phase.current}</p>
+              <p className="text-sm text-text-tertiary">Current Phase</p>
+              <p className="text-lg font-medium text-text-primary capitalize">{phase.current}</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-400">Next Milestone</p>
-              <p className="text-lg font-medium text-accent-400">
+              <p className="text-sm text-text-tertiary">Next Milestone</p>
+              <p className="text-lg font-medium text-gold-500">
                 COD -{' '}
                 {new Date(phase.codTarget).toLocaleDateString('en-US', {
                   month: 'short',

@@ -7,17 +7,26 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
-      // Typography
+      // =================================================================
+      // TYPOGRAPHY — v2.4 Design System
+      // Crimson Pro (serif) for headings/display
+      // Inter (sans) for UI/body
+      // JetBrains Mono for code
+      // =================================================================
       fontFamily: {
-        display: ['EB Garamond', 'Georgia', 'Times New Roman', 'serif'],
-        body: ['DM Sans', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        sans: ['DM Sans', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        mono: ['SF Mono', 'Fira Code', 'Consolas', 'monospace'],
+        serif: ['Crimson Pro', 'Georgia', 'serif'],
+        display: ['Crimson Pro', 'Georgia', 'serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        body: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'Courier New', 'monospace'],
       },
 
-      // Colors - Premium Legal Tech Palette
+      // =================================================================
+      // COLORS — v2.4 Design System
+      // Navy/Gold core palette with semantic colors
+      // =================================================================
       colors: {
-        // Industry Theme Colors (CSS variable-based)
+        // Industry Theme Colors (CSS variable-based, set by IndustryThemeProvider)
         industry: {
           pageBg: 'var(--industry-page-bg)',
           headerBg: 'var(--industry-header-bg)',
@@ -34,21 +43,28 @@ export default {
           textMuted: 'var(--industry-text-muted)',
         },
 
-        // Primary: Gold (Lion's Mane)
+        // Phase-aware colors (CSS variable-based)
+        phase: {
+          accent: 'var(--phase-accent)',
+          badgeBg: 'var(--phase-badge-bg)',
+          badgeText: 'var(--phase-badge-text)',
+        },
+
+        // Primary: Gold
         gold: {
           50: '#FDF8E8',
           100: '#FAF0D1',
           200: '#F5E1A3',
           300: '#EFD175',
           400: '#E8C147',
-          500: '#D4A84B',
-          600: '#B8860B', // Primary gold
-          700: '#966D09',
+          500: '#D4AF37',  // v2.4 Gold Primary
+          600: '#BF9B30',  // v2.4 Gold Muted / hover
+          700: '#8B7028',  // v2.4 Gold Dark / pressed
           800: '#745407',
           900: '#523B05',
         },
 
-        // Secondary: Navy (Authority)
+        // Secondary: Navy
         navy: {
           50: '#E8EBF0',
           100: '#C5CCD9',
@@ -56,69 +72,79 @@ export default {
           300: '#7789AB',
           400: '#506894',
           500: '#2D3F5F',
-          600: '#1A2744', // Primary navy
-          700: '#141D33',
+          600: '#1A2744',
+          700: '#152238',  // v2.4 Navy Medium (card bg)
           800: '#111827',
-          900: '#0A0F17',
+          900: '#0A1628',  // v2.4 Navy Deep (page bg)
+          950: '#060E1A',
         },
 
-        // Surfaces (Dark Theme)
+        // Surfaces — mapped to navy scale for v2.4 cohesion
         surface: {
-          0: '#0F0F0F',   // Page background
-          1: '#151515',   // Card background
-          2: '#1C1C1A',   // Elevated card
-          3: '#242422',   // Hover state
-          4: '#2C2C2A',   // Active state
+          0: '#0A1628',   // Page background (= navy-900)
+          1: '#152238',   // Card background (= navy-700)
+          2: '#1E2F47',   // Elevated card / borders (= navy-light)
+          3: '#2D4260',   // Hover state
+          4: '#3A5578',   // Active state
         },
 
         // Text
         text: {
-          primary: '#E8E8E4',
-          secondary: '#B8B8B2',
-          tertiary: '#8A8A82',
-          muted: '#5A5A55',
+          primary: '#F9FAFB',    // v2.4 headings, important data
+          secondary: '#D1D5DB',  // v2.4 body text, descriptions
+          tertiary: '#9CA3AF',   // v2.4 metadata, timestamps
+          muted: '#6B7280',      // v2.4 disabled text
         },
 
         // Borders
         border: {
-          subtle: '#2A2A28',
-          DEFAULT: '#3A3A35',
-          strong: '#4A4A45',
+          subtle: '#152238',     // v2.4 very light separation
+          DEFAULT: '#1E2F47',    // v2.4 card borders, dividers
+          strong: '#2D4260',     // v2.4 focused elements, hover borders
         },
 
-        // Semantic Colors
+        // Semantic Colors — v2.4 aligned
         success: {
-          light: 'rgba(22, 163, 74, 0.1)',
-          DEFAULT: '#16A34A',
-          dark: '#15803D',
+          light: 'rgba(16, 185, 129, 0.1)',
+          DEFAULT: '#10B981',
+          dark: '#059669',
         },
         warning: {
-          light: 'rgba(202, 138, 4, 0.1)',
-          DEFAULT: '#CA8A04',
-          dark: '#A16207',
+          light: 'rgba(245, 158, 11, 0.1)',
+          DEFAULT: '#F59E0B',
+          dark: '#D97706',
         },
         danger: {
-          light: 'rgba(220, 38, 38, 0.1)',
-          DEFAULT: '#DC2626',
-          dark: '#B91C1C',
+          light: 'rgba(239, 68, 68, 0.1)',
+          DEFAULT: '#EF4444',
+          dark: '#DC2626',
         },
         info: {
-          light: 'rgba(37, 99, 235, 0.1)',
-          DEFAULT: '#2563EB',
-          dark: '#1D4ED8',
+          light: 'rgba(6, 182, 212, 0.1)',
+          DEFAULT: '#06B6D4',
+          dark: '#0891B2',
         },
 
-        // Legacy compatibility (keeping existing colors that dashboard uses)
+        // Progress blue (active timelines, in-progress items)
+        progress: {
+          light: 'rgba(59, 130, 246, 0.1)',
+          DEFAULT: '#3B82F6',
+          dark: '#2563EB',
+        },
+
+        // Status colors (used by dashboard components)
+        status: {
+          compliant: '#10B981',
+          breach: '#EF4444',
+          warning: '#F59E0B',
+          suspended: '#6B7280',
+        },
+
+        // Legacy compatibility
         slate: {
           850: '#1a1f2e',
           925: '#0f1219',
           950: '#080a0e',
-        },
-        status: {
-          compliant: '#10b981',
-          breach: '#ef4444',
-          warning: '#f59e0b',
-          suspended: '#6b7280',
         },
         accent: {
           50: '#f0f9ff',
@@ -141,7 +167,9 @@ export default {
         },
       },
 
-      // Spacing (4px base)
+      // =================================================================
+      // SPACING — 4px base unit
+      // =================================================================
       spacing: {
         '4.5': '18px',
         '13': '52px',
@@ -150,31 +178,44 @@ export default {
         '22': '88px',
       },
 
-      // Border radius
+      // =================================================================
+      // BORDER RADIUS — v2.4 scale
+      // =================================================================
       borderRadius: {
-        'xl': '12px',
-        '2xl': '16px',
-        '3xl': '24px',
+        'sm': '4px',
+        'md': '8px',
+        'lg': '12px',
+        'xl': '16px',
+        '2xl': '24px',
       },
 
-      // Box shadows
+      // =================================================================
+      // BOX SHADOWS — v2.4 scale + gold glow
+      // =================================================================
       boxShadow: {
-        'gold-sm': '0 0 0 2px rgba(184, 134, 11, 0.2)',
-        'gold': '0 0 0 4px rgba(184, 134, 11, 0.15), 0 4px 12px rgba(184, 134, 11, 0.2)',
-        'gold-lg': '0 0 0 6px rgba(184, 134, 11, 0.1), 0 8px 24px rgba(184, 134, 11, 0.25)',
-        'inner-gold': 'inset 0 0 0 1px rgba(184, 134, 11, 0.5)',
+        'sm': '0 1px 2px rgba(0, 0, 0, 0.3)',
+        'md': '0 4px 6px rgba(0, 0, 0, 0.4)',
+        'lg': '0 10px 15px rgba(0, 0, 0, 0.5)',
+        'xl': '0 20px 25px rgba(0, 0, 0, 0.6)',
+        'glow-gold': '0 0 20px rgba(212, 175, 55, 0.3)',
+        'glow-gold-sm': '0 0 10px rgba(212, 175, 55, 0.15)',
+        // Named elevation scale (alias)
         'elevation-1': '0 1px 3px rgba(0, 0, 0, 0.3)',
         'elevation-2': '0 4px 8px rgba(0, 0, 0, 0.35)',
         'elevation-3': '0 8px 16px rgba(0, 0, 0, 0.4)',
         'elevation-4': '0 16px 32px rgba(0, 0, 0, 0.45)',
+        // Gold accent shadows
+        'gold-sm': '0 0 0 2px rgba(212, 175, 55, 0.2)',
+        'gold': '0 0 0 4px rgba(212, 175, 55, 0.15), 0 4px 12px rgba(212, 175, 55, 0.2)',
+        'gold-lg': '0 0 0 6px rgba(212, 175, 55, 0.1), 0 8px 24px rgba(212, 175, 55, 0.25)',
+        'inner-gold': 'inset 0 0 0 1px rgba(212, 175, 55, 0.5)',
         // Legacy
         'glow': '0 0 20px rgba(14, 165, 233, 0.15)',
-        'glow-sm': '0 0 10px rgba(14, 165, 233, 0.1)',
-        'glow-gold': '0 0 20px rgba(212, 175, 55, 0.15)',
-        'glow-gold-sm': '0 0 10px rgba(212, 175, 55, 0.1)',
       },
 
-      // Animations
+      // =================================================================
+      // ANIMATIONS
+      // =================================================================
       animation: {
         'icon-pulse': 'iconPulse 2s ease-in-out infinite',
         'brand-reveal': 'brandReveal 0.8s ease-out forwards',
@@ -185,16 +226,18 @@ export default {
         'shimmer': 'shimmer 1.5s infinite',
         'count-up': 'countUp 0.4s ease-out',
         'slide-in-right': 'slideInRight 0.3s ease-out',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'spin-slow': 'spin 0.8s linear infinite',
       },
       keyframes: {
         iconPulse: {
           '0%, 100%': {
             transform: 'scale(1)',
-            boxShadow: '0 0 0 0 rgba(184, 134, 11, 0.4)',
+            boxShadow: '0 0 0 0 rgba(212, 175, 55, 0.4)',
           },
           '50%': {
             transform: 'scale(1.05)',
-            boxShadow: '0 0 0 12px rgba(184, 134, 11, 0)',
+            boxShadow: '0 0 0 12px rgba(212, 175, 55, 0)',
           },
         },
         brandReveal: {
@@ -252,6 +295,11 @@ export default {
         'prose': '65ch',
         '8xl': '88rem',
         '9xl': '96rem',
+      },
+
+      // Grid templates
+      gridTemplateColumns: {
+        'dashboard': 'repeat(auto-fit, minmax(320px, 1fr))',
       },
     },
   },

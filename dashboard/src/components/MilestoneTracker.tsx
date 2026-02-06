@@ -23,7 +23,7 @@ export function MilestoneTracker({ milestones }: MilestoneTrackerProps) {
         }
       />
       <CardBody className="p-0">
-        <div className="divide-y divide-slate-800">
+        <div className="divide-y divide-border-DEFAULT">
           {milestones.map((milestone, index) => (
             <MilestoneRow
               key={milestone.name}
@@ -48,15 +48,15 @@ function MilestoneRow({ milestone }: MilestoneRowProps) {
   const getStatusIcon = () => {
     switch (status) {
       case 'achieved':
-        return <CheckCircle2 className="w-5 h-5 text-emerald-500" />;
+        return <CheckCircle2 className="w-5 h-5 text-success" />;
       case 'in_progress':
-        return <Clock className="w-5 h-5 text-accent-400 animate-pulse" />;
+        return <Clock className="w-5 h-5 text-gold-500 animate-pulse" />;
       case 'at_risk':
-        return <AlertTriangle className="w-5 h-5 text-amber-500" />;
+        return <AlertTriangle className="w-5 h-5 text-warning" />;
       case 'breached':
-        return <XCircle className="w-5 h-5 text-red-500" />;
+        return <XCircle className="w-5 h-5 text-danger" />;
       default:
-        return <Circle className="w-5 h-5 text-gray-500" />;
+        return <Circle className="w-5 h-5 text-text-muted" />;
     }
   };
 
@@ -106,9 +106,9 @@ function MilestoneRow({ milestone }: MilestoneRowProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h3 className="text-sm font-medium text-white">{displayName}</h3>
+              <h3 className="text-sm font-medium text-text-primary">{displayName}</h3>
               {status === 'achieved' && achievedDate && (
-                <p className="text-xs text-emerald-400 mt-0.5">
+                <p className="text-xs text-success mt-0.5">
                   Completed {formatDate(achievedDate)}
                 </p>
               )}
@@ -120,12 +120,12 @@ function MilestoneRow({ milestone }: MilestoneRowProps) {
           {status === 'in_progress' && percentComplete !== undefined && (
             <div className="mt-3">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-gray-500">Progress</span>
-                <span className="text-xs font-medium text-accent-400">{percentComplete}%</span>
+                <span className="text-xs text-text-muted">Progress</span>
+                <span className="text-xs font-medium text-gold-500">{percentComplete}%</span>
               </div>
               <div className="progress-bar">
                 <div
-                  className="progress-bar-fill bg-gradient-to-r from-accent-600 to-accent-400"
+                  className="progress-bar-fill bg-gradient-to-r from-gold-600 to-gold-400"
                   style={{ width: `${percentComplete}%` }}
                 />
               </div>
@@ -139,13 +139,13 @@ function MilestoneRow({ milestone }: MilestoneRowProps) {
                 <span className="text-gray-500">Target: </span>
                 <span className={`font-medium ${
                   daysToTarget < 0
-                    ? 'text-amber-400'
+                    ? 'text-warning'
                     : daysToTarget < 14
-                    ? 'text-amber-300'
-                    : 'text-gray-300'
+                    ? 'text-warning/80'
+                    : 'text-text-secondary'
                 }`}>
                   {formatDate(target)}
-                  <span className="text-gray-500 ml-1">
+                  <span className="text-text-muted ml-1">
                   ({daysToTarget > 0 ? `${daysToTarget}d` : `${Math.abs(daysToTarget)}d past`})
                 </span>
                 </span>
@@ -154,10 +154,10 @@ function MilestoneRow({ milestone }: MilestoneRowProps) {
                 <span className="text-gray-500">Longstop: </span>
                 <span className={`font-medium ${
                   daysToLongstop < 0
-                    ? 'text-red-400'
+                    ? 'text-danger'
                     : daysToLongstop < 30
-                    ? 'text-amber-300'
-                    : 'text-gray-400'
+                    ? 'text-warning/80'
+                    : 'text-text-tertiary'
                 }`}>
                   {formatDate(longstop)}
                 </span>

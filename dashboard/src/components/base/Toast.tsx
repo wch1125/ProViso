@@ -20,17 +20,17 @@ const iconMap = {
 };
 
 const colorMap = {
-  success: 'border-emerald-500 bg-emerald-500/10 text-emerald-400',
-  info: 'border-blue-500 bg-blue-500/10 text-blue-400',
-  warning: 'border-amber-500 bg-amber-500/10 text-amber-400',
-  error: 'border-red-500 bg-red-500/10 text-red-400',
+  success: 'border-success bg-success/10 text-success',
+  info: 'border-info bg-info/10 text-info',
+  warning: 'border-warning bg-warning/10 text-warning',
+  error: 'border-danger bg-danger/10 text-danger',
 };
 
 const iconColorMap = {
-  success: 'text-emerald-400',
-  info: 'text-blue-400',
-  warning: 'text-amber-400',
-  error: 'text-red-400',
+  success: 'text-success',
+  info: 'text-info',
+  warning: 'text-warning',
+  error: 'text-danger',
 };
 
 export function Toast({ toast, onDismiss }: ToastProps) {
@@ -48,9 +48,9 @@ export function Toast({ toast, onDismiss }: ToastProps) {
     >
       <Icon className={`w-5 h-5 flex-shrink-0 ${iconColorMap[toast.type]}`} />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-white">{toast.title}</p>
+        <p className="text-sm font-medium text-text-primary">{toast.title}</p>
         {toast.message && (
-          <p className="text-sm text-slate-300 mt-1 truncate">{toast.message}</p>
+          <p className="text-sm text-text-secondary mt-1 truncate">{toast.message}</p>
         )}
       </div>
       <button
@@ -58,7 +58,7 @@ export function Toast({ toast, onDismiss }: ToastProps) {
         className="flex-shrink-0 p-1 rounded hover:bg-white/10 transition-colors"
         aria-label="Dismiss"
       >
-        <X className="w-4 h-4 text-slate-400" />
+        <X className="w-4 h-4 text-text-tertiary" />
       </button>
     </div>
   );

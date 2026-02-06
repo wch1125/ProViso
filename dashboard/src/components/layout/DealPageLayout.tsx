@@ -1,22 +1,28 @@
 /**
  * DealPageLayout - Unified layout for all deal-specific pages
  *
- * Provides consistent header, navigation, and structure across
- * Negotiation, Closing, and Monitoring views.
+ * v2.4 Design System: Two-tier header below TopNav.
+ * Tier 1: Deal context header (72px) — back arrow, deal name, status, actions
+ * Tier 2: Sub-navigation tabs (56px) — Negotiate | Closing | Monitor
  */
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ArrowLeft, FileText, CheckCircle, BarChart3 } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ArrowLeft, FileText, CheckCircle, BarChart3, HardHat, Zap, RotateCcw } from 'lucide-react';
 import { Badge } from '../base/Badge';
+import { Button } from '../base/Button';
+import { TopNav } from './TopNav';
 
 type DealView = 'negotiate' | 'closing' | 'monitor';
 type DealStatus = 'draft' | 'negotiation' | 'closing' | 'active' | 'matured';
+type ProjectPhase = 'construction' | 'operations' | 'operating';
 
 export interface DealPageLayoutProps {
   dealId: string;
   dealName: string;
   dealStatus: DealStatus;
   subtitle?: string;
+  /** Current project phase for phase-aware styling */
+  currentPhase?: ProjectPhase;
   actions?: React.ReactNode;
   children: React.ReactNode;
 }
@@ -35,60 +41,102 @@ const navItems: { id: DealView; label: string; icon: React.ComponentType<{ class
   { id: 'monitor', label: 'Monitor', icon: BarChart3 },
 ];
 
+/**
+ * Phase badge component
+ */
+function PhaseBadge({ phase }: { phase: ProjectPhase }) {
+  const isConstruction = phase === 'construction';
+  const Icon = isConstruction ? HardHat : Zap;
+  const label = isConstruction ? 'Construction Phase' : 'Operating Phase';
+
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-phase-badgeBg text-phase-badgeText border border-phase-accent/20">
+      <Icon className="w-3.5 h-3.5" />
+      {label}
+    </span>
+  );
+}
+
 export function DealPageLayout({
   dealId,
   dealName,
   dealStatus,
   subtitle,
+  currentPhase,
   actions,
   children,
 }: DealPageLayoutProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentView = getCurrentView(location.pathname);
   const status = statusConfig[dealStatus];
 
+  const handleResetDemo = () => {
+    localStorage.clear();
+    navigate('/');
+  };
+
   return (
-    <div className="min-h-screen bg-industry-pageBg">
-      {/* Header */}
-      <header className="bg-industry-headerBg border-b border-industry-borderDefault sticky top-0 z-20">
-        <div className="px-6">
-          {/* Top row: Back + Deal info + Actions */}
-          <div className="flex items-center justify-between py-4">
+    <div className="min-h-screen bg-surface-0" data-phase={currentPhase}>
+      {/* Global navigation */}
+      <TopNav />
+
+      {/* Deal Context Header */}
+      <header className="bg-surface-1 border-b border-border-strong sticky top-16 z-20">
+        <div className="max-w-screen-2xl mx-auto px-8">
+          {/* Deal info row */}
+          <div className="flex items-center justify-between h-[72px]">
             <div className="flex items-center gap-4">
               <Link
                 to="/"
-                className="p-2 -ml-2 text-industry-textSecondary hover:text-industry-textPrimary hover:bg-industry-cardBg rounded-lg transition-colors"
+                className="
+                  p-2 -ml-2 rounded-lg
+                  text-text-tertiary hover:text-text-primary
+                  hover:bg-surface-2
+                  transition-colors duration-200
+                "
                 aria-label="Back to home"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-xl font-semibold text-industry-textPrimary">
+                  <h1 className="font-display text-2xl font-semibold text-text-primary">
                     {dealName}
                   </h1>
                   <Badge variant={status.variant} dot>
                     {status.label}
                   </Badge>
+                  {currentPhase && <PhaseBadge phase={currentPhase} />}
                 </div>
                 {subtitle && (
-                  <p className="text-sm text-industry-textSecondary mt-0.5">
+                  <p className="text-[13px] text-text-tertiary mt-0.5">
                     {subtitle}
                   </p>
                 )}
               </div>
             </div>
-            {actions && (
-              <div className="flex items-center gap-2">
-                {actions}
-              </div>
-            )}
+            <div className="flex items-center gap-3">
+              {actions}
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<RotateCcw className="w-4 h-4" />}
+                onClick={handleResetDemo}
+              >
+                Reset Demo
+              </Button>
+            </div>
           </div>
-
-          {/* Navigation tabs */}
-          <DealNavigation dealId={dealId} currentView={currentView} />
         </div>
       </header>
+
+      {/* Sub-Navigation Tabs */}
+      <div className="bg-surface-0 border-b border-border-DEFAULT sticky top-[128px] z-10">
+        <div className="max-w-screen-2xl mx-auto px-8">
+          <DealNavigation dealId={dealId} currentView={currentView} />
+        </div>
+      </div>
 
       {/* Main Content */}
       <main>
@@ -105,7 +153,7 @@ interface DealNavigationProps {
 
 function DealNavigation({ dealId, currentView }: DealNavigationProps) {
   return (
-    <nav className="flex -mb-px" aria-label="Deal sections">
+    <nav className="flex h-14" aria-label="Deal sections">
       {navItems.map((item) => {
         const isActive = currentView === item.id;
         const Icon = item.icon;
@@ -115,17 +163,17 @@ function DealNavigation({ dealId, currentView }: DealNavigationProps) {
             key={item.id}
             to={`/deals/${dealId}/${item.id}`}
             className={`
-              flex items-center gap-2 px-4 py-3
-              text-sm font-medium border-b-2
-              transition-colors
+              flex items-center gap-2 px-4 h-full
+              text-[15px] font-medium border-b-[3px]
+              transition-all duration-200
               ${isActive
-                ? 'border-industry-primary text-industry-primary'
-                : 'border-transparent text-industry-textSecondary hover:text-industry-textPrimary hover:border-industry-borderStrong'
+                ? 'border-gold-500 text-gold-500 bg-gold-500/10'
+                : 'border-transparent text-text-tertiary hover:text-text-secondary hover:bg-surface-2/50'
               }
             `}
             aria-current={isActive ? 'page' : undefined}
           >
-            <Icon className="w-4 h-4" />
+            <Icon className="w-[18px] h-[18px]" />
             {item.label}
           </Link>
         );
@@ -152,7 +200,7 @@ export function DealPageContent({
   className?: string;
 }) {
   return (
-    <div className={`p-6 ${className}`}>
+    <div className={`max-w-screen-2xl mx-auto p-6 sm:p-8 ${className}`}>
       {children}
     </div>
   );
@@ -170,7 +218,7 @@ export function DealPageSidebar({
 }) {
   return (
     <aside
-      className="min-h-[calc(100vh-121px)] bg-industry-headerBg border-r border-industry-borderDefault p-4"
+      className="min-h-[calc(100vh-184px)] bg-surface-1 border-r border-border-DEFAULT p-4"
       style={{ width }}
     >
       {children}

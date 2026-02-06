@@ -370,12 +370,12 @@ export function BasketEditor({
           </div>
 
           {/* Basket Type Tabs */}
-          <div className="border border-slate-700 rounded-lg overflow-hidden">
+          <div className="border border-border-DEFAULT rounded-lg overflow-hidden">
             <Tabs
               defaultTab={values.type}
               onChange={(type) => updateField('type', type as BasketType)}
             >
-              <TabList className="bg-slate-800 border-b border-slate-700 px-4">
+              <TabList className="bg-surface-3 border-b border-border-DEFAULT px-4">
                 <TabTrigger id="fixed">Fixed</TabTrigger>
                 <TabTrigger id="grower">Grower</TabTrigger>
                 <TabTrigger id="builder">Builder</TabTrigger>
@@ -383,7 +383,7 @@ export function BasketEditor({
 
               {/* Fixed Basket */}
               <TabPanel id="fixed" className="p-4 space-y-3">
-                <p className="text-sm text-slate-400 mb-3">
+                <p className="text-sm text-text-tertiary mb-3">
                   A fixed dollar amount that doesn&apos;t change with company performance.
                 </p>
                 <Input
@@ -398,7 +398,7 @@ export function BasketEditor({
 
               {/* Grower Basket */}
               <TabPanel id="grower" className="p-4 space-y-3">
-                <p className="text-sm text-slate-400 mb-3">
+                <p className="text-sm text-text-tertiary mb-3">
                   Capacity that scales with company size - the greater of a fixed amount or percentage of a metric.
                 </p>
 
@@ -434,9 +434,9 @@ export function BasketEditor({
                     type="checkbox"
                     checked={values.hasFloor}
                     onChange={(e) => updateField('hasFloor', e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-accent-500 focus:ring-accent-500"
+                    className="w-4 h-4 rounded border-border-strong bg-surface-2 text-gold-500 focus:ring-gold-500"
                   />
-                  <span className="text-sm text-slate-300">Include Floor</span>
+                  <span className="text-sm text-text-secondary">Include Floor</span>
                 </label>
 
                 {values.hasFloor && (
@@ -452,7 +452,7 @@ export function BasketEditor({
 
               {/* Builder Basket */}
               <TabPanel id="builder" className="p-4 space-y-3">
-                <p className="text-sm text-slate-400 mb-3">
+                <p className="text-sm text-text-tertiary mb-3">
                   Capacity that accumulates over time from a specified source.
                 </p>
 
@@ -476,9 +476,9 @@ export function BasketEditor({
                     type="checkbox"
                     checked={values.hasMaximum}
                     onChange={(e) => updateField('hasMaximum', e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-accent-500 focus:ring-accent-500"
+                    className="w-4 h-4 rounded border-border-strong bg-surface-2 text-gold-500 focus:ring-gold-500"
                   />
-                  <span className="text-sm text-slate-300">Include Maximum Cap</span>
+                  <span className="text-sm text-text-secondary">Include Maximum Cap</span>
                 </label>
 
                 {values.hasMaximum && (
@@ -496,15 +496,15 @@ export function BasketEditor({
           </div>
 
           {/* Subject To Conditions */}
-          <div className="border border-slate-700 rounded-lg p-4 space-y-3">
+          <div className="border border-border-DEFAULT rounded-lg p-4 space-y-3">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={values.hasSubjectTo}
                 onChange={(e) => updateField('hasSubjectTo', e.target.checked)}
-                className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-accent-500 focus:ring-accent-500"
+                className="w-4 h-4 rounded border-border-strong bg-surface-2 text-gold-500 focus:ring-gold-500"
               />
-              <span className="text-sm font-medium text-white">Subject To Conditions</span>
+              <span className="text-sm font-medium text-text-primary">Subject To Conditions</span>
             </label>
 
             {values.hasSubjectTo && (
@@ -515,9 +515,9 @@ export function BasketEditor({
                       type="checkbox"
                       checked={values.subjectTo.includes(option.code)}
                       onChange={() => toggleSubjectTo(option.code)}
-                      className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-accent-500 focus:ring-accent-500"
+                      className="w-4 h-4 rounded border-border-strong bg-surface-2 text-gold-500 focus:ring-gold-500"
                     />
-                    <span className="text-sm text-slate-300">{option.label}</span>
+                    <span className="text-sm text-text-secondary">{option.label}</span>
                   </label>
                 ))}
               </div>
@@ -528,17 +528,17 @@ export function BasketEditor({
         {/* Right Column: Preview */}
         <div className="space-y-4">
           {/* Code Preview */}
-          <div className="border border-slate-700 rounded-lg overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-slate-700">
+          <div className="border border-border-DEFAULT rounded-lg overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-2 bg-surface-3 border-b border-border-DEFAULT">
               <div className="flex items-center gap-2">
-                <FileCode className="w-4 h-4 text-slate-400" />
-                <span className="text-sm font-medium text-white">ProViso Code</span>
+                <FileCode className="w-4 h-4 text-text-tertiary" />
+                <span className="text-sm font-medium text-text-primary">ProViso Code</span>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleCopyCode}
-                icon={copiedCode ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                icon={copiedCode ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
               >
                 {copiedCode ? 'Copied' : 'Copy'}
               </Button>
@@ -549,36 +549,36 @@ export function BasketEditor({
           </div>
 
           {/* Prose Preview */}
-          <div className="border border-slate-700 rounded-lg overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-slate-700">
+          <div className="border border-border-DEFAULT rounded-lg overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-2 bg-surface-3 border-b border-border-DEFAULT">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-slate-400" />
-                <span className="text-sm font-medium text-white">Word Document</span>
+                <FileText className="w-4 h-4 text-text-tertiary" />
+                <span className="text-sm font-medium text-text-primary">Word Document</span>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleCopyProse}
-                icon={copiedProse ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                icon={copiedProse ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
               >
                 {copiedProse ? 'Copied' : 'Copy'}
               </Button>
             </div>
             <div className="p-4 max-h-64 overflow-auto">
-              <p className="text-sm text-slate-300 whitespace-pre-wrap font-serif leading-relaxed">
+              <p className="text-sm text-text-secondary whitespace-pre-wrap font-serif leading-relaxed">
                 {generatedProse}
               </p>
             </div>
           </div>
 
           {/* Basket Type Description */}
-          <div className="border border-slate-700 rounded-lg p-4 bg-slate-800/50">
-            <h4 className="text-sm font-medium text-white mb-2">
+          <div className="border border-border-DEFAULT rounded-lg p-4 bg-surface-2/50">
+            <h4 className="text-sm font-medium text-text-primary mb-2">
               {values.type === 'fixed' && 'Fixed Basket'}
               {values.type === 'grower' && 'Grower Basket'}
               {values.type === 'builder' && 'Builder Basket'}
             </h4>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-text-tertiary">
               {values.type === 'fixed' && 'Simple dollar limit. Commonly used for de minimis exceptions or specific permitted actions.'}
               {values.type === 'grower' && 'Capacity scales with company size. The "greater of" test ensures a minimum capacity floor while allowing growth.'}
               {values.type === 'builder' && 'Capacity accumulates from a defined source. Often used for retained cash flow or asset sale proceeds.'}
@@ -587,9 +587,9 @@ export function BasketEditor({
 
           {/* Validation Summary */}
           {Object.keys(errors).length > 0 && (
-            <div className="border border-red-500/30 bg-red-500/10 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-red-400 mb-2">Please fix the following errors:</h4>
-              <ul className="list-disc list-inside text-sm text-red-300 space-y-1">
+            <div className="border border-danger/30 bg-danger/10 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-danger mb-2">Please fix the following errors:</h4>
+              <ul className="list-disc list-inside text-sm text-danger/80 space-y-1">
                 {Object.values(errors).map((error, idx) => (
                   <li key={idx}>{error}</li>
                 ))}
@@ -600,7 +600,7 @@ export function BasketEditor({
       </div>
 
       {/* Footer */}
-      <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-800">
+      <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border-DEFAULT">
         <Button variant="ghost" onClick={onClose}>
           Cancel
         </Button>

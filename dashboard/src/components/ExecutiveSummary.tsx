@@ -1,8 +1,29 @@
+import { useMemo } from 'react';
 import { CheckCircle2, AlertTriangle, XCircle, DollarSign, Calendar, TrendingUp, AlertCircle } from 'lucide-react';
 import { Card, CardBody } from './Card';
+import { Sparkline } from './charts';
 import { useIndustryTheme } from '../context';
 import { generateAlerts } from '../utils/thresholds';
 import type { DashboardData } from '../types';
+
+/**
+ * Generate simulated historical trend data for sparklines
+ * In a real app, this would come from the backend
+ */
+function generateTrendData(currentValue: number, periods: number = 6, volatility: number = 0.1): number[] {
+  const data: number[] = [];
+  let value = currentValue * (1 - volatility * (periods / 2) * 0.5);
+
+  for (let i = 0; i < periods - 1; i++) {
+    data.push(value);
+    // Gradual trend toward current value with some noise
+    const trend = (currentValue - value) / (periods - i);
+    const noise = (Math.random() - 0.5) * currentValue * volatility * 0.5;
+    value += trend + noise;
+  }
+  data.push(currentValue);
+  return data;
+}
 
 interface ExecutiveSummaryProps {
   data: DashboardData;
@@ -49,6 +70,16 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
   // Combine all alert conditions
   const showAlertBanner = !allCompliant || hasWarnings || alertSummary.hasAlerts;
 
+  // Generate trend data for sparklines (simulated - in production this would come from the backend)
+  const reserveTrendData = useMemo(
+    () => generateTrendData(reserveFunding, 6, 0.08),
+    [reserveFunding]
+  );
+  const revenueTrendData = useMemo(
+    () => generateTrendData(data.waterfall.revenue, 6, 0.12),
+    [data.waterfall.revenue]
+  );
+
   return (
     <Card className="col-span-full">
       <CardBody className="p-0">
@@ -60,22 +91,22 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
                 <p className="metric-label mb-1">Overall Status</p>
                 <div className="flex items-center gap-2">
                   {!allCompliant ? (
-                    <XCircle className="w-6 h-6 text-red-500" />
+                    <XCircle className="w-6 h-6 text-danger" />
                   ) : alertSummary.dangerCount > 0 ? (
                     <AlertCircle className="w-6 h-6 text-orange-500 animate-pulse" />
                   ) : alertSummary.cautionCount > 0 ? (
-                    <AlertTriangle className="w-6 h-6 text-amber-500" />
+                    <AlertTriangle className="w-6 h-6 text-warning" />
                   ) : (
-                    <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                    <CheckCircle2 className="w-6 h-6 text-success" />
                   )}
                   <span className={`text-xl font-semibold ${
                     !allCompliant
-                      ? 'text-red-400'
+                      ? 'text-danger'
                       : alertSummary.dangerCount > 0
                       ? 'text-orange-400'
                       : alertSummary.cautionCount > 0
-                      ? 'text-amber-400'
-                      : 'text-emerald-400'
+                      ? 'text-warning'
+                      : 'text-success'
                   }`}>
                     {!allCompliant
                       ? 'Breach'
@@ -88,10 +119,10 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
                 </div>
               </div>
             </div>
-            <p className="text-sm text-gray-500 mt-3">
+            <p className="text-sm text-text-muted mt-3">
               {compliantCount}/{activeCount} active covenants passing
               {totalCovenants - activeCount > 0 && (
-                <span className="text-gray-600"> ({totalCovenants - activeCount} suspended)</span>
+                <span className="text-text-muted"> ({totalCovenants - activeCount} suspended)</span>
               )}
             </p>
           </div>
@@ -109,9 +140,9 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
                 </div>
               </div>
             </div>
-            <p className="text-sm text-gray-500 mt-3">
+            <p className="text-sm text-text-muted mt-3">
               {milestonesAtRisk > 0 ? (
-                <span className="text-amber-400">{milestonesAtRisk} at risk or breached</span>
+                <span className="text-warning">{milestonesAtRisk} at risk or breached</span>
               ) : (
                 'All milestones on track'
               )}
@@ -121,15 +152,23 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
           {/* Reserve Funding */}
           <div className="p-5">
             <div className="flex items-start justify-between">
-              <div>
+              <div className="flex-1">
                 <p className="metric-label mb-1">Reserve Funding</p>
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-6 h-6 text-industry-primary" style={{ color: colors.primary }} />
                   <span className="metric-value">{reserveFunding.toFixed(0)}%</span>
                 </div>
               </div>
+              <Sparkline
+                data={reserveTrendData}
+                height={28}
+                width={64}
+                color={reserveFunding >= 80 ? '#10b981' : reserveFunding >= 50 ? '#f59e0b' : '#ef4444'}
+                threshold={100}
+                thresholdColor="#10b981"
+              />
             </div>
-            <p className="text-sm text-gray-500 mt-3">
+            <p className="text-sm text-text-muted mt-3">
               ${(totalReserveBalance / 1_000_000).toFixed(1)}M of ${(totalReserveTarget / 1_000_000).toFixed(1)}M target
             </p>
           </div>
@@ -137,17 +176,23 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
           {/* Cash Flow */}
           <div className="p-5">
             <div className="flex items-start justify-between">
-              <div>
+              <div className="flex-1">
                 <p className="metric-label mb-1">Monthly Revenue</p>
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-6 h-6 text-industry-primary" style={{ color: colors.primary }} />
                   <span className="metric-value">${(data.waterfall.revenue / 1_000_000).toFixed(1)}M</span>
                 </div>
               </div>
+              <Sparkline
+                data={revenueTrendData}
+                height={28}
+                width={64}
+                color={blockedDistribution > 0 ? '#f59e0b' : '#10b981'}
+              />
             </div>
-            <p className="text-sm text-gray-500 mt-3">
+            <p className="text-sm text-text-muted mt-3">
               {blockedDistribution > 0 ? (
-                <span className="text-amber-400">
+                <span className="text-warning">
                   ${(blockedDistribution / 1_000_000).toFixed(1)}M blocked
                 </span>
               ) : (
@@ -172,7 +217,7 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
                 </div>
               </div>
             </div>
-            <p className="text-sm text-gray-500 mt-3">
+            <p className="text-sm text-text-muted mt-3">
               {data.phase.codTarget ? `${getDaysUntil(data.phase.codTarget)} days remaining` : 'No target set'}
             </p>
           </div>
@@ -230,16 +275,16 @@ function AlertBanner({ allCompliant, alertSummary, milestonesAtRisk, hasBlockedD
   }
 
   const bgColor = severity === 'critical'
-    ? 'bg-red-500/5 border-red-500/20'
+    ? 'bg-danger/5 border-danger/20'
     : severity === 'warning'
     ? 'bg-orange-500/5 border-orange-500/20'
-    : 'bg-amber-500/5 border-amber-500/20';
+    : 'bg-warning/5 border-warning/20';
 
   const textColor = severity === 'critical'
-    ? 'text-red-400'
+    ? 'text-danger'
     : severity === 'warning'
     ? 'text-orange-400'
-    : 'text-amber-400';
+    : 'text-warning';
 
   const Icon = severity === 'critical'
     ? XCircle
@@ -253,7 +298,7 @@ function AlertBanner({ allCompliant, alertSummary, milestonesAtRisk, hasBlockedD
         <Icon className={`w-4 h-4 ${textColor} flex-shrink-0 mt-0.5 ${severity === 'warning' ? 'animate-pulse' : ''}`} />
         <div className="flex flex-col gap-0.5">
           {messages.map((msg, i) => (
-            <span key={i} className={`text-sm ${i === 0 ? `font-medium ${textColor}` : 'text-gray-400'}`}>
+            <span key={i} className={`text-sm ${i === 0 ? `font-medium ${textColor}` : 'text-text-tertiary'}`}>
               {msg}
             </span>
           ))}

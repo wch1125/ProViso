@@ -45,6 +45,10 @@ export {
 } from './base/Skeleton';
 export type { SkeletonProps } from './base/Skeleton';
 
+// Collapsible Card (v2.4 Dashboard Redesign)
+export { CollapsibleCard } from './base/CollapsibleCard';
+export type { CollapsibleCardProps } from './base/CollapsibleCard';
+
 // Empty State components (v2.1 UI)
 export {
   EmptyState,
@@ -69,12 +73,13 @@ export {
 } from './base/SearchFilter';
 export type { SearchFilterProps, FilterOption, QuickFilterOption, QuickFiltersProps } from './base/SearchFilter';
 
-// Layout components (v2.1 UI)
+// Layout components (v2.1 UI + v2.4 TopNav)
 export {
   DealPageLayout,
   DealPageContent,
   DealPageSidebar,
   DealPageWithSidebar,
+  TopNav,
 } from './layout';
 
 // Post-Closing components (v2.0 Phase 6)
@@ -141,3 +146,7 @@ export { ActivityFeed, CollapsibleActivityFeed, ActivityPanel } from './Activity
 
 // Export functionality (v2.3 Public Demo - Phase 4)
 export { ExportModal } from './export';
+
+// Chart components (v2.4 Dashboard Redesign)
+export { Sparkline, SparklineCard } from './charts';
+export type { SparklineProps, SparklineCardProps } from './charts';

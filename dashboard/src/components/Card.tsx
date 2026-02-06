@@ -34,8 +34,8 @@ export function CardHeader({ title, subtitle, action, children }: CardHeaderProp
   return (
     <div className="card-header flex items-center justify-between">
       <div>
-        {title && <h2 className="text-lg font-semibold text-white">{title}</h2>}
-        {subtitle && <p className="text-sm text-gray-400 mt-0.5">{subtitle}</p>}
+        {title && <h2 className="text-lg font-semibold text-text-primary">{title}</h2>}
+        {subtitle && <p className="text-sm text-text-tertiary mt-0.5">{subtitle}</p>}
       </div>
       {action && <div>{action}</div>}
     </div>

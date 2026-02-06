@@ -55,14 +55,14 @@ export function EmptyState({
 
   return (
     <div className={`flex flex-col items-center justify-center text-center ${styles.container} ${className}`}>
-      <div className="p-4 bg-slate-800/50 rounded-full mb-4">
-        <Icon className={`${styles.icon} text-slate-500`} />
+      <div className="p-4 bg-surface-2/50 rounded-full mb-4">
+        <Icon className={`${styles.icon} text-text-muted`} />
       </div>
-      <h3 className={`font-medium text-slate-300 mb-1 ${styles.title}`}>
+      <h3 className={`font-medium text-text-secondary mb-1 ${styles.title}`}>
         {title}
       </h3>
       {description && (
-        <p className={`text-slate-500 max-w-sm ${styles.description}`}>
+        <p className={`text-text-muted max-w-sm ${styles.description}`}>
           {description}
         </p>
       )}

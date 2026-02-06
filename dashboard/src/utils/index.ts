@@ -36,6 +36,7 @@ export type {
 export {
   getThresholdZone,
   getUtilizationPercent,
+  getDistanceToBreach,
   getZoneStyle,
   zoneStyles,
   generateAlerts,
@@ -46,6 +47,7 @@ export type {
   ThresholdZone,
   ZoneThresholds,
   ZoneStyle,
+  DistanceToBreach,
   CovenantAlert,
   AlertSummary,
   TrendAnalysis,

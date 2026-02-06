@@ -1,4 +1,5 @@
-import { ArrowRight, Sun, Wind, Building2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, Sun, Wind, Building2, Briefcase, Info, Play } from 'lucide-react';
 import { trackDemoStarted } from '../../utils/analytics';
 
 interface Industry {
@@ -9,6 +10,12 @@ interface Industry {
 }
 
 const industries: Industry[] = [
+  {
+    id: 'abc-acquisition',
+    icon: Briefcase,
+    name: 'ABC Acquisition',
+    description: '$150M leveraged buyout facility',
+  },
   {
     id: 'solar',
     icon: Sun,
@@ -37,6 +44,8 @@ interface HeroProps {
  * Hero section with gradient background, grid pattern, and demo cards.
  */
 export function Hero({ onSelectIndustry }: HeroProps) {
+  const navigate = useNavigate();
+
   return (
     <section
       className="
@@ -122,7 +131,7 @@ export function Hero({ onSelectIndustry }: HeroProps) {
         {/* Description */}
         <p
           className="
-            text-base md:text-lg text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed
+            text-base md:text-lg text-white/60 max-w-2xl mx-auto mb-6 leading-relaxed
             opacity-0 animate-fade-up
           "
           style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}
@@ -130,6 +139,42 @@ export function Hero({ onSelectIndustry }: HeroProps) {
           Instant compliance checking, basket tracking, and pro forma simulation
           for project finance. Transform weeks of legal memos into milliseconds of certainty.
         </p>
+
+        {/* Action Buttons */}
+        <div
+          className="
+            flex items-center justify-center gap-4 mb-10
+            opacity-0 animate-fade-up
+          "
+          style={{ animationDelay: '0.45s', animationFillMode: 'forwards' }}
+        >
+          <button
+            onClick={() => navigate('/demo')}
+            className="
+              flex items-center gap-2 px-5 py-2.5
+              bg-gold-600 hover:bg-gold-500
+              text-navy-900 font-medium rounded-lg
+              transition-all duration-200
+              shadow-lg shadow-gold-600/25 hover:shadow-gold-500/30
+            "
+          >
+            <Play className="w-4 h-4" />
+            Try Interactive Demo
+          </button>
+          <Link
+            to="/about"
+            className="
+              inline-flex items-center gap-2 px-4 py-2.5
+              text-gold-400 hover:text-gold-300
+              text-sm font-medium
+              border border-gold-600/30 hover:border-gold-500/50
+              rounded-lg transition-colors
+            "
+          >
+            <Info className="w-4 h-4" />
+            Learn more
+          </Link>
+        </div>
 
         {/* Demo Cards */}
         <div

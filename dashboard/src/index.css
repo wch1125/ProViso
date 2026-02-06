@@ -7,35 +7,54 @@
    Default values (Corporate steel gray theme) - overridden by IndustryThemeProvider
    ============================================================================= */
 :root {
-  /* Page and layout backgrounds */
-  --industry-page-bg: #111214;
-  --industry-header-bg: #18191c;
-  --industry-card-bg: #1e2024;
-  --industry-card-bg-hover: #26282d;
+  /* Page and layout backgrounds — v2.4 navy palette */
+  --industry-page-bg: #0A1628;
+  --industry-header-bg: #152238;
+  --industry-card-bg: #152238;
+  --industry-card-bg-hover: #1E2F47;
 
   /* Primary accent colors */
-  --industry-primary: #64748b;
-  --industry-primary-hover: #475569;
-  --industry-primary-light: rgba(100, 116, 139, 0.15);
+  --industry-primary: #D4AF37;
+  --industry-primary-hover: #BF9B30;
+  --industry-primary-light: rgba(212, 175, 55, 0.15);
 
   /* Secondary accent */
-  --industry-secondary: #94a3b8;
+  --industry-secondary: #9CA3AF;
 
   /* Border colors */
-  --industry-border-default: #2e3138;
-  --industry-border-strong: #3f434b;
+  --industry-border-default: #1E2F47;
+  --industry-border-strong: #2D4260;
 
   /* Text colors */
-  --industry-text-primary: #f1f3f5;
-  --industry-text-secondary: #9ca3af;
-  --industry-text-muted: #6b7280;
+  --industry-text-primary: #F9FAFB;
+  --industry-text-secondary: #D1D5DB;
+  --industry-text-muted: #6B7280;
 
   /* Chart colors */
-  --industry-chart-1: #64748b;
-  --industry-chart-2: #94a3b8;
-  --industry-chart-3: #475569;
-  --industry-chart-4: #78909c;
-  --industry-chart-5: #90a4ae;
+  --industry-chart-1: #D4AF37;
+  --industry-chart-2: #06B6D4;
+  --industry-chart-3: #10B981;
+  --industry-chart-4: #F59E0B;
+  --industry-chart-5: #3B82F6;
+
+  /* Phase-aware styling (default to construction) */
+  --phase-accent: #3b82f6;
+  --phase-badge-bg: rgba(59, 130, 246, 0.1);
+  --phase-badge-text: #60a5fa;
+}
+
+/* Phase-specific color overrides */
+[data-phase="construction"] {
+  --phase-accent: #3b82f6; /* blue-500 */
+  --phase-badge-bg: rgba(59, 130, 246, 0.1);
+  --phase-badge-text: #60a5fa; /* blue-400 */
+}
+
+[data-phase="operations"],
+[data-phase="operating"] {
+  --phase-accent: #10b981; /* emerald-500 */
+  --phase-badge-bg: rgba(16, 185, 129, 0.1);
+  --phase-badge-text: #34d399; /* emerald-400 */
 }
 
 @layer base {
@@ -142,30 +161,47 @@
     @apply h-full rounded-full transition-all duration-500;
   }
 
-  /* Premium buttons (v2.3) */
+  /* Premium buttons (v2.4) */
   .btn-gold {
-    @apply inline-flex items-center justify-content gap-2;
-    @apply bg-gradient-to-r from-gold-600 to-gold-500;
-    @apply hover:from-gold-500 hover:to-gold-400;
-    @apply text-white font-semibold;
-    @apply px-6 py-3 rounded-lg;
-    @apply shadow-md hover:shadow-gold;
-    @apply transform hover:-translate-y-0.5;
-    @apply transition-all duration-150;
-    @apply focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 focus:ring-offset-surface-1;
+    @apply inline-flex items-center justify-center gap-2;
+    @apply bg-gradient-to-br from-gold-500 to-gold-600;
+    @apply hover:from-gold-400 hover:to-gold-500;
+    @apply text-navy-900 font-semibold;
+    @apply px-6 py-3 rounded-md;
+    @apply shadow-md hover:shadow-glow-gold;
+    @apply transform hover:scale-[1.02] active:scale-[0.98];
+    @apply transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 focus:ring-offset-surface-0;
+  }
+
+  .btn-outlined {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply bg-transparent border-[1.5px] border-gold-500;
+    @apply hover:bg-gold-500/10;
+    @apply text-gold-500 font-semibold;
+    @apply px-6 py-3 rounded-md;
+    @apply transition-all duration-200;
   }
 
   .btn-ghost {
     @apply bg-transparent border border-border-DEFAULT;
-    @apply hover:border-gold-600 hover:bg-gold-600/10;
-    @apply text-text-secondary hover:text-gold-500;
+    @apply hover:border-border-strong hover:bg-white/5;
+    @apply text-text-secondary hover:text-text-primary;
     @apply px-4 py-2 rounded-md;
-    @apply transition-all duration-150;
+    @apply transition-all duration-200;
   }
 
-  /* Focus ring for accessibility */
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply bg-danger hover:bg-danger-dark;
+    @apply text-white font-semibold;
+    @apply px-6 py-3 rounded-md;
+    @apply transition-all duration-200;
+  }
+
+  /* Focus ring for accessibility — v2.4 gold focus */
   .focus-ring:focus-visible {
-    @apply outline-none ring-2 ring-gold-600 ring-offset-2 ring-offset-surface-1;
+    @apply outline-none ring-2 ring-gold-500 ring-offset-2 ring-offset-surface-0;
   }
 
   /* Skeleton loader */
@@ -177,16 +213,16 @@
 }
 
 @layer utilities {
-  /* Font display utility */
+  /* Font display utility — Crimson Pro for headings, section titles, marketing copy */
   .font-display {
-    font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+    font-family: 'Crimson Pro', Georgia, serif;
     font-feature-settings: 'liga' 1, 'kern' 1;
     letter-spacing: -0.02em;
   }
 
-  /* Font body utility */
+  /* Font body utility — Inter for UI elements, data labels, body text */
   .font-body {
-    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-feature-settings: 'kern' 1;
   }
 

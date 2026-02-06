@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
 
 /**
@@ -6,19 +7,47 @@ import { ExternalLink } from 'lucide-react';
 export function Footer() {
   return (
     <footer className="bg-surface-0 border-t border-border-subtle py-12 px-6">
-      <div className="max-w-5xl mx-auto text-center">
-        <p className="text-sm text-text-tertiary">
-          Check out more of my projects at{' '}
-          <a
-            href="https://haslun.online"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gold-500 hover:text-gold-400 transition-colors inline-flex items-center gap-1"
-          >
-            Haslun.Online
-            <ExternalLink className="w-3 h-3" />
-          </a>
-        </p>
+      <div className="max-w-5xl mx-auto">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          {/* Links */}
+          <div className="flex items-center gap-6 text-sm">
+            <Link
+              to="/about"
+              className="text-text-secondary hover:text-gold-400 transition-colors"
+            >
+              About ProViso
+            </Link>
+            <Link
+              to="/deals"
+              className="text-text-secondary hover:text-gold-400 transition-colors"
+            >
+              Demo
+            </Link>
+            <a
+              href="https://github.com/haslun/proviso"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-text-secondary hover:text-gold-400 transition-colors inline-flex items-center gap-1"
+            >
+              GitHub
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+
+          {/* Attribution */}
+          <p className="text-sm text-text-tertiary">
+            A project by{' '}
+            <a
+              href="https://haslun.online"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gold-500 hover:text-gold-400 transition-colors inline-flex items-center gap-1"
+            >
+              Haslun.Online
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </p>
+        </div>
       </div>
     </footer>
   );

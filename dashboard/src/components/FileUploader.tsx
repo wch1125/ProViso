@@ -208,18 +208,18 @@ export function FileUploader({
           Upload File
         </Button>
         {result && result.status === 'error' && (
-          <p className="text-red-400 text-xs mt-1">{result.message}</p>
+          <p className="text-danger text-xs mt-1">{result.message}</p>
         )}
       </div>
     );
   }
 
   return (
-    <div className={`bg-slate-900/50 border border-slate-800 rounded-xl ${className}`}>
+    <div className={`bg-surface-0/50 border border-surface-2 rounded-xl ${className}`}>
       {/* Header */}
-      <div className="px-5 py-4 border-b border-slate-800">
-        <h3 className="text-lg font-semibold text-white">Upload Files</h3>
-        <p className="text-sm text-slate-400">
+      <div className="px-5 py-4 border-b border-border-DEFAULT">
+        <h3 className="text-lg font-semibold text-text-primary">Upload Files</h3>
+        <p className="text-sm text-text-tertiary">
           Load ProViso code (.proviso) or financial data (.json)
         </p>
       </div>
@@ -235,8 +235,8 @@ export function FileUploader({
             border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
             transition-colors duration-200
             ${isDragging
-              ? 'border-accent-500 bg-accent-500/10'
-              : 'border-slate-700 hover:border-slate-600 hover:bg-slate-800/50'
+              ? 'border-gold-500 bg-gold-500/10'
+              : 'border-border-DEFAULT hover:border-border-strong hover:bg-surface-2/50'
             }
             ${loading ? 'pointer-events-none opacity-50' : ''}
           `}
@@ -250,15 +250,15 @@ export function FileUploader({
           />
 
           {loading ? (
-            <Loader2 className="w-10 h-10 text-accent-500 mx-auto mb-4 animate-spin" />
+            <Loader2 className="w-10 h-10 text-gold-500 mx-auto mb-4 animate-spin" />
           ) : (
-            <Upload className="w-10 h-10 text-slate-500 mx-auto mb-4" />
+            <Upload className="w-10 h-10 text-text-muted mx-auto mb-4" />
           )}
 
-          <p className="text-white font-medium mb-1">
+          <p className="text-text-primary font-medium mb-1">
             {isDragging ? 'Drop file here' : 'Drag and drop or click to browse'}
           </p>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-text-tertiary">
             Supports .proviso and .json files
           </p>
         </div>
@@ -269,40 +269,40 @@ export function FileUploader({
             className={`
               mt-4 p-4 rounded-lg flex items-start gap-3
               ${result.status === 'success'
-                ? 'bg-green-500/10 border border-green-500/20'
+                ? 'bg-success/10 border border-success/20'
                 : result.status === 'error'
-                ? 'bg-red-500/10 border border-red-500/20'
-                : 'bg-slate-800 border border-slate-700'
+                ? 'bg-danger/10 border border-danger/20'
+                : 'bg-surface-2 border border-border-DEFAULT'
               }
             `}
           >
             {result.status === 'loading' && (
-              <Loader2 className="w-5 h-5 text-accent-500 animate-spin flex-shrink-0 mt-0.5" />
+              <Loader2 className="w-5 h-5 text-gold-500 animate-spin flex-shrink-0 mt-0.5" />
             )}
             {result.status === 'success' && (
-              <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+              <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
             )}
             {result.status === 'error' && (
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
             )}
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 {result.fileType === 'proviso' && (
-                  <FileText className="w-4 h-4 text-slate-400" />
+                  <FileText className="w-4 h-4 text-text-tertiary" />
                 )}
                 {result.fileType === 'json' && (
-                  <FileJson className="w-4 h-4 text-slate-400" />
+                  <FileJson className="w-4 h-4 text-text-tertiary" />
                 )}
-                <span className="text-white font-medium truncate">
+                <span className="text-text-primary font-medium truncate">
                   {result.fileName}
                 </span>
               </div>
               {result.message && (
                 <p className={`text-sm mt-1 ${
-                  result.status === 'success' ? 'text-green-400' :
-                  result.status === 'error' ? 'text-red-400' :
-                  'text-slate-400'
+                  result.status === 'success' ? 'text-success' :
+                  result.status === 'error' ? 'text-danger' :
+                  'text-text-tertiary'
                 }`}>
                   {result.message}
                 </p>
@@ -312,7 +312,7 @@ export function FileUploader({
             {result.status !== 'loading' && (
               <button
                 onClick={handleClearResult}
-                className="p-1 rounded hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+                className="p-1 rounded hover:bg-surface-3 text-text-tertiary hover:text-text-primary transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -322,20 +322,20 @@ export function FileUploader({
       </div>
 
       {/* File type hints */}
-      <div className="px-5 py-4 border-t border-slate-800 bg-slate-800/30">
+      <div className="px-5 py-4 border-t border-border-DEFAULT bg-surface-2/30">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="flex items-start gap-2">
-            <FileText className="w-4 h-4 text-teal-400 mt-0.5" />
+            <FileText className="w-4 h-4 text-info mt-0.5" />
             <div>
-              <div className="text-slate-300 font-medium">.proviso</div>
-              <div className="text-slate-500">ProViso agreement code</div>
+              <div className="text-text-secondary font-medium">.proviso</div>
+              <div className="text-text-muted">ProViso agreement code</div>
             </div>
           </div>
           <div className="flex items-start gap-2">
-            <FileJson className="w-4 h-4 text-amber-400 mt-0.5" />
+            <FileJson className="w-4 h-4 text-warning mt-0.5" />
             <div>
-              <div className="text-slate-300 font-medium">.json</div>
-              <div className="text-slate-500">Financial data values</div>
+              <div className="text-text-secondary font-medium">.json</div>
+              <div className="text-text-muted">Financial data values</div>
             </div>
           </div>
         </div>

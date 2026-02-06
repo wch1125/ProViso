@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { CheckCircle2, XCircle, Pause, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Card, CardHeader, CardBody } from './Card';
 import { StatusBadge } from './StatusBadge';
 import { CovenantSummary } from './NaturalLanguageSummary';
 import { SourceCodeViewer, CodeViewButton } from './SourceCodeViewer';
-import { getThresholdZone, getZoneStyle, type ThresholdZone } from '../utils/thresholds';
+import { getThresholdZone, getZoneStyle, getDistanceToBreach, type ThresholdZone } from '../utils/thresholds';
 import { generateCovenantCode } from '../utils/codeGenerators';
-import type { CovenantData } from '../types';
+import type { CovenantData, CovenantStatus } from '../types';
+import { COVENANT_STATUS_PRIORITY } from '../types';
 
 interface CovenantPanelProps {
   covenants: CovenantData[];
@@ -16,9 +17,38 @@ interface CovenantPanelProps {
   showCodeButtons?: boolean;
 }
 
+/**
+ * Get the covenant status for sorting purposes
+ */
+function getCovenantStatus(covenant: CovenantData): CovenantStatus {
+  if (covenant.suspended) return 'suspended';
+  if (!covenant.compliant) return 'breach';
+  return getThresholdZone(covenant.actual, covenant.required, covenant.operator) as CovenantStatus;
+}
+
 export function CovenantPanel({ covenants, showNarratives = true, showCodeButtons = true }: CovenantPanelProps) {
-  const activeCovenants = covenants.filter(c => !c.suspended);
-  const suspendedCovenants = covenants.filter(c => c.suspended);
+  // Sort covenants by risk: breach > danger > caution > safe > suspended
+  const sortedCovenants = useMemo(() => {
+    return [...covenants].sort((a, b) => {
+      const statusA = getCovenantStatus(a);
+      const statusB = getCovenantStatus(b);
+      const priorityA = COVENANT_STATUS_PRIORITY[statusA];
+      const priorityB = COVENANT_STATUS_PRIORITY[statusB];
+
+      // First sort by status priority
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+
+      // Then sort by distance to breach (ascending - closer to breach = higher)
+      const distanceA = getDistanceToBreach(a.actual, a.required, a.operator);
+      const distanceB = getDistanceToBreach(b.actual, b.required, b.operator);
+      return distanceA.percent - distanceB.percent;
+    });
+  }, [covenants]);
+
+  const activeCovenants = sortedCovenants.filter(c => !c.suspended);
+  const suspendedCovenants = sortedCovenants.filter(c => c.suspended);
 
   // Count covenants by zone for the header
   const zoneCounts = activeCovenants.reduce((acc, c) => {
@@ -104,6 +134,9 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true }: 
 
   const zoneStyle = getZoneStyle(zone);
 
+  // Calculate distance to breach for display
+  const distanceToBreach = getDistanceToBreach(actual, required, operator);
+
   // Calculate usage percentage for the bar
   let usagePercent = 0;
 
@@ -137,14 +170,14 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true }: 
     : CheckCircle2;
 
   const iconColor = suspended
-    ? 'text-gray-500'
+    ? 'text-text-muted'
     : zone === 'breach'
-    ? 'text-red-500'
+    ? 'text-danger'
     : zone === 'danger'
     ? 'text-orange-500'
     : zone === 'caution'
-    ? 'text-amber-500'
-    : 'text-emerald-500';
+    ? 'text-warning'
+    : 'text-success';
 
   // Generate code for the viewer
   const metricName = name.replace(/^(Max|Min)/, '');
@@ -171,7 +204,7 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true }: 
                 <StatusBadge status="suspended" label="Suspended" />
               )}
               {!suspended && zone === 'caution' && (
-                <span className="text-xs text-amber-400 font-medium">80%+</span>
+                <span className="text-xs text-warning font-medium">80%+</span>
               )}
               {!suspended && zone === 'danger' && (
                 <span className="text-xs text-orange-400 font-medium animate-pulse">90%+</span>
@@ -184,11 +217,11 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true }: 
                 suspended
                   ? 'text-industry-textMuted'
                   : zone === 'breach'
-                  ? 'text-red-400'
+                  ? 'text-danger'
                   : zone === 'danger'
                   ? 'text-orange-400'
                   : zone === 'caution'
-                  ? 'text-amber-400'
+                  ? 'text-warning'
                   : 'text-industry-textPrimary'
               }`}>
                 {formatValue(actual)}x
@@ -197,17 +230,22 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true }: 
                 {operator} {formatValue(required)}x
               </span>
             </div>
-            {headroom !== undefined && !suspended && (
-              <span className={`text-xs ${
-                zone === 'breach'
-                  ? 'text-red-400'
-                  : zone === 'danger'
-                  ? 'text-orange-400'
-                  : zone === 'caution'
-                  ? 'text-amber-400'
-                  : 'text-emerald-400'
-              }`}>
-                {compliant ? '+' : ''}{formatValue(headroom)}x headroom
+            {!suspended && (
+              <span
+                className={`text-xs ${
+                  zone === 'breach'
+                    ? 'text-danger'
+                    : zone === 'danger'
+                    ? 'text-orange-400'
+                    : zone === 'caution'
+                    ? 'text-warning'
+                    : 'text-success'
+                }`}
+                title={headroom !== undefined ? `Headroom: ${formatValue(headroom)}x` : undefined}
+              >
+                {distanceToBreach.isInBreach
+                  ? 'In breach'
+                  : `${distanceToBreach.percent.toFixed(0)}% to breach`}
               </span>
             )}
           </div>
@@ -219,7 +257,7 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true }: 
           {!suspended && (
             <>
               <div
-                className="absolute top-0 bottom-0 w-px bg-amber-500/30"
+                className="absolute top-0 bottom-0 w-px bg-warning/30"
                 style={{ left: '80%' }}
                 title="Caution zone (80%)"
               />
@@ -233,7 +271,7 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true }: 
           <div
             className={`progress-bar-fill ${
               suspended
-                ? 'bg-gray-600'
+                ? 'bg-text-muted'
                 : zoneStyle.progressColor
             } ${zoneStyle.pulseAnimation ? 'animate-pulse' : ''}`}
             style={{ width: `${usagePercent}%` }}
@@ -243,7 +281,7 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true }: 
         {/* Visual Threshold Marker */}
         <div className="relative h-0">
           <div
-            className="absolute -top-2 w-0.5 h-4 bg-gray-400"
+            className="absolute -top-2 w-0.5 h-4 bg-text-tertiary"
             style={{ left: operator === '<=' ? '100%' : '0%' }}
           />
         </div>

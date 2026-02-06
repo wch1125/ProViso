@@ -45,15 +45,15 @@ export function RegulatoryTracker({ requirements, title = "Regulatory Status" }:
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'approved':
-        return <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
+        return <CheckCircle2 className="w-4 h-4 text-success" />;
       case 'submitted':
-        return <Clock className="w-4 h-4 text-blue-400" />;
+        return <Clock className="w-4 h-4 text-info" />;
       case 'pending':
-        return <AlertCircle className="w-4 h-4 text-amber-400" />;
+        return <AlertCircle className="w-4 h-4 text-warning" />;
       case 'denied':
-        return <XCircle className="w-4 h-4 text-red-400" />;
+        return <XCircle className="w-4 h-4 text-danger" />;
       default:
-        return <Clock className="w-4 h-4 text-gray-400" />;
+        return <Clock className="w-4 h-4 text-text-tertiary" />;
     }
   };
 
@@ -61,15 +61,15 @@ export function RegulatoryTracker({ requirements, title = "Regulatory Status" }:
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'text-emerald-400 bg-emerald-500/10';
+        return 'text-success bg-success/10';
       case 'submitted':
-        return 'text-blue-400 bg-blue-500/10';
+        return 'text-info bg-info/10';
       case 'pending':
-        return 'text-amber-400 bg-amber-500/10';
+        return 'text-warning bg-warning/10';
       case 'denied':
-        return 'text-red-400 bg-red-500/10';
+        return 'text-danger bg-danger/10';
       default:
-        return 'text-gray-400 bg-gray-500/10';
+        return 'text-text-tertiary bg-gray-500/10';
     }
   };
 
@@ -93,13 +93,13 @@ export function RegulatoryTracker({ requirements, title = "Regulatory Status" }:
         subtitle={`${stats.approved}/${stats.total} permits approved`}
         action={
           <div className="flex items-center gap-2">
-            <div className="w-20 h-2 bg-slate-700 rounded-full overflow-hidden">
+            <div className="w-20 h-2 bg-surface-3 rounded-full overflow-hidden">
               <div
-                className="h-full bg-emerald-500 transition-all"
+                className="h-full bg-success transition-all"
                 style={{ width: `${(stats.approved / stats.total) * 100}%` }}
               />
             </div>
-            <span className="text-sm font-medium text-emerald-400">
+            <span className="text-sm font-medium text-success">
               {Math.round((stats.approved / stats.total) * 100)}%
             </span>
           </div>
@@ -108,21 +108,21 @@ export function RegulatoryTracker({ requirements, title = "Regulatory Status" }:
       <CardBody>
         {/* Stats summary */}
         <div className="grid grid-cols-4 gap-2 mb-4">
-          <div className="bg-emerald-500/10 rounded-lg p-2 text-center">
-            <p className="text-lg font-bold text-emerald-400">{stats.approved}</p>
-            <p className="text-xs text-gray-400">Approved</p>
+          <div className="bg-success/10 rounded-lg p-2 text-center">
+            <p className="text-lg font-bold text-success">{stats.approved}</p>
+            <p className="text-xs text-text-tertiary">Approved</p>
           </div>
-          <div className="bg-blue-500/10 rounded-lg p-2 text-center">
-            <p className="text-lg font-bold text-blue-400">{stats.submitted}</p>
-            <p className="text-xs text-gray-400">Submitted</p>
+          <div className="bg-info/10 rounded-lg p-2 text-center">
+            <p className="text-lg font-bold text-info">{stats.submitted}</p>
+            <p className="text-xs text-text-tertiary">Submitted</p>
           </div>
-          <div className="bg-amber-500/10 rounded-lg p-2 text-center">
-            <p className="text-lg font-bold text-amber-400">{stats.pending}</p>
-            <p className="text-xs text-gray-400">Pending</p>
+          <div className="bg-warning/10 rounded-lg p-2 text-center">
+            <p className="text-lg font-bold text-warning">{stats.pending}</p>
+            <p className="text-xs text-text-tertiary">Pending</p>
           </div>
-          <div className="bg-red-500/10 rounded-lg p-2 text-center">
-            <p className="text-lg font-bold text-red-400">{stats.denied}</p>
-            <p className="text-xs text-gray-400">Denied</p>
+          <div className="bg-danger/10 rounded-lg p-2 text-center">
+            <p className="text-lg font-bold text-danger">{stats.denied}</p>
+            <p className="text-xs text-text-tertiary">Denied</p>
           </div>
         </div>
 
@@ -135,11 +135,11 @@ export function RegulatoryTracker({ requirements, title = "Regulatory Status" }:
               <div
                 key={phase}
                 className={`flex-1 px-2 py-1.5 rounded-lg ${
-                  approved === total ? 'bg-emerald-500/10' : 'bg-slate-800'
+                  approved === total ? 'bg-success/10' : 'bg-surface-2'
                 }`}
               >
-                <p className="text-gray-400 capitalize">{phase}</p>
-                <p className={`font-medium ${approved === total ? 'text-emerald-400' : 'text-white'}`}>
+                <p className="text-text-tertiary capitalize">{phase}</p>
+                <p className={`font-medium ${approved === total ? 'text-success' : 'text-text-primary'}`}>
                   {approved}/{total}
                 </p>
               </div>
@@ -154,54 +154,54 @@ export function RegulatoryTracker({ requirements, title = "Regulatory Status" }:
             const completion = getAgencyCompletion(reqs);
 
             return (
-              <div key={agency} className="border border-slate-800 rounded-lg overflow-hidden">
+              <div key={agency} className="border border-border-DEFAULT rounded-lg overflow-hidden">
                 {/* Agency header */}
                 <button
                   onClick={() => setExpandedAgency(isExpanded ? null : agency)}
-                  className="w-full flex items-center justify-between p-3 hover:bg-slate-800/50 transition-colors"
+                  className="w-full flex items-center justify-between p-3 hover:bg-surface-2/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <Building2 className="w-4 h-4 text-gray-400" />
+                    <Building2 className="w-4 h-4 text-text-tertiary" />
                     <div className="text-left">
-                      <p className="text-sm font-medium text-white">{agency}</p>
-                      <p className="text-xs text-gray-400">{reqs.length} permit{reqs.length !== 1 ? 's' : ''}</p>
+                      <p className="text-sm font-medium text-text-primary">{agency}</p>
+                      <p className="text-xs text-text-tertiary">{reqs.length} permit{reqs.length !== 1 ? 's' : ''}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                      <div className="w-16 h-1.5 bg-surface-3 rounded-full overflow-hidden">
                         <div
                           className={`h-full transition-all ${
-                            completion === 100 ? 'bg-emerald-500' : 'bg-blue-500'
+                            completion === 100 ? 'bg-success' : 'bg-info'
                           }`}
                           style={{ width: `${completion}%` }}
                         />
                       </div>
                       <span className={`text-xs font-medium ${
-                        completion === 100 ? 'text-emerald-400' : 'text-gray-400'
+                        completion === 100 ? 'text-success' : 'text-text-tertiary'
                       }`}>
                         {completion}%
                       </span>
                     </div>
                     {isExpanded ? (
-                      <ChevronUp className="w-4 h-4 text-gray-400" />
+                      <ChevronUp className="w-4 h-4 text-text-tertiary" />
                     ) : (
-                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                      <ChevronDown className="w-4 h-4 text-text-tertiary" />
                     )}
                   </div>
                 </button>
 
                 {/* Expanded permits */}
                 {isExpanded && (
-                  <div className="border-t border-slate-800 divide-y divide-slate-800">
+                  <div className="border-t border-border-DEFAULT divide-y divide-border-DEFAULT">
                     {reqs.map((req) => (
-                      <div key={req.name} className="p-3 bg-slate-900/50">
+                      <div key={req.name} className="p-3 bg-surface-0/50">
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-2">
                             {getStatusIcon(req.status)}
                             <div>
-                              <p className="text-sm font-medium text-white">{req.name}</p>
-                              <p className="text-xs text-gray-400">{req.type}</p>
+                              <p className="text-sm font-medium text-text-primary">{req.name}</p>
+                              <p className="text-xs text-text-tertiary">{req.type}</p>
                             </div>
                           </div>
                           <div className="text-right">
@@ -209,13 +209,13 @@ export function RegulatoryTracker({ requirements, title = "Regulatory Status" }:
                               {req.status}
                             </span>
                             {req.approvalDate && (
-                              <p className="text-xs text-gray-500 mt-1">{formatDate(req.approvalDate)}</p>
+                              <p className="text-xs text-text-muted mt-1">{formatDate(req.approvalDate)}</p>
                             )}
                           </div>
                         </div>
                         <div className="mt-2 flex items-center gap-2">
-                          <span className="text-xs text-gray-500">Required for:</span>
-                          <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-gray-300">
+                          <span className="text-xs text-text-muted">Required for:</span>
+                          <span className="text-xs px-2 py-0.5 rounded bg-surface-2 text-text-secondary">
                             {req.requiredFor}
                           </span>
                         </div>

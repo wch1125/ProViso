@@ -4,7 +4,7 @@
 
 ProViso is an executable DSL that allows credit agreements to be expressed as code. The source files read like legal documents but run like programs—answering compliance questions, tracking basket utilization, and simulating proposed transactions.
 
-**Version 2.0** | **470 Tests Passing** | **Production Ready**
+**Version 2.1** | **530 Tests Passing** | **Production Ready**
 
 ---
 
@@ -42,7 +42,7 @@ npm run dashboard
 
 ```
 ╔══════════════════════════════════════════════════════════╗
-║                  CREDITLANG STATUS REPORT                 ║
+║                   PROVISO STATUS REPORT                   ║
 ╚══════════════════════════════════════════════════════════╝
 
 FINANCIAL COVENANTS
@@ -321,13 +321,15 @@ npm run format             # Prettier
 
 ## Version History
 
-### v2.0.0 (Current) - Production Ready
+### v2.1.0 (Current) - Production Ready
 - Deal Hub with full lifecycle management
 - Version control with diff and changelog
 - Form-based code generation
 - Word document integration
 - Closing and post-closing dashboards
-- 470 tests passing
+- Industry-specific constructs (solar, wind, data center)
+- Performance guarantees, regulatory tracking, tax equity
+- 530 tests passing
 
 ### v1.0.0 - Project Finance
 - Phase state machine

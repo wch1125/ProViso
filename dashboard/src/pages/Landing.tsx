@@ -3,8 +3,8 @@ import {
   Hero,
   Features,
   Footer,
-  ThemeToggle,
 } from '../components/landing';
+import { TopNav } from '../components/layout';
 
 /**
  * Landing page for ProViso public demo.
@@ -14,8 +14,10 @@ export function Landing() {
   const navigate = useNavigate();
 
   const handleSelectIndustry = (industryId: string) => {
-    // Navigate to appropriate demo based on industry
     switch (industryId) {
+      case 'abc-acquisition':
+        navigate('/deals/abc-acquisition/negotiate');
+        break;
       case 'solar':
         navigate('/deals/solar-demo/monitor');
         break;
@@ -32,8 +34,8 @@ export function Landing() {
 
   return (
     <div className="min-h-screen bg-surface-0">
-      {/* Theme toggle */}
-      <ThemeToggle />
+      {/* Global navigation */}
+      <TopNav />
 
       {/* Hero section with demo cards */}
       <Hero onSelectIndustry={handleSelectIndustry} />

@@ -1,5 +1,5 @@
 /**
- * DocumentTracker Component
+ * DocumentTracker Component — v2.4 Design System
  *
  * Displays documents with status, responsible parties, and linked conditions.
  * Supports file upload functionality.
@@ -73,54 +73,42 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
   });
 
   const getStatusIcon = (doc: Document) => {
-    if (doc.status === 'executed') {
-      return <CheckCircle className="w-5 h-5 text-emerald-400" />;
-    }
-    if (doc.status === 'uploaded') {
-      return <Upload className="w-5 h-5 text-blue-400" />;
-    }
-    if (doc.isOverdue) {
-      return <AlertTriangle className="w-5 h-5 text-red-400" />;
-    }
-    return <Clock className="w-5 h-5 text-amber-400" />;
+    if (doc.status === 'executed') return <CheckCircle className="w-5 h-5 text-success" />;
+    if (doc.status === 'uploaded') return <Upload className="w-5 h-5 text-info" />;
+    if (doc.isOverdue) return <AlertTriangle className="w-5 h-5 text-danger" />;
+    return <Clock className="w-5 h-5 text-warning" />;
   };
 
   const getStatusBadge = (doc: Document) => {
-    if (doc.status === 'executed') {
-      return <Badge variant="success" size="sm">Executed</Badge>;
-    }
-    if (doc.status === 'uploaded') {
-      return <Badge variant="info" size="sm">Uploaded</Badge>;
-    }
-    if (doc.isOverdue) {
-      return <Badge variant="danger" size="sm">Overdue</Badge>;
-    }
+    if (doc.status === 'executed') return <Badge variant="success" size="sm">Executed</Badge>;
+    if (doc.status === 'uploaded') return <Badge variant="info" size="sm">Uploaded</Badge>;
+    if (doc.isOverdue) return <Badge variant="danger" size="sm">Overdue</Badge>;
     return <Badge variant="warning" size="sm">Pending</Badge>;
+  };
+
+  const getLeftBorderColor = (doc: Document) => {
+    if (doc.status === 'executed') return 'border-l-success';
+    if (doc.status === 'uploaded') return 'border-l-info';
+    if (doc.isOverdue) return 'border-l-danger';
+    return 'border-l-warning';
   };
 
   const formatDate = (date: Date | null) => {
     if (!date) return 'No due date';
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
+    return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   const toggleExpand = (docId: string) => {
     setExpandedDoc(expandedDoc === docId ? null : docId);
   };
 
-  // Group documents by type
   const groupedDocs = filteredDocs.reduce((groups, doc) => {
     const type = doc.documentType;
-    if (!groups[type]) {
-      groups[type] = [];
-    }
+    if (!groups[type]) groups[type] = [];
     groups[type].push(doc);
     return groups;
   }, {} as Record<string, Document[]>);
 
-  // Stats
   const stats = {
     total: documents.length,
     uploaded: documents.filter((d) => d.status === 'uploaded' || d.status === 'executed').length,
@@ -145,9 +133,7 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer.files[0];
-    if (file) {
-      handleFileSelect(file);
-    }
+    if (file) handleFileSelect(file);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -155,15 +141,11 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
     setDragOver(true);
   };
 
-  const handleDragLeave = () => {
-    setDragOver(false);
-  };
+  const handleDragLeave = () => setDragOver(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      handleFileSelect(file);
-    }
+    if (file) handleFileSelect(file);
   };
 
   return (
@@ -177,8 +159,8 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
               onClick={() => setFilter(f)}
               className={`px-3 py-1 text-xs rounded-full transition-colors ${
                 filter === f
-                  ? 'bg-accent-500/20 text-accent-400'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                  ? 'bg-gold-500/10 text-gold-500'
+                  : 'text-text-tertiary hover:text-text-primary hover:bg-surface-2'
               }`}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -186,52 +168,44 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
           ))}
         </div>
 
-        <div className="flex gap-4 text-sm">
-          <span className="text-emerald-400">{stats.uploaded} uploaded</span>
-          <span className="text-amber-400">{stats.pending} pending</span>
+        <div className="flex gap-4 text-[13px]">
+          <span className="text-success">{stats.uploaded} uploaded</span>
+          <span className="text-warning">{stats.pending} pending</span>
           {stats.overdue > 0 && (
-            <span className="text-red-400">{stats.overdue} overdue</span>
+            <span className="text-danger">{stats.overdue} overdue</span>
           )}
         </div>
       </div>
 
       {/* Document List */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {Object.entries(groupedDocs).map(([type, docs]) => (
           <div key={type}>
-            <h4 className="text-sm font-semibold text-slate-300 mb-2 uppercase tracking-wider">
+            <h4 className="text-[11px] font-semibold text-text-tertiary mb-3 uppercase tracking-[1.5px] pb-3 border-b-2 border-border-DEFAULT">
               {documentTypeLabels[type] || type}
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {docs.map((doc) => (
                 <div
                   key={doc.id}
-                  className="bg-slate-800/50 rounded-lg overflow-hidden"
+                  className="bg-surface-1 border border-border-DEFAULT rounded-lg overflow-hidden hover:border-border-strong transition-colors"
                 >
                   {/* Document Row */}
                   <div
-                    className={`p-4 border-l-4 cursor-pointer hover:bg-slate-700/30 transition-colors ${
-                      doc.status === 'executed'
-                        ? 'border-l-emerald-500'
-                        : doc.status === 'uploaded'
-                        ? 'border-l-blue-500'
-                        : doc.isOverdue
-                        ? 'border-l-red-500'
-                        : 'border-l-amber-500'
-                    }`}
+                    className={`p-5 border-l-4 cursor-pointer ${getLeftBorderColor(doc)}`}
                     onClick={() => toggleExpand(doc.id)}
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex-shrink-0">{getStatusIcon(doc)}</div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <FileText className="w-4 h-4 text-slate-500" />
-                          <h5 className="text-white font-medium truncate">
+                          <FileText className="w-4 h-4 text-text-muted" />
+                          <h5 className="text-text-primary font-medium truncate">
                             {doc.title}
                           </h5>
                           {getStatusBadge(doc)}
                         </div>
-                        <div className="flex items-center gap-4 mt-1 text-xs text-slate-500">
+                        <div className="flex items-center gap-4 mt-1.5 text-xs text-text-tertiary">
                           <span>{doc.fileName}</span>
                           {doc.responsiblePartyName && (
                             <span>{doc.responsiblePartyName}</span>
@@ -243,7 +217,6 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {/* Upload button for pending documents */}
                         {doc.status === 'pending' && onUpload && (
                           <Button
                             size="sm"
@@ -258,21 +231,21 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
                           </Button>
                         )}
                         {doc.signatures.length > 0 && (
-                          <span className="text-xs text-slate-400">
+                          <span className="text-xs text-text-tertiary">
                             {doc.signatures.filter((s) => s.status === 'signed').length}/
                             {doc.signatures.length} signed
                           </span>
                         )}
                         {doc.linkedConditions.length > 0 && (
-                          <span className="text-xs text-slate-400 flex items-center gap-1">
+                          <span className="text-xs text-text-tertiary flex items-center gap-1">
                             <LinkIcon className="w-3 h-3" />
                             {doc.linkedConditions.length}
                           </span>
                         )}
                         {expandedDoc === doc.id ? (
-                          <ChevronDown className="w-4 h-4 text-slate-400" />
+                          <ChevronDown className="w-4 h-4 text-text-tertiary" />
                         ) : (
-                          <ChevronRight className="w-4 h-4 text-slate-400" />
+                          <ChevronRight className="w-4 h-4 text-text-tertiary" />
                         )}
                       </div>
                     </div>
@@ -280,38 +253,37 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
 
                   {/* Expanded Details */}
                   {expandedDoc === doc.id && (
-                    <div className="px-4 pb-4 bg-slate-900/50 border-t border-slate-700">
-                      {/* Signatures */}
+                    <div className="px-5 pb-5 bg-surface-2/50 border-t border-border-DEFAULT">
                       {doc.signatures.length > 0 && (
                         <div className="mt-4">
-                          <h6 className="text-xs text-slate-400 uppercase tracking-wider mb-2">
+                          <h6 className="text-xs text-text-tertiary uppercase tracking-wider mb-2">
                             Signatures
                           </h6>
                           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                             {doc.signatures.map((sig) => (
                               <div
                                 key={sig.id}
-                                className={`p-2 rounded border ${
+                                className={`p-2 rounded-md border ${
                                   sig.status === 'signed'
-                                    ? 'border-emerald-500/30 bg-emerald-500/10'
+                                    ? 'border-success/30 bg-success/10'
                                     : sig.status === 'requested'
-                                    ? 'border-amber-500/30 bg-amber-500/10'
+                                    ? 'border-warning/30 bg-warning/10'
                                     : sig.status === 'declined'
-                                    ? 'border-red-500/30 bg-red-500/10'
-                                    : 'border-slate-600 bg-slate-800/50'
+                                    ? 'border-danger/30 bg-danger/10'
+                                    : 'border-border-DEFAULT bg-surface-1'
                                 }`}
                               >
                                 <div className="flex items-center gap-2">
                                   {sig.status === 'signed' ? (
-                                    <CheckCircle className="w-4 h-4 text-emerald-400" />
+                                    <CheckCircle className="w-4 h-4 text-success" />
                                   ) : (
-                                    <Clock className="w-4 h-4 text-slate-400" />
+                                    <Clock className="w-4 h-4 text-text-tertiary" />
                                   )}
-                                  <span className="text-sm text-white truncate">
+                                  <span className="text-sm text-text-primary truncate">
                                     {sig.partyName}
                                   </span>
                                 </div>
-                                <div className="text-xs text-slate-400 mt-1 truncate">
+                                <div className="text-xs text-text-tertiary mt-1 truncate">
                                   {sig.signatoryName}
                                 </div>
                               </div>
@@ -320,17 +292,16 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
                         </div>
                       )}
 
-                      {/* Linked Conditions */}
                       {doc.linkedConditions.length > 0 && (
                         <div className="mt-4">
-                          <h6 className="text-xs text-slate-400 uppercase tracking-wider mb-2">
+                          <h6 className="text-xs text-text-tertiary uppercase tracking-wider mb-2">
                             Satisfies Conditions
                           </h6>
                           <div className="flex flex-wrap gap-2">
                             {doc.linkedConditions.map((cpId) => (
                               <span
                                 key={cpId}
-                                className="px-2 py-1 bg-slate-700 rounded text-xs text-slate-300"
+                                className="px-2 py-1 bg-surface-2 rounded text-xs text-text-secondary"
                               >
                                 {cpId}
                               </span>
@@ -348,7 +319,7 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
       </div>
 
       {filteredDocs.length === 0 && (
-        <div className="text-center py-8 text-slate-400">
+        <div className="text-center py-8 text-text-tertiary">
           No documents match the current filter.
         </div>
       )}
@@ -362,9 +333,9 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
       >
         {selectedDocument && (
           <div className="space-y-4">
-            <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
-              <p className="text-sm text-slate-400">Uploading for:</p>
-              <p className="text-white font-medium mt-1">{selectedDocument.title}</p>
+            <div className="bg-surface-2 rounded-lg p-4 border border-border-DEFAULT">
+              <p className="text-sm text-text-tertiary">Uploading for:</p>
+              <p className="text-text-primary font-medium mt-1">{selectedDocument.title}</p>
             </div>
 
             {/* Drop Zone */}
@@ -378,16 +349,16 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
                 transition-colors
                 ${
                   dragOver
-                    ? 'border-accent-500 bg-accent-500/10'
-                    : 'border-slate-600 hover:border-slate-500 hover:bg-slate-800/50'
+                    ? 'border-gold-500 bg-gold-500/10'
+                    : 'border-border-strong hover:border-gold-500/50 hover:bg-surface-2'
                 }
               `}
             >
-              <Upload className={`w-12 h-12 mx-auto mb-3 ${dragOver ? 'text-accent-400' : 'text-slate-500'}`} />
-              <p className="text-white font-medium">
+              <Upload className={`w-12 h-12 mx-auto mb-3 ${dragOver ? 'text-gold-500' : 'text-text-muted'}`} />
+              <p className="text-text-primary font-medium">
                 Drop file here or click to browse
               </p>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-sm text-text-tertiary mt-1">
                 PDF, DOCX, or other document formats
               </p>
               <input
@@ -399,7 +370,7 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
               />
             </div>
 
-            <div className="text-sm text-slate-400">
+            <div className="text-sm text-text-tertiary">
               <p>For this demo, the file will not actually be stored. Only the filename will be recorded.</p>
             </div>
           </div>

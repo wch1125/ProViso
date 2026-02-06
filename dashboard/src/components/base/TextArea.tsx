@@ -29,7 +29,7 @@ export function TextArea({
       {label && (
         <label
           htmlFor={textareaId}
-          className="block text-sm font-medium text-slate-300 mb-1.5"
+          className="block text-sm font-medium text-text-secondary mb-1.5"
         >
           {label}
         </label>
@@ -42,16 +42,16 @@ export function TextArea({
           value={value}
           className={`
             block w-full rounded-lg
-            bg-slate-800 border
-            text-white placeholder-slate-500
+            bg-surface-2 border
+            text-text-primary placeholder-text-muted
             transition-colors duration-200
-            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900
+            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-0
             disabled:opacity-50 disabled:cursor-not-allowed
             resize-y
             px-4 py-3 text-sm
             ${error
-              ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-              : 'border-slate-600 focus:border-accent-500 focus:ring-accent-500'
+              ? 'border-danger focus:border-danger focus:ring-danger'
+              : 'border-border-strong focus:border-gold-500 focus:ring-gold-500'
             }
             ${className}
           `}
@@ -70,12 +70,12 @@ export function TextArea({
       <div className="flex justify-between mt-1.5">
         <div>
           {error && (
-            <p id={`${textareaId}-error`} className="text-sm text-red-400">
+            <p id={`${textareaId}-error`} className="text-sm text-danger">
               {error}
             </p>
           )}
           {helpText && !error && (
-            <p id={`${textareaId}-help`} className="text-sm text-slate-500">
+            <p id={`${textareaId}-help`} className="text-sm text-text-muted">
               {helpText}
             </p>
           )}
@@ -83,7 +83,7 @@ export function TextArea({
         {showCharCount && maxLength && (
           <p
             className={`text-sm ${
-              charCount >= maxLength ? 'text-red-400' : 'text-slate-500'
+              charCount >= maxLength ? 'text-danger' : 'text-text-muted'
             }`}
           >
             {charCount}/{maxLength}

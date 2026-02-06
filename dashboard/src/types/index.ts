@@ -1,5 +1,21 @@
 // Dashboard types mirroring ProViso interpreter types
 
+/**
+ * Covenant status for risk-first ordering
+ */
+export type CovenantStatus = 'breach' | 'danger' | 'caution' | 'safe' | 'suspended';
+
+/**
+ * Priority order for covenant sorting (lower = higher priority)
+ */
+export const COVENANT_STATUS_PRIORITY: Record<CovenantStatus, number> = {
+  breach: 0,
+  danger: 1,
+  caution: 2,
+  safe: 3,
+  suspended: 4,
+};
+
 export interface ProjectInfo {
   name: string;
   facility: string;

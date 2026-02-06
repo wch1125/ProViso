@@ -41,7 +41,7 @@ export function Select({
       {label && (
         <label
           htmlFor={selectId}
-          className="block text-sm font-medium text-slate-300 mb-1.5"
+          className="block text-sm font-medium text-text-secondary mb-1.5"
         >
           {label}
         </label>
@@ -51,16 +51,16 @@ export function Select({
           id={selectId}
           className={`
             block w-full rounded-lg
-            bg-slate-800 border
-            text-white
+            bg-surface-2 border
+            text-text-primary
             appearance-none
             transition-colors duration-200
-            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900
+            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-0
             disabled:opacity-50 disabled:cursor-not-allowed
             pr-10
             ${error
-              ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-              : 'border-slate-600 focus:border-accent-500 focus:ring-accent-500'
+              ? 'border-danger focus:border-danger focus:ring-danger'
+              : 'border-border-strong focus:border-gold-500 focus:ring-gold-500'
             }
             ${sizeStyles[size]}
             ${className}
@@ -85,17 +85,17 @@ export function Select({
             </option>
           ))}
         </select>
-        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500">
+        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-text-muted">
           <ChevronDown className="h-4 w-4" />
         </div>
       </div>
       {error && (
-        <p id={`${selectId}-error`} className="mt-1.5 text-sm text-red-400">
+        <p id={`${selectId}-error`} className="mt-1.5 text-sm text-danger">
           {error}
         </p>
       )}
       {helpText && !error && (
-        <p id={`${selectId}-help`} className="mt-1.5 text-sm text-slate-500">
+        <p id={`${selectId}-help`} className="mt-1.5 text-sm text-text-muted">
           {helpText}
         </p>
       )}

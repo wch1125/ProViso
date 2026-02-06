@@ -4,7 +4,7 @@
  * Tracks conditions precedent, documents, and signatures for deal closing.
  * Integrates ReadinessMeter, CPChecklist, DocumentTracker, and SignatureTracker components.
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   FileCheck,
@@ -58,8 +58,16 @@ export function ClosingDashboard() {
     toasts,
     removeToast,
     addToast,
+    loadScenario,
     resetToDefaults,
   } = useClosing();
+
+  // Load scenario data when dealId changes
+  useEffect(() => {
+    if (dealId) {
+      loadScenario(dealId);
+    }
+  }, [dealId, loadScenario]);
 
   // Build party lookup map
   const partyMap = new Map(parties.map((p) => [p.id, p]));
@@ -265,7 +273,7 @@ export function ClosingDashboard() {
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-text-primary">
                       Conditions Precedent
                     </h2>
                     <Badge variant="warning">
@@ -287,7 +295,7 @@ export function ClosingDashboard() {
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-text-primary">
                       Closing Documents
                     </h2>
                     <Badge variant="info">
@@ -308,7 +316,7 @@ export function ClosingDashboard() {
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-text-primary">
                       Signature Tracking
                     </h2>
                     <Badge variant="success">
@@ -361,11 +369,11 @@ export function ClosingDashboard() {
         }
       >
         <div className="space-y-4">
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-text-tertiary">
             Preview of the closing checklist in Markdown format. You can copy or download this file.
           </p>
-          <div className="bg-slate-900 border border-slate-700 rounded-lg p-4 max-h-96 overflow-auto">
-            <pre className="text-sm text-slate-300 whitespace-pre-wrap font-mono">
+          <div className="bg-surface-2 border border-border-DEFAULT rounded-lg p-4 max-h-96 overflow-auto">
+            <pre className="text-sm text-text-secondary whitespace-pre-wrap font-mono">
               {exportContent}
             </pre>
           </div>

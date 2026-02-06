@@ -74,6 +74,51 @@ export function getUtilizationPercent(
   }
 }
 
+/**
+ * Distance to breach information
+ */
+export interface DistanceToBreach {
+  /** Percentage headroom remaining until breach (100 - utilization) */
+  percent: number;
+  /** Absolute value difference from threshold */
+  absolute: number;
+  /** Whether currently in breach */
+  isInBreach: boolean;
+}
+
+/**
+ * Calculates the distance to breach for a covenant value
+ * Returns "% to breach" which is more intuitive than "headroom"
+ *
+ * @param actual - Current covenant value
+ * @param threshold - Covenant threshold/limit
+ * @param operator - Comparison operator (<= for max covenants, >= for min covenants)
+ */
+export function getDistanceToBreach(
+  actual: number,
+  threshold: number,
+  operator: '<=' | '>=' | '<' | '>' | '=' | '!='
+): DistanceToBreach {
+  const isMaxCovenant = operator === '<=' || operator === '<';
+  const utilizationPercent = getUtilizationPercent(actual, threshold, operator);
+
+  // Calculate absolute distance
+  let absolute: number;
+  if (isMaxCovenant) {
+    // For max covenants (leverage <= 4.5x): threshold - actual = headroom
+    absolute = threshold - actual;
+  } else {
+    // For min covenants (coverage >= 1.25x): actual - threshold = headroom
+    absolute = actual - threshold;
+  }
+
+  return {
+    percent: Math.max(0, 100 - utilizationPercent),
+    absolute,
+    isInBreach: utilizationPercent > 100,
+  };
+}
+
 // =============================================================================
 // ZONE STYLING
 // =============================================================================
@@ -89,18 +134,18 @@ export interface ZoneStyle {
 
 export const zoneStyles: Record<ThresholdZone, ZoneStyle> = {
   safe: {
-    bgColor: 'bg-emerald-500/10',
-    textColor: 'text-emerald-400',
-    borderColor: 'border-emerald-500/30',
-    progressColor: 'bg-gradient-to-r from-emerald-600 to-emerald-500',
+    bgColor: 'bg-success/10',
+    textColor: 'text-success',
+    borderColor: 'border-success/30',
+    progressColor: 'bg-gradient-to-r from-emerald-600 to-success',
     pulseAnimation: false,
     icon: 'check',
   },
   caution: {
-    bgColor: 'bg-amber-500/10',
-    textColor: 'text-amber-400',
-    borderColor: 'border-amber-500/30',
-    progressColor: 'bg-gradient-to-r from-amber-600 to-amber-500',
+    bgColor: 'bg-warning/10',
+    textColor: 'text-warning',
+    borderColor: 'border-warning/30',
+    progressColor: 'bg-gradient-to-r from-amber-600 to-warning',
     pulseAnimation: false,
     icon: 'warning',
   },
@@ -113,10 +158,10 @@ export const zoneStyles: Record<ThresholdZone, ZoneStyle> = {
     icon: 'alert',
   },
   breach: {
-    bgColor: 'bg-red-500/10',
-    textColor: 'text-red-400',
-    borderColor: 'border-red-500/30',
-    progressColor: 'bg-gradient-to-r from-red-600 to-red-500',
+    bgColor: 'bg-danger/10',
+    textColor: 'text-danger',
+    borderColor: 'border-danger/30',
+    progressColor: 'bg-gradient-to-r from-red-600 to-danger',
     pulseAnimation: true,
     icon: 'x',
   },

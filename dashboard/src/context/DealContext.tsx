@@ -16,14 +16,16 @@ import {
 } from 'react';
 
 import {
-  demoDeal,
-  demoVersions,
-  demoParties,
+  getScenarioById,
+  demoScenarios,
   type Deal,
   type DealVersion,
   type DealParty,
   type ChangeSummary,
-} from '../data/negotiation-demo';
+} from '../data/demo-scenarios';
+
+// Known scenario IDs for filtering out stale data
+const KNOWN_SCENARIO_IDS = new Set(Object.keys(demoScenarios));
 
 // Re-export types for convenience
 export type { Deal, DealVersion, DealParty, ChangeSummary };
@@ -111,6 +113,9 @@ interface DealContextValue {
   getActivitiesForDeal: (dealId: string) => Activity[];
   clearActivities: () => void;
 
+  // Scenario loading
+  loadScenario: (dealId: string) => void;
+
   // Reset
   resetToDefaults: () => void;
 }
@@ -177,36 +182,52 @@ function getInitialDeals(): Deal[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY_DEALS);
     if (stored) {
-      return cloneDeals(JSON.parse(stored));
+      const parsed = JSON.parse(stored) as Deal[];
+      // Filter out deals with old/unknown IDs to prevent duplicates
+      const validDeals = parsed.filter(d => KNOWN_SCENARIO_IDS.has(d.id));
+      if (validDeals.length > 0) {
+        return cloneDeals(validDeals);
+      }
     }
   } catch (e) {
     console.warn('Failed to load deals from localStorage:', e);
   }
-  return cloneDeals([demoDeal]);
+  // Start fresh with no deals - they'll be loaded on demand via loadScenario
+  return [];
 }
 
 function getInitialVersions(): DealVersion[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY_VERSIONS);
     if (stored) {
-      return cloneVersions(JSON.parse(stored));
+      const parsed = JSON.parse(stored) as DealVersion[];
+      // Filter out versions with old/unknown deal IDs
+      const validVersions = parsed.filter(v => KNOWN_SCENARIO_IDS.has(v.dealId));
+      if (validVersions.length > 0) {
+        return cloneVersions(validVersions);
+      }
     }
   } catch (e) {
     console.warn('Failed to load versions from localStorage:', e);
   }
-  return cloneVersions(demoVersions);
+  return [];
 }
 
 function getInitialParties(): DealParty[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY_PARTIES);
     if (stored) {
-      return cloneParties(JSON.parse(stored));
+      const parsed = JSON.parse(stored) as DealParty[];
+      // Filter out parties with old/unknown deal IDs
+      const validParties = parsed.filter(p => KNOWN_SCENARIO_IDS.has(p.dealId));
+      if (validParties.length > 0) {
+        return cloneParties(validParties);
+      }
     }
   } catch (e) {
     console.warn('Failed to load parties from localStorage:', e);
   }
-  return cloneParties(demoParties);
+  return [];
 }
 
 function getInitialActivities(): Activity[] {
@@ -493,11 +514,42 @@ export function DealProvider({ children }: DealProviderProps) {
     setActivities([]);
   }, []);
 
+  // Scenario loading - loads deal data from demo-scenarios based on dealId
+  const loadScenario = useCallback((dealId: string) => {
+    const scenario = getScenarioById(dealId);
+    if (scenario?.negotiation) {
+      const { deal, versions: scenarioVersions, parties: scenarioParties } = scenario.negotiation;
+
+      // Check if deal already exists
+      const existingDeal = deals.find(d => d.id === dealId);
+      if (!existingDeal) {
+        // Add the deal if it doesn't exist
+        setDeals(prev => [...prev.filter(d => d.id !== dealId), cloneDeals([deal])[0]]);
+      }
+
+      // Check if versions already exist for this deal
+      const existingVersions = versions.filter(v => v.dealId === dealId);
+      if (existingVersions.length === 0) {
+        setVersions(prev => [...prev, ...cloneVersions(scenarioVersions)]);
+      }
+
+      // Check if parties already exist for this deal
+      const existingParties = parties.filter(p => p.dealId === dealId);
+      if (existingParties.length === 0) {
+        setParties(prev => [...prev, ...cloneParties(scenarioParties)]);
+      }
+
+      // Select this deal
+      setCurrentDealId(dealId);
+    }
+  }, [deals, versions, parties]);
+
   // Reset
   const resetToDefaults = useCallback(() => {
-    setDeals(cloneDeals([demoDeal]));
-    setVersions(cloneVersions(demoVersions));
-    setParties(cloneParties(demoParties));
+    // Clear all data - scenarios will be loaded fresh on demand
+    setDeals([]);
+    setVersions([]);
+    setParties([]);
     setActivities([]);
     setCurrentDealId(null);
     localStorage.removeItem(STORAGE_KEY_DEALS);
@@ -528,6 +580,7 @@ export function DealProvider({ children }: DealProviderProps) {
     logActivity,
     getActivitiesForDeal,
     clearActivities,
+    loadScenario,
     resetToDefaults,
   };
 

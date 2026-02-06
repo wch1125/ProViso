@@ -118,27 +118,27 @@ function FieldGroupSection({
   onToggle: () => void;
 }) {
   return (
-    <div className="border border-slate-700 rounded-lg overflow-hidden">
+    <div className="border border-border-DEFAULT rounded-lg overflow-hidden">
       {/* Group header */}
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-4 py-3 bg-slate-800/50 hover:bg-slate-800 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 bg-surface-2/50 hover:bg-surface-2 transition-colors"
       >
         <div className="flex items-center gap-2">
           {expanded ? (
-            <ChevronDown className="w-4 h-4 text-slate-400" />
+            <ChevronDown className="w-4 h-4 text-text-tertiary" />
           ) : (
-            <ChevronRight className="w-4 h-4 text-slate-400" />
+            <ChevronRight className="w-4 h-4 text-text-tertiary" />
           )}
-          <span className="font-medium text-white">{group.name}</span>
-          <span className="text-xs text-slate-500">({group.fields.length} fields)</span>
+          <span className="font-medium text-text-primary">{group.name}</span>
+          <span className="text-xs text-text-muted">({group.fields.length} fields)</span>
         </div>
-        <span className="text-xs text-slate-400">{group.description}</span>
+        <span className="text-xs text-text-tertiary">{group.description}</span>
       </button>
 
       {/* Group fields */}
       {expanded && (
-        <div className="p-4 bg-slate-900/30 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="p-4 bg-surface-0/30 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {group.fields.map((field) => (
             <div key={field.key}>
               <Input
@@ -150,7 +150,7 @@ function FieldGroupSection({
                 icon={<DollarSign className="w-4 h-4" />}
                 size="sm"
               />
-              <div className="mt-1 text-xs text-slate-500 text-right">
+              <div className="mt-1 text-xs text-text-muted text-right">
                 {formatCurrency(values[field.key] ?? 0)}
               </div>
             </div>
@@ -226,12 +226,12 @@ export function FinancialDataEditor({
   }, [financials]);
 
   return (
-    <div className={`bg-slate-900/50 border border-slate-800 rounded-xl ${className}`}>
+    <div className={`bg-surface-0/50 border border-surface-2 rounded-xl ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border-DEFAULT">
         <div>
-          <h3 className="text-lg font-semibold text-white">Financial Data</h3>
-          <p className="text-sm text-slate-400">
+          <h3 className="text-lg font-semibold text-text-primary">Financial Data</h3>
+          <p className="text-sm text-text-tertiary">
             Edit values to see live impact on covenants
           </p>
         </div>
@@ -268,12 +268,12 @@ export function FinancialDataEditor({
       </div>
 
       {/* Footer with actions */}
-      <div className="flex items-center justify-between px-5 py-4 border-t border-slate-800 bg-slate-800/30">
-        <div className="text-sm text-slate-400">
+      <div className="flex items-center justify-between px-5 py-4 border-t border-border-DEFAULT bg-surface-2/30">
+        <div className="text-sm text-text-tertiary">
           {hasChanges ? (
-            <span className="text-amber-400">Unsaved changes</span>
+            <span className="text-warning">Unsaved changes</span>
           ) : (
-            <span className="text-green-400">All changes applied</span>
+            <span className="text-success">All changes applied</span>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -322,12 +322,12 @@ export function FinancialDataQuickEdit({
     <div className={`flex items-center gap-4 ${className}`}>
       {quickFields.map((field) => (
         <div key={field.key} className="flex items-center gap-2">
-          <span className="text-xs text-slate-400 whitespace-nowrap">{field.label}:</span>
+          <span className="text-xs text-text-tertiary whitespace-nowrap">{field.label}:</span>
           <input
             type="number"
             value={financials[field.key]?.toString() ?? '0'}
             onChange={(e) => updateFinancial(field.key, parseCurrencyInput(e.target.value))}
-            className="w-24 px-2 py-1 text-xs bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-accent-500"
+            className="w-24 px-2 py-1 text-xs bg-surface-2 border border-border-DEFAULT rounded text-text-primary focus:outline-none focus:border-gold-500"
           />
         </div>
       ))}

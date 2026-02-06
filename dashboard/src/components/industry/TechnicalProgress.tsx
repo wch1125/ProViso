@@ -62,17 +62,17 @@ export function TechnicalProgress({ milestones, title = "Technical Progress" }: 
   const getStatusBgClass = (status: string) => {
     switch (status) {
       case 'achieved':
-        return 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400';
+        return 'bg-success/10 border-success/30 text-success';
       case 'in_progress':
-        return 'bg-blue-500/10 border-blue-500/30 text-blue-400';
+        return 'bg-info/10 border-info/30 text-info';
       case 'pending':
-        return 'bg-gray-500/10 border-gray-500/30 text-gray-400';
+        return 'bg-gray-500/10 border-gray-500/30 text-text-tertiary';
       case 'at_risk':
-        return 'bg-amber-500/10 border-amber-500/30 text-amber-400';
+        return 'bg-warning/10 border-warning/30 text-warning';
       case 'breached':
-        return 'bg-red-500/10 border-red-500/30 text-red-400';
+        return 'bg-danger/10 border-danger/30 text-danger';
       default:
-        return 'bg-gray-500/10 border-gray-500/30 text-gray-400';
+        return 'bg-gray-500/10 border-gray-500/30 text-text-tertiary';
     }
   };
 
@@ -80,14 +80,14 @@ export function TechnicalProgress({ milestones, title = "Technical Progress" }: 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'achieved':
-        return <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
+        return <CheckCircle2 className="w-4 h-4 text-success" />;
       case 'in_progress':
-        return <Clock className="w-4 h-4 text-blue-400" />;
+        return <Clock className="w-4 h-4 text-info" />;
       case 'at_risk':
       case 'breached':
-        return <AlertTriangle className="w-4 h-4 text-amber-400" />;
+        return <AlertTriangle className="w-4 h-4 text-warning" />;
       default:
-        return <Clock className="w-4 h-4 text-gray-400" />;
+        return <Clock className="w-4 h-4 text-text-tertiary" />;
     }
   };
 
@@ -149,11 +149,11 @@ export function TechnicalProgress({ milestones, title = "Technical Progress" }: 
           capacityMilestone && (
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-gold-400" />
-              <span className="text-lg font-bold text-white">
+              <span className="text-lg font-bold text-text-primary">
                 {capacityMilestone.currentValue}
-                <span className="text-gray-400 text-sm">/{capacityMilestone.targetValue}</span>
+                <span className="text-text-tertiary text-sm">/{capacityMilestone.targetValue}</span>
               </span>
-              <span className="text-sm text-gray-400">{capacityMilestone.measurement}</span>
+              <span className="text-sm text-text-tertiary">{capacityMilestone.measurement}</span>
             </div>
           )
         }
@@ -175,25 +175,25 @@ export function TechnicalProgress({ milestones, title = "Technical Progress" }: 
 
         {/* Status summary */}
         <div className="grid grid-cols-5 gap-2 mb-4">
-          <div className="bg-emerald-500/10 rounded-lg p-2 text-center">
-            <p className="text-lg font-bold text-emerald-400">{stats.achieved}</p>
-            <p className="text-xs text-gray-400">Done</p>
+          <div className="bg-success/10 rounded-lg p-2 text-center">
+            <p className="text-lg font-bold text-success">{stats.achieved}</p>
+            <p className="text-xs text-text-tertiary">Done</p>
           </div>
-          <div className="bg-blue-500/10 rounded-lg p-2 text-center">
-            <p className="text-lg font-bold text-blue-400">{stats.inProgress}</p>
-            <p className="text-xs text-gray-400">Active</p>
+          <div className="bg-info/10 rounded-lg p-2 text-center">
+            <p className="text-lg font-bold text-info">{stats.inProgress}</p>
+            <p className="text-xs text-text-tertiary">Active</p>
           </div>
           <div className="bg-gray-500/10 rounded-lg p-2 text-center">
-            <p className="text-lg font-bold text-gray-400">{stats.pending}</p>
-            <p className="text-xs text-gray-400">Pending</p>
+            <p className="text-lg font-bold text-text-tertiary">{stats.pending}</p>
+            <p className="text-xs text-text-tertiary">Pending</p>
           </div>
-          <div className="bg-amber-500/10 rounded-lg p-2 text-center">
-            <p className="text-lg font-bold text-amber-400">{stats.atRisk}</p>
-            <p className="text-xs text-gray-400">At Risk</p>
+          <div className="bg-warning/10 rounded-lg p-2 text-center">
+            <p className="text-lg font-bold text-warning">{stats.atRisk}</p>
+            <p className="text-xs text-text-tertiary">At Risk</p>
           </div>
-          <div className="bg-red-500/10 rounded-lg p-2 text-center">
-            <p className="text-lg font-bold text-red-400">{stats.breached}</p>
-            <p className="text-xs text-gray-400">Breached</p>
+          <div className="bg-danger/10 rounded-lg p-2 text-center">
+            <p className="text-lg font-bold text-danger">{stats.breached}</p>
+            <p className="text-xs text-text-tertiary">Breached</p>
           </div>
         </div>
 
@@ -230,27 +230,27 @@ export function TechnicalProgress({ milestones, title = "Technical Progress" }: 
               <div className="flex items-center gap-3">
                 {getStatusIcon(m.status)}
                 <div>
-                  <p className="text-sm font-medium text-white">{m.name}</p>
-                  <p className="text-xs text-gray-400">{m.measurement}</p>
+                  <p className="text-sm font-medium text-text-primary">{m.name}</p>
+                  <p className="text-xs text-text-tertiary">{m.measurement}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <p className="text-sm font-medium text-white tabular-nums">
+                  <p className="text-sm font-medium text-text-primary tabular-nums">
                     {m.currentValue.toLocaleString()} / {m.targetValue.toLocaleString()}
                   </p>
-                  <p className="text-xs text-gray-400">{m.percentComplete}%</p>
+                  <p className="text-xs text-text-tertiary">{m.percentComplete}%</p>
                 </div>
                 <div className="text-right min-w-[60px]">
-                  <p className="text-xs text-gray-400">{formatDate(m.target)}</p>
+                  <p className="text-xs text-text-tertiary">{formatDate(m.target)}</p>
                   {m.status !== 'achieved' && (
                     <p
                       className={`text-xs ${
                         daysToTarget(m.target) < 0
-                          ? 'text-red-400'
+                          ? 'text-danger'
                           : daysToTarget(m.target) < 30
-                          ? 'text-amber-400'
-                          : 'text-gray-500'
+                          ? 'text-warning'
+                          : 'text-text-muted'
                       }`}
                     >
                       {daysToTarget(m.target) < 0
@@ -267,7 +267,7 @@ export function TechnicalProgress({ milestones, title = "Technical Progress" }: 
         {/* Critical path indicator */}
         {milestones.filter((m) => m.status === 'in_progress').length > 0 && (
           <div className="mt-4 pt-4 border-t border-industry-borderDefault">
-            <p className="text-xs text-gray-400 mb-2">Critical Path</p>
+            <p className="text-xs text-text-tertiary mb-2">Critical Path</p>
             <div className="flex items-center gap-2 flex-wrap">
               {milestones
                 .filter((m) => m.status === 'in_progress' || m.status === 'pending')
@@ -277,13 +277,13 @@ export function TechnicalProgress({ milestones, title = "Technical Progress" }: 
                     <span
                       className={`text-xs px-2 py-1 rounded ${
                         m.status === 'in_progress'
-                          ? 'bg-blue-500/20 text-blue-400'
-                          : 'bg-gray-500/20 text-gray-400'
+                          ? 'bg-info/20 text-info'
+                          : 'bg-gray-500/20 text-text-tertiary'
                       }`}
                     >
                       {m.name}
                     </span>
-                    {index < arr.length - 1 && <ArrowRight className="w-3 h-3 text-gray-600" />}
+                    {index < arr.length - 1 && <ArrowRight className="w-3 h-3 text-text-muted" />}
                   </div>
                 ))}
             </div>

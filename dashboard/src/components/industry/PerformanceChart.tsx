@@ -43,28 +43,28 @@ export function PerformanceChart({ guarantees, degradation, title = "Performance
   // Determine color based on performance level
   const getStatusColor = (level: string) => {
     switch (level) {
-      case 'p50': return 'text-emerald-400';
+      case 'p50': return 'text-success';
       case 'p75': return 'text-green-400';
       case 'p90': return 'text-yellow-400';
-      case 'p99': return 'text-amber-400';
-      default: return 'text-red-400';
+      case 'p99': return 'text-warning';
+      default: return 'text-danger';
     }
   };
 
   const getStatusBgColor = (level: string) => {
     switch (level) {
-      case 'p50': return 'bg-emerald-500/10 border-emerald-500/30';
+      case 'p50': return 'bg-success/10 border-success/30';
       case 'p75': return 'bg-green-500/10 border-green-500/30';
       case 'p90': return 'bg-yellow-500/10 border-yellow-500/30';
-      case 'p99': return 'bg-amber-500/10 border-amber-500/30';
-      default: return 'bg-red-500/10 border-red-500/30';
+      case 'p99': return 'bg-warning/10 border-warning/30';
+      default: return 'bg-danger/10 border-danger/30';
     }
   };
 
   const getStatusIcon = (meetsGuarantee: boolean) => {
     return meetsGuarantee
-      ? <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-      : <AlertTriangle className="w-4 h-4 text-red-400" />;
+      ? <CheckCircle2 className="w-4 h-4 text-success" />
+      : <AlertTriangle className="w-4 h-4 text-danger" />;
   };
 
   // Custom tooltip
@@ -73,9 +73,9 @@ export function PerformanceChart({ guarantees, degradation, title = "Performance
     const data = payload[0].payload;
 
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 shadow-lg">
-        <p className="text-sm font-medium text-white">{data.name} Threshold</p>
-        <p className="text-sm text-gray-400">
+      <div className="bg-surface-2 border border-border-DEFAULT rounded-lg px-3 py-2 shadow-lg">
+        <p className="text-sm font-medium text-text-primary">{data.name} Threshold</p>
+        <p className="text-sm text-text-tertiary">
           {data.value.toLocaleString()} {primaryGuarantee.unit || 'GWh'}
         </p>
       </div>
@@ -90,7 +90,7 @@ export function PerformanceChart({ guarantees, degradation, title = "Performance
         action={
           <div className="flex items-center gap-2">
             {getStatusIcon(primaryGuarantee.meetsGuarantee)}
-            <span className={`text-sm font-medium ${primaryGuarantee.meetsGuarantee ? 'text-emerald-400' : 'text-red-400'}`}>
+            <span className={`text-sm font-medium ${primaryGuarantee.meetsGuarantee ? 'text-success' : 'text-danger'}`}>
               {primaryGuarantee.meetsGuarantee ? 'Meeting Guarantee' : 'Below Guarantee'}
             </span>
           </div>
@@ -100,16 +100,16 @@ export function PerformanceChart({ guarantees, degradation, title = "Performance
         {/* Primary metric display */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-3xl font-bold text-white">
+            <p className="text-3xl font-bold text-text-primary">
               {primaryGuarantee.actual.toLocaleString()}
-              <span className="text-lg text-gray-400 ml-1">{primaryGuarantee.unit || 'GWh'}</span>
+              <span className="text-lg text-text-tertiary ml-1">{primaryGuarantee.unit || 'GWh'}</span>
             </p>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-text-tertiary mt-1">
               Actual vs P50: {primaryGuarantee.p50.toLocaleString()}
             </p>
           </div>
           <div className={`px-4 py-2 rounded-lg border ${getStatusBgColor(primaryGuarantee.performanceLevel)}`}>
-            <p className="text-xs text-gray-400">Performance Level</p>
+            <p className="text-xs text-text-tertiary">Performance Level</p>
             <p className={`text-lg font-bold ${getStatusColor(primaryGuarantee.performanceLevel)}`}>
               {primaryGuarantee.performanceLevel.toUpperCase()}
             </p>
@@ -168,22 +168,22 @@ export function PerformanceChart({ guarantees, degradation, title = "Performance
             <div
               key={g.name}
               className={`flex items-center justify-between p-3 rounded-lg ${
-                g.meetsGuarantee ? 'bg-emerald-500/5' : 'bg-red-500/5'
+                g.meetsGuarantee ? 'bg-success/5' : 'bg-danger/5'
               }`}
             >
               <div className="flex items-center gap-3">
                 {g.meetsGuarantee ? (
-                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  <TrendingUp className="w-4 h-4 text-success" />
                 ) : (
-                  <TrendingDown className="w-4 h-4 text-red-400" />
+                  <TrendingDown className="w-4 h-4 text-danger" />
                 )}
                 <div>
-                  <p className="text-sm font-medium text-white">{g.name}</p>
-                  <p className="text-xs text-gray-400">{g.metric}</p>
+                  <p className="text-sm font-medium text-text-primary">{g.name}</p>
+                  <p className="text-xs text-text-tertiary">{g.metric}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className={`text-sm font-semibold ${g.meetsGuarantee ? 'text-emerald-400' : 'text-red-400'}`}>
+                <p className={`text-sm font-semibold ${g.meetsGuarantee ? 'text-success' : 'text-danger'}`}>
                   {g.actual.toLocaleString()} / {g.p99.toLocaleString()}
                 </p>
                 <p className={`text-xs ${getStatusColor(g.performanceLevel)}`}>
@@ -196,16 +196,16 @@ export function PerformanceChart({ guarantees, degradation, title = "Performance
 
         {/* Degradation overlay if available */}
         {degradation && degradation.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-slate-800">
-            <p className="text-sm font-medium text-gray-300 mb-2">Degradation Impact</p>
+          <div className="mt-4 pt-4 border-t border-border-DEFAULT">
+            <p className="text-sm font-medium text-text-secondary mb-2">Degradation Impact</p>
             <div className="grid grid-cols-2 gap-3">
               {degradation.slice(0, 2).map((d) => (
-                <div key={d.name} className="bg-slate-800/50 rounded-lg p-3">
-                  <p className="text-xs text-gray-400">{d.assetType}</p>
-                  <p className="text-sm font-medium text-white">
+                <div key={d.name} className="bg-surface-2/50 rounded-lg p-3">
+                  <p className="text-xs text-text-tertiary">{d.assetType}</p>
+                  <p className="text-sm font-medium text-text-primary">
                     {d.effectiveCapacity.toFixed(1)}% capacity
                   </p>
-                  <p className="text-xs text-amber-400">
+                  <p className="text-xs text-warning">
                     -{d.cumulativeDegradation.toFixed(1)}% YTD
                   </p>
                 </div>

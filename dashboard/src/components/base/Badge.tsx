@@ -18,29 +18,29 @@ export interface BadgeProps {
 
 const variantStyles: Record<string, { bg: string; text: string; dot: string }> = {
   default: {
-    bg: 'bg-slate-700',
-    text: 'text-slate-300',
-    dot: 'bg-slate-400',
+    bg: 'bg-surface-3',
+    text: 'text-text-secondary',
+    dot: 'bg-text-tertiary',
   },
   success: {
-    bg: 'bg-emerald-500/20',
-    text: 'text-emerald-400',
-    dot: 'bg-emerald-500',
+    bg: 'bg-success/20',
+    text: 'text-success',
+    dot: 'bg-success',
   },
   warning: {
-    bg: 'bg-amber-500/20',
-    text: 'text-amber-400',
-    dot: 'bg-amber-500',
+    bg: 'bg-warning/20',
+    text: 'text-warning',
+    dot: 'bg-warning',
   },
   danger: {
-    bg: 'bg-red-500/20',
-    text: 'text-red-400',
-    dot: 'bg-red-500',
+    bg: 'bg-danger/20',
+    text: 'text-danger',
+    dot: 'bg-danger',
   },
   info: {
-    bg: 'bg-accent-500/20',
-    text: 'text-accent-400',
-    dot: 'bg-accent-500',
+    bg: 'bg-info/20',
+    text: 'text-info',
+    dot: 'bg-info',
   },
   gold: {
     bg: 'bg-gold-500/20',
@@ -48,9 +48,9 @@ const variantStyles: Record<string, { bg: string; text: string; dot: string }> =
     dot: 'bg-gold-500',
   },
   muted: {
-    bg: 'bg-slate-800',
-    text: 'text-slate-500',
-    dot: 'bg-slate-500',
+    bg: 'bg-surface-2',
+    text: 'text-text-muted',
+    dot: 'bg-text-muted',
   },
 };
 

@@ -45,7 +45,7 @@ export function WaterfallChart({ waterfall }: WaterfallChartProps) {
           ${(data.amount / 1_000_000).toFixed(2)}M
         </p>
         {data.blocked && (
-          <p className="text-xs text-amber-400 mt-1">{data.reason}</p>
+          <p className="text-xs text-warning mt-1">{data.reason}</p>
         )}
       </div>
     );
@@ -104,7 +104,7 @@ export function WaterfallChart({ waterfall }: WaterfallChartProps) {
             <div
               key={index}
               className={`flex items-center justify-between py-2 px-3 rounded-lg ${
-                tier.blocked ? 'bg-amber-500/5 border border-amber-500/20' : 'hover:bg-slate-800/50'
+                tier.blocked ? 'bg-warning/5 border border-warning/20' : 'hover:bg-surface-2/50'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -116,7 +116,7 @@ export function WaterfallChart({ waterfall }: WaterfallChartProps) {
                   {tier.name}
                 </span>
                 {tier.blocked && (
-                  <span className="flex items-center gap-1 text-xs text-amber-400">
+                  <span className="flex items-center gap-1 text-xs text-warning">
                     <Lock className="w-3 h-3" />
                     {tier.reason}
                   </span>
@@ -135,13 +135,13 @@ export function WaterfallChart({ waterfall }: WaterfallChartProps) {
         <div className="mt-4 pt-4 border-t border-industry-borderDefault grid grid-cols-3 gap-4">
           <div>
             <p className="text-xs text-industry-textMuted">Distributed</p>
-            <p className="text-lg font-semibold text-emerald-400">
+            <p className="text-lg font-semibold text-success">
               ${(totalDistributed / 1_000_000).toFixed(2)}M
             </p>
           </div>
           <div>
             <p className="text-xs text-industry-textMuted">Blocked</p>
-            <p className="text-lg font-semibold text-amber-400">
+            <p className="text-lg font-semibold text-warning">
               ${(blockedAmount / 1_000_000).toFixed(2)}M
             </p>
           </div>
@@ -155,11 +155,11 @@ export function WaterfallChart({ waterfall }: WaterfallChartProps) {
 
         {/* Warning if blocked */}
         {blockedAmount > 0 && (
-          <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
-            <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+          <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-warning/5 border border-warning/20">
+            <AlertTriangle className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm text-amber-400 font-medium">Distribution Gate Active</p>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-sm text-warning font-medium">Distribution Gate Active</p>
+              <p className="text-xs text-text-tertiary mt-0.5">
                 DSCR must exceed 1.50x before distributions can be released
               </p>
             </div>

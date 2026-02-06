@@ -14,7 +14,7 @@ export function CPChecklist({ checklists }: CPChecklistProps) {
         title="Conditions Precedent"
         subtitle="Draw eligibility checklists"
       />
-      <CardBody className="p-0 space-y-0 divide-y divide-slate-800">
+      <CardBody className="p-0 space-y-0 divide-y divide-border-DEFAULT">
         {checklists.map((checklist) => (
           <ChecklistSection key={checklist.name} checklist={checklist} />
         ))}
@@ -41,25 +41,25 @@ function ChecklistSection({ checklist }: ChecklistSectionProps) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className={`p-2 rounded-lg ${
-            isComplete ? 'bg-emerald-500/10' : 'bg-amber-500/10'
+            isComplete ? 'bg-success/10' : 'bg-warning/10'
           }`}>
             <FileCheck className={`w-5 h-5 ${
-              isComplete ? 'text-emerald-400' : 'text-amber-400'
+              isComplete ? 'text-success' : 'text-warning'
             }`} />
           </div>
           <div>
-            <h3 className="text-sm font-medium text-white">{name}</h3>
+            <h3 className="text-sm font-medium text-text-primary">{name}</h3>
             {section && (
-              <p className="text-xs text-gray-500">Section {section}</p>
+              <p className="text-xs text-text-muted">Section {section}</p>
             )}
           </div>
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
-            <p className="text-sm font-semibold text-white">
+            <p className="text-sm font-semibold text-text-primary">
               {satisfied}/{conditions.length}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-text-muted">
               {waived > 0 && `${waived} waived`}
             </p>
           </div>
@@ -75,8 +75,8 @@ function ChecklistSection({ checklist }: ChecklistSectionProps) {
         <div
           className={`progress-bar-fill ${
             isComplete
-              ? 'bg-gradient-to-r from-emerald-600 to-emerald-500'
-              : 'bg-gradient-to-r from-accent-600 to-accent-500'
+              ? 'bg-gradient-to-r from-emerald-600 to-success'
+              : 'bg-gradient-to-r from-gold-600 to-gold-500'
           }`}
           style={{ width: `${(satisfied / conditions.length) * 100}%` }}
         />
@@ -102,30 +102,30 @@ function CPItemRow({ item }: CPItemRowProps) {
   const getIcon = () => {
     switch (status) {
       case 'satisfied':
-        return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
+        return <CheckCircle2 className="w-4 h-4 text-success" />;
       case 'pending':
-        return <Clock className="w-4 h-4 text-amber-400" />;
+        return <Clock className="w-4 h-4 text-warning" />;
       case 'waived':
-        return <MinusCircle className="w-4 h-4 text-gray-500" />;
+        return <MinusCircle className="w-4 h-4 text-text-muted" />;
       case 'not_applicable':
-        return <XCircle className="w-4 h-4 text-gray-500" />;
+        return <XCircle className="w-4 h-4 text-text-muted" />;
     }
   };
 
   const getStatusColor = () => {
     switch (status) {
       case 'satisfied':
-        return 'text-emerald-400';
+        return 'text-success';
       case 'pending':
-        return 'text-amber-400';
+        return 'text-warning';
       default:
-        return 'text-gray-500';
+        return 'text-text-muted';
     }
   };
 
   return (
     <div className={`flex items-start gap-3 p-2 rounded-lg ${
-      status === 'pending' ? 'bg-amber-500/5' : ''
+      status === 'pending' ? 'bg-warning/5' : ''
     }`}>
       <div className="mt-0.5">{getIcon()}</div>
       <div className="flex-1 min-w-0">
@@ -133,15 +133,15 @@ function CPItemRow({ item }: CPItemRowProps) {
           <div>
             <p className={`text-sm ${
               status === 'satisfied'
-                ? 'text-gray-400 line-through'
+                ? 'text-text-tertiary line-through'
                 : status === 'pending'
-                ? 'text-white'
-                : 'text-gray-500'
+                ? 'text-text-primary'
+                : 'text-text-muted'
             }`}>
               {name}
             </p>
             {description && status === 'pending' && (
-              <p className="text-xs text-gray-500 mt-0.5">{description}</p>
+              <p className="text-xs text-text-muted mt-0.5">{description}</p>
             )}
           </div>
           {responsible && (

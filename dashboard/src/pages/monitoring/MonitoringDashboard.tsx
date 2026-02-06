@@ -9,10 +9,11 @@
  */
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FileText, Settings, AlertTriangle, RefreshCw, DollarSign, X, Upload } from 'lucide-react';
+import { FileText, AlertTriangle, RefreshCw, DollarSign, X, Upload, TrendingUp, BarChart3, Activity } from 'lucide-react';
 import { Button } from '../../components/base/Button';
 import { Skeleton, SkeletonCard, SkeletonChart } from '../../components/base/Skeleton';
 import { EmptyState } from '../../components/base/EmptyState';
+import { CollapsibleCard } from '../../components/base/CollapsibleCard';
 import { DealPageLayout, DealPageContent } from '../../components/layout';
 import {
   ExecutiveSummary,
@@ -47,7 +48,7 @@ function DashboardSkeleton() {
   return (
     <div className="space-y-6">
       {/* Executive Summary Skeleton */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
+      <div className="bg-surface-0/50 border border-surface-2 rounded-xl p-5">
         <div className="grid grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => (
             <div key={i} className="space-y-2">
@@ -59,7 +60,7 @@ function DashboardSkeleton() {
       </div>
 
       {/* Phase Timeline Skeleton */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
+      <div className="bg-surface-0/50 border border-surface-2 rounded-xl p-5">
         <Skeleton width="150px" height="16px" className="mb-4" />
         <Skeleton width="100%" height="60px" />
       </div>
@@ -255,12 +256,18 @@ export function MonitoringDashboard() {
   // Success state - render with live data
   const data = dashboardData;
 
+  // Determine current phase from phase data
+  const currentPhase = data.phase.current?.toLowerCase().includes('construction')
+    ? 'construction' as const
+    : 'operations' as const;
+
   return (
     <DealPageLayout
       dealId={dealId || 'unknown'}
       dealName={data.project.name}
       dealStatus="active"
       subtitle={data.project.facility}
+      currentPhase={currentPhase}
       actions={
         <>
           <Button
@@ -295,9 +302,6 @@ export function MonitoringDashboard() {
           >
             Export Report
           </Button>
-          <Button variant="ghost" icon={<Settings className="w-4 h-4" />} size="sm">
-            Settings
-          </Button>
         </>
       }
     >
@@ -310,11 +314,11 @@ export function MonitoringDashboard() {
             onClick={() => setShowFinancialEditor(false)}
           />
           {/* Panel */}
-          <div className="relative ml-auto w-full sm:w-[480px] bg-slate-900 border-l border-slate-800 shadow-2xl overflow-y-auto">
+          <div className="relative ml-auto w-full sm:w-[480px] bg-surface-0 border-l border-surface-2 shadow-2xl overflow-y-auto">
             {/* Close button */}
             <button
               onClick={() => setShowFinancialEditor(false)}
-              className="absolute top-4 right-4 p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors z-10"
+              className="absolute top-4 right-4 p-2 rounded-lg bg-surface-2 hover:bg-surface-3 text-text-tertiary hover:text-text-primary transition-colors z-10"
             >
               <X className="w-5 h-5" />
             </button>
@@ -355,78 +359,86 @@ export function MonitoringDashboard() {
         </div>
 
         {/* Main Grid - 3 Column Layout */}
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
           {/* Left Column - Covenants */}
-          <div className="lg:col-span-1">
+          <div className="min-w-[280px] md:col-span-2 xl:col-span-1">
             <CovenantPanel covenants={data.covenants} />
           </div>
 
           {/* Middle Column - Waterfall + Reserves */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="min-w-[280px] space-y-4 lg:space-y-6">
             <WaterfallChart waterfall={data.waterfall} />
             <ReserveStatus reserves={data.reserves} />
           </div>
 
           {/* Right Column - Milestones + CPs */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="min-w-[280px] space-y-4 lg:space-y-6">
             <MilestoneTracker milestones={data.milestones} />
             <CPChecklist checklists={data.conditionsPrecedent} />
           </div>
         </div>
 
-        {/* Scenario Analysis Section */}
+        {/* Scenario Analysis Section - Collapsed by default */}
         <div className="mt-8">
-          <div className="mb-4">
-            <h2 className="text-xl font-bold text-white">Scenario Analysis</h2>
-            <p className="text-sm text-gray-400">Test "what if" scenarios on covenant compliance</p>
-          </div>
-          <ConnectedScenarioSimulator />
+          <CollapsibleCard
+            title="Scenario Analysis"
+            subtitle="Test 'what if' scenarios on covenant compliance"
+            icon={<TrendingUp className="w-5 h-5 text-industry-primary" />}
+            defaultExpanded={false}
+          >
+            <ConnectedScenarioSimulator />
+          </CollapsibleCard>
         </div>
 
-        {/* Compliance History Section */}
+        {/* Compliance History Section - Collapsed by default */}
         <div className="mt-8">
-          <div className="mb-4">
-            <h2 className="text-xl font-bold text-white">Compliance History</h2>
-            <p className="text-sm text-gray-400">Covenant trends over time (simulated historical data)</p>
-          </div>
-          <ComplianceTrendPanel periods={6} />
+          <CollapsibleCard
+            title="Compliance History"
+            subtitle="Covenant trends over time (simulated historical data)"
+            icon={<BarChart3 className="w-5 h-5 text-industry-primary" />}
+            defaultExpanded={false}
+          >
+            <ComplianceTrendPanel periods={6} />
+          </CollapsibleCard>
         </div>
 
-        {/* v2.1 Industry Section */}
+        {/* v2.1 Industry Section - Collapsed by default */}
         {data.industry && (
-          <>
-            <div className="mt-8 mb-4">
-              <h2 className="text-xl font-bold text-white">Industry Analytics</h2>
-              <p className="text-sm text-gray-400">Performance, regulatory, and tax equity tracking</p>
-            </div>
+          <div className="mt-8">
+            <CollapsibleCard
+              title="Industry Analytics"
+              subtitle="Performance, regulatory, and tax equity tracking"
+              icon={<Activity className="w-5 h-5 text-industry-primary" />}
+              defaultExpanded={false}
+            >
+              {/* Industry Grid - 2x2 Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Performance & Technical */}
+                {data.industry.performanceGuarantees && (
+                  <PerformanceChart
+                    guarantees={data.industry.performanceGuarantees}
+                    degradation={data.industry.degradation}
+                  />
+                )}
+                {data.industry.technicalMilestones && (
+                  <TechnicalProgress milestones={data.industry.technicalMilestones} />
+                )}
 
-            {/* Industry Grid - 2x2 Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Performance & Technical */}
-              {data.industry.performanceGuarantees && (
-                <PerformanceChart
-                  guarantees={data.industry.performanceGuarantees}
-                  degradation={data.industry.degradation}
-                />
-              )}
-              {data.industry.technicalMilestones && (
-                <TechnicalProgress milestones={data.industry.technicalMilestones} />
-              )}
-
-              {/* Regulatory & Tax Equity */}
-              {data.industry.regulatoryRequirements && (
-                <RegulatoryTracker requirements={data.industry.regulatoryRequirements} />
-              )}
-              {data.industry.taxEquity && (
-                <TaxEquityPanel
-                  structure={data.industry.taxEquity.structure}
-                  credits={data.industry.taxEquity.credits}
-                  depreciation={data.industry.taxEquity.depreciation}
-                  flipEvents={data.industry.taxEquity.flipEvents}
-                />
-              )}
-            </div>
-          </>
+                {/* Regulatory & Tax Equity */}
+                {data.industry.regulatoryRequirements && (
+                  <RegulatoryTracker requirements={data.industry.regulatoryRequirements} />
+                )}
+                {data.industry.taxEquity && (
+                  <TaxEquityPanel
+                    structure={data.industry.taxEquity.structure}
+                    credits={data.industry.taxEquity.credits}
+                    depreciation={data.industry.taxEquity.depreciation}
+                    flipEvents={data.industry.taxEquity.flipEvents}
+                  />
+                )}
+              </div>
+            </CollapsibleCard>
+          </div>
         )}
 
         {/* Activity Feed */}

@@ -15,16 +15,21 @@ import {
 } from 'react';
 
 import {
-  closingDeal,
-  closingConditions as initialConditions,
-  closingDocuments as initialDocuments,
-  closingParties,
+  getScenarioById,
+  abcScenario,
   type ConditionPrecedent,
-  type Document,
+  type ClosingDocument as Document,
   type Signature,
   type ClosingDeal,
-  type DealParty,
-} from '../data/closing-demo';
+  type ClosingParty as DealParty,
+} from '../data/demo-scenarios';
+
+// Default to ABC scenario for backwards compatibility
+const defaultClosingData = abcScenario.closing;
+const defaultClosingDeal = defaultClosingData.deal;
+const defaultClosingConditions = defaultClosingData.conditions;
+const defaultClosingDocuments = defaultClosingData.documents;
+const defaultClosingParties = defaultClosingData.parties;
 
 // =============================================================================
 // TYPES
@@ -89,6 +94,9 @@ interface ClosingContextValue {
   toasts: Toast[];
   addToast: (toast: Omit<Toast, 'id'>) => void;
   removeToast: (id: string) => void;
+
+  // Scenario loading
+  loadScenario: (dealId: string) => void;
 
   // Reset
   resetToDefaults: () => void;
@@ -237,6 +245,10 @@ interface ClosingProviderProps {
 }
 
 export function ClosingProvider({ children }: ClosingProviderProps) {
+  // Current deal state
+  const [deal, setDeal] = useState<ClosingDeal>(defaultClosingDeal);
+  const [parties, setParties] = useState<DealParty[]>(defaultClosingParties);
+
   // Initialize from localStorage or defaults
   const [conditions, setConditions] = useState<ConditionPrecedent[]>(() => {
     try {
@@ -254,7 +266,7 @@ export function ClosingProvider({ children }: ClosingProviderProps) {
     } catch (e) {
       console.warn('Failed to load conditions from localStorage:', e);
     }
-    return cloneConditions(initialConditions);
+    return cloneConditions(defaultClosingConditions);
   });
 
   const [documents, setDocuments] = useState<Document[]>(() => {
@@ -275,7 +287,7 @@ export function ClosingProvider({ children }: ClosingProviderProps) {
     } catch (e) {
       console.warn('Failed to load documents from localStorage:', e);
     }
-    return cloneDocuments(initialDocuments);
+    return cloneDocuments(defaultClosingDocuments);
   });
 
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -303,7 +315,7 @@ export function ClosingProvider({ children }: ClosingProviderProps) {
   // Calculate computed values
   const stats = calculateStats(conditions, documents);
   const readinessPercentage = calculateReadinessPercentage(stats);
-  const daysUntilClosing = calculateDaysUntilClosing(closingDeal.targetClosingDate);
+  const daysUntilClosing = calculateDaysUntilClosing(deal.targetClosingDate);
 
   // Toast management
   const addToast = useCallback((toast: Omit<Toast, 'id'>) => {
@@ -424,7 +436,7 @@ export function ClosingProvider({ children }: ClosingProviderProps) {
 
     const doc = documents.find(d => d.id === documentId);
     const sig = doc?.signatures.find(s => s.id === signatureId);
-    const party = closingParties.find(p => p.id === sig?.partyId);
+    const party = parties.find(p => p.id === sig?.partyId);
 
     addToast({
       type: 'info',
@@ -458,7 +470,7 @@ export function ClosingProvider({ children }: ClosingProviderProps) {
 
     const doc = documents.find(d => d.id === documentId);
     const sig = doc?.signatures.find(s => s.id === signatureId);
-    const party = closingParties.find(p => p.id === sig?.partyId);
+    const party = parties.find(p => p.id === sig?.partyId);
 
     // Check if document is now fully executed
     const updatedDoc = documents.find(d => d.id === documentId);
@@ -496,7 +508,7 @@ export function ClosingProvider({ children }: ClosingProviderProps) {
 
     const doc = documents.find(d => d.id === documentId);
     const sig = doc?.signatures.find(s => s.id === signatureId);
-    const party = closingParties.find(p => p.id === sig?.partyId);
+    const party = parties.find(p => p.id === sig?.partyId);
 
     addToast({
       type: 'error',
@@ -505,10 +517,27 @@ export function ClosingProvider({ children }: ClosingProviderProps) {
     });
   }, [documents, addToast]);
 
+  // Scenario loading - loads closing data from demo-scenarios based on dealId
+  const loadScenario = useCallback((dealId: string) => {
+    const scenario = getScenarioById(dealId);
+    if (scenario?.closing) {
+      const closingData = scenario.closing;
+      setDeal(closingData.deal);
+      setParties(closingData.parties);
+      setConditions(cloneConditions(closingData.conditions));
+      setDocuments(cloneDocuments(closingData.documents));
+      // Clear localStorage for fresh scenario data
+      localStorage.removeItem(STORAGE_KEY_CONDITIONS);
+      localStorage.removeItem(STORAGE_KEY_DOCUMENTS);
+    }
+  }, []);
+
   // Reset
   const resetToDefaults = useCallback(() => {
-    setConditions(cloneConditions(initialConditions));
-    setDocuments(cloneDocuments(initialDocuments));
+    setDeal(defaultClosingDeal);
+    setParties(defaultClosingParties);
+    setConditions(cloneConditions(defaultClosingConditions));
+    setDocuments(cloneDocuments(defaultClosingDocuments));
     localStorage.removeItem(STORAGE_KEY_CONDITIONS);
     localStorage.removeItem(STORAGE_KEY_DOCUMENTS);
     addToast({
@@ -519,10 +548,10 @@ export function ClosingProvider({ children }: ClosingProviderProps) {
   }, [addToast]);
 
   const value: ClosingContextValue = {
-    deal: closingDeal,
+    deal,
     conditions,
     documents,
-    parties: closingParties,
+    parties,
     stats,
     readinessPercentage,
     daysUntilClosing,
@@ -536,6 +565,7 @@ export function ClosingProvider({ children }: ClosingProviderProps) {
     toasts,
     addToast,
     removeToast,
+    loadScenario,
     resetToDefaults,
   };
 

@@ -35,13 +35,13 @@ export function SignatureTracker({ documents, onRequestSignature, onMarkSigned }
   const getStatusIcon = (status: Signature['status']) => {
     switch (status) {
       case 'signed':
-        return <CheckCircle className="w-5 h-5 text-emerald-400" />;
+        return <CheckCircle className="w-5 h-5 text-success" />;
       case 'requested':
-        return <Send className="w-5 h-5 text-amber-400" />;
+        return <Send className="w-5 h-5 text-warning" />;
       case 'declined':
-        return <XCircle className="w-5 h-5 text-red-400" />;
+        return <XCircle className="w-5 h-5 text-danger" />;
       default:
-        return <Clock className="w-5 h-5 text-slate-400" />;
+        return <Clock className="w-5 h-5 text-text-muted" />;
     }
   };
 
@@ -87,21 +87,21 @@ export function SignatureTracker({ documents, onRequestSignature, onMarkSigned }
     <div className="space-y-6">
       {/* Stats Summary */}
       <div className="grid grid-cols-4 gap-4">
-        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-emerald-400">{stats.signed}</div>
-          <div className="text-xs text-emerald-300">Signed</div>
+        <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-success">{stats.signed}</div>
+          <div className="text-xs text-success">Signed</div>
         </div>
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-amber-400">{stats.requested}</div>
-          <div className="text-xs text-amber-300">Requested</div>
+        <div className="bg-warning/10 border border-warning/20 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-warning">{stats.requested}</div>
+          <div className="text-xs text-warning">Requested</div>
         </div>
-        <div className="bg-slate-500/10 border border-slate-500/20 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-slate-400">{stats.pending}</div>
-          <div className="text-xs text-slate-300">Pending</div>
+        <div className="bg-surface-1 border border-border-DEFAULT rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-text-tertiary">{stats.pending}</div>
+          <div className="text-xs text-text-secondary">Pending</div>
         </div>
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-red-400">{stats.declined}</div>
-          <div className="text-xs text-red-300">Declined</div>
+        <div className="bg-danger/10 border border-danger/20 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-danger">{stats.declined}</div>
+          <div className="text-xs text-danger">Declined</div>
         </div>
       </div>
 
@@ -115,17 +115,17 @@ export function SignatureTracker({ documents, onRequestSignature, onMarkSigned }
           return (
             <div
               key={doc.documentId}
-              className={`bg-slate-800/50 rounded-lg overflow-hidden border ${
-                allSigned ? 'border-emerald-500/30' : 'border-slate-700'
+              className={`bg-surface-1 rounded-lg overflow-hidden border ${
+                allSigned ? 'border-success/30' : 'border-border-DEFAULT'
               }`}
             >
               {/* Document Header */}
-              <div className="p-4 border-b border-slate-700 flex items-center justify-between">
+              <div className="p-4 border-b border-border-DEFAULT flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <FileText className={`w-5 h-5 ${allSigned ? 'text-emerald-400' : 'text-slate-400'}`} />
+                  <FileText className={`w-5 h-5 ${allSigned ? 'text-success' : 'text-text-muted'}`} />
                   <div>
-                    <h4 className="text-white font-medium">{doc.documentTitle}</h4>
-                    <p className="text-xs text-slate-400">
+                    <h4 className="text-text-primary font-medium">{doc.documentTitle}</h4>
+                    <p className="text-xs text-text-tertiary">
                       {signedCount} of {totalCount} signatures obtained
                     </p>
                   </div>
@@ -143,29 +143,29 @@ export function SignatureTracker({ documents, onRequestSignature, onMarkSigned }
                       key={sig.id}
                       className={`p-3 rounded-lg border ${
                         sig.status === 'signed'
-                          ? 'border-emerald-500/30 bg-emerald-500/5'
+                          ? 'border-success/30 bg-success/5'
                           : sig.status === 'requested'
-                          ? 'border-amber-500/30 bg-amber-500/5'
+                          ? 'border-warning/30 bg-warning/5'
                           : sig.status === 'declined'
-                          ? 'border-red-500/30 bg-red-500/5'
-                          : 'border-slate-600 bg-slate-800/50'
+                          ? 'border-danger/30 bg-danger/5'
+                          : 'border-border-DEFAULT bg-surface-1'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-2">
                         {getStatusIcon(sig.status)}
                         {getStatusBadge(sig.status)}
                       </div>
-                      <div className="text-sm font-medium text-white">
+                      <div className="text-sm font-medium text-text-primary">
                         {sig.partyName}
                       </div>
-                      <div className="text-xs text-slate-400 mt-1">
+                      <div className="text-xs text-text-tertiary mt-1">
                         {sig.signatoryName}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-text-muted">
                         {sig.signatoryTitle}
                       </div>
                       {sig.signedAt && (
-                        <div className="text-xs text-emerald-400 mt-2">
+                        <div className="text-xs text-success mt-2">
                           Signed {formatDate(sig.signedAt)}
                         </div>
                       )}
@@ -220,16 +220,16 @@ export function SignatureTracker({ documents, onRequestSignature, onMarkSigned }
 
       {docsNeedingSignatures.length === 0 && documents.length > 0 && (
         <div className="text-center py-8">
-          <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-          <p className="text-emerald-400 font-medium">All Signatures Obtained</p>
-          <p className="text-sm text-slate-400 mt-1">
+          <CheckCircle className="w-12 h-12 text-success mx-auto mb-3" />
+          <p className="text-success font-medium">All Signatures Obtained</p>
+          <p className="text-sm text-text-tertiary mt-1">
             All documents have been fully executed.
           </p>
         </div>
       )}
 
       {documents.length === 0 && (
-        <div className="text-center py-8 text-slate-400">
+        <div className="text-center py-8 text-text-tertiary">
           No documents require signatures.
         </div>
       )}

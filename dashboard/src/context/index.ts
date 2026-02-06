@@ -8,6 +8,17 @@ export {
 export { ClosingProvider, useClosing, type Toast } from './ClosingContext';
 
 export {
+  DemoProvider,
+  useDemo,
+  useDemoNavigation,
+  useDemoTerminal,
+  useDemoInterpreter,
+  type DemoAct,
+  type TerminalEntry,
+  type DemoState,
+} from './DemoContext';
+
+export {
   DealProvider,
   useDeal,
   useCurrentDealFromParams,

@@ -206,7 +206,7 @@ function highlightLine(content: string): React.ReactNode {
   if (commentMatch) {
     remaining = commentMatch[1];
     parts.push(
-      <span key={key++} className="text-slate-500 italic">
+      <span key={key++} className="text-text-muted italic">
         {commentMatch[2]}
       </span>
     );
@@ -223,7 +223,7 @@ function highlightLine(content: string): React.ReactNode {
     // Keywords
     if (KEYWORDS.includes(token.toUpperCase()) || KEYWORDS.includes(token)) {
       return (
-        <span key={`kw-${i}`} className="text-accent-400 font-semibold">
+        <span key={`kw-${i}`} className="text-gold-400 font-semibold">
           {token}
         </span>
       );
@@ -232,7 +232,7 @@ function highlightLine(content: string): React.ReactNode {
     // Numbers and currency
     if (/^\$?[\d_,]+(\.\d+)?%?x?$/.test(token)) {
       return (
-        <span key={`num-${i}`} className="text-teal-400">
+        <span key={`num-${i}`} className="text-info">
           {token}
         </span>
       );
@@ -241,7 +241,7 @@ function highlightLine(content: string): React.ReactNode {
     // Strings
     if (/^".*"$/.test(token)) {
       return (
-        <span key={`str-${i}`} className="text-amber-400">
+        <span key={`str-${i}`} className="text-warning">
           {token}
         </span>
       );
@@ -250,7 +250,7 @@ function highlightLine(content: string): React.ReactNode {
     // Operators
     if (OPERATORS.includes(token)) {
       return (
-        <span key={`op-${i}`} className="text-slate-400">
+        <span key={`op-${i}`} className="text-text-tertiary">
           {token}
         </span>
       );
@@ -288,9 +288,9 @@ interface LineProps {
 function Line({ line, showLineNumbers = true }: LineProps) {
   if (!line) {
     return (
-      <div className="flex h-6 bg-slate-900/50">
+      <div className="flex h-6 bg-surface-2/50">
         {showLineNumbers && (
-          <span className="w-12 text-right pr-3 text-slate-600 select-none text-xs leading-6">
+          <span className="w-12 text-right pr-3 text-text-muted select-none text-xs leading-6">
             -
           </span>
         )}
@@ -301,23 +301,23 @@ function Line({ line, showLineNumbers = true }: LineProps) {
 
   const bgColors = {
     unchanged: '',
-    added: 'bg-emerald-900/30',
-    removed: 'bg-red-900/30',
-    modified: 'bg-amber-900/30',
+    added: 'bg-success/10',
+    removed: 'bg-danger/10',
+    modified: 'bg-warning/10',
   };
 
   const textColors = {
-    unchanged: 'text-slate-300',
-    added: 'text-emerald-200',
-    removed: 'text-red-200',
-    modified: 'text-amber-200',
+    unchanged: 'text-text-secondary',
+    added: 'text-success',
+    removed: 'text-danger',
+    modified: 'text-warning',
   };
 
   const lineNumColors = {
-    unchanged: 'text-slate-600',
-    added: 'text-emerald-600',
-    removed: 'text-red-600',
-    modified: 'text-amber-600',
+    unchanged: 'text-text-muted',
+    added: 'text-success/60',
+    removed: 'text-danger/60',
+    modified: 'text-warning/60',
   };
 
   const prefixes = {
@@ -361,7 +361,7 @@ function CollapsedSection({ section, onExpand }: CollapsedSectionProps) {
   return (
     <button
       onClick={onExpand}
-      className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-slate-800/50 hover:bg-slate-800 text-slate-500 hover:text-slate-300 text-sm transition-colors border-y border-slate-700/50"
+      className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-surface-2/50 hover:bg-surface-2 text-text-muted hover:text-text-secondary text-sm transition-colors border-y border-border-DEFAULT/50"
     >
       <ChevronRight className="w-4 h-4" />
       <span>{lineCount} unchanged lines</span>
@@ -482,18 +482,18 @@ export function DiffViewer({
   const removedCount = fromLines.filter((l) => l.type === 'removed').length;
 
   return (
-    <div className="rounded-lg border border-slate-700 overflow-hidden bg-slate-900">
+    <div className="rounded-lg border border-border-DEFAULT overflow-hidden bg-surface-2">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-slate-700">
+      <div className="flex items-center justify-between px-4 py-2 bg-surface-3 border-b border-border-DEFAULT">
         <div className="flex items-center gap-4">
-          <span className="text-sm text-slate-400">
-            <span className="text-emerald-400">+{addedCount}</span>
+          <span className="text-sm text-text-tertiary">
+            <span className="text-success">+{addedCount}</span>
             {' / '}
-            <span className="text-red-400">-{removedCount}</span>
+            <span className="text-danger">-{removedCount}</span>
             {' lines'}
           </span>
           {changeIndices.length > 0 && (
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-text-muted">
               Change {currentChangeIndex + 1} of {changeIndices.length}
             </span>
           )}
@@ -502,7 +502,7 @@ export function DiffViewer({
           <button
             onClick={goToPrevChange}
             disabled={changeIndices.length === 0}
-            className="p-1.5 rounded hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded hover:bg-surface-3 disabled:opacity-50 disabled:cursor-not-allowed text-text-tertiary hover:text-text-primary transition-colors"
             title="Previous change"
           >
             <ArrowUp className="w-4 h-4" />
@@ -510,22 +510,22 @@ export function DiffViewer({
           <button
             onClick={goToNextChange}
             disabled={changeIndices.length === 0}
-            className="p-1.5 rounded hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded hover:bg-surface-3 disabled:opacity-50 disabled:cursor-not-allowed text-text-tertiary hover:text-text-primary transition-colors"
             title="Next change"
           >
             <ArrowDown className="w-4 h-4" />
           </button>
-          <div className="w-px h-4 bg-slate-700 mx-1" />
+          <div className="w-px h-4 bg-border-DEFAULT mx-1" />
           <button
             onClick={expandAll}
-            className="p-1.5 rounded hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded hover:bg-surface-3 text-text-tertiary hover:text-text-primary transition-colors"
             title="Expand all"
           >
             <Maximize2 className="w-4 h-4" />
           </button>
           <button
             onClick={collapseAll}
-            className="p-1.5 rounded hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded hover:bg-surface-3 text-text-tertiary hover:text-text-primary transition-colors"
             title="Collapse unchanged"
           >
             <Minimize2 className="w-4 h-4" />
@@ -534,12 +534,12 @@ export function DiffViewer({
       </div>
 
       {/* Column Headers */}
-      <div className="grid grid-cols-2 border-b border-slate-700">
-        <div className="px-4 py-2 bg-red-900/10 border-r border-slate-700">
-          <span className="text-sm font-medium text-red-300">{fromLabel}</span>
+      <div className="grid grid-cols-2 border-b border-border-DEFAULT">
+        <div className="px-4 py-2 bg-danger/5 border-r border-border-DEFAULT">
+          <span className="text-sm font-medium text-danger">{fromLabel}</span>
         </div>
-        <div className="px-4 py-2 bg-emerald-900/10">
-          <span className="text-sm font-medium text-emerald-300">{toLabel}</span>
+        <div className="px-4 py-2 bg-success/5">
+          <span className="text-sm font-medium text-success">{toLabel}</span>
         </div>
       </div>
 
@@ -550,7 +550,7 @@ export function DiffViewer({
       >
         <div className="grid grid-cols-2">
           {/* Left (From) Side */}
-          <div className="border-r border-slate-700 bg-slate-900">
+          <div className="border-r border-border-DEFAULT bg-surface-2">
             {sections.map((section, sectionIdx) => {
               if (collapsedSections.has(sectionIdx) && section.type === 'unchanged') {
                 return (
@@ -575,7 +575,7 @@ export function DiffViewer({
           </div>
 
           {/* Right (To) Side */}
-          <div className="bg-slate-900">
+          <div className="bg-surface-2">
             {sections.map((section, sectionIdx) => {
               if (collapsedSections.has(sectionIdx) && section.type === 'unchanged') {
                 return (

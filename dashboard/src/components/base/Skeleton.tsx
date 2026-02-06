@@ -12,7 +12,7 @@ export interface SkeletonProps {
   height?: string;
 }
 
-const baseStyles = 'animate-pulse bg-slate-700/50 rounded';
+const baseStyles = 'animate-pulse bg-surface-3/50 rounded';
 
 const variantStyles: Record<string, { className: string; defaultSize?: { width?: string; height?: string } }> = {
   text: {
@@ -71,7 +71,7 @@ export function Skeleton({
  */
 export function SkeletonCard({ className = '' }: { className?: string }) {
   return (
-    <div className={`bg-slate-900/50 border border-slate-800 rounded-xl p-5 ${className}`}>
+    <div className={`bg-surface-0/50 border border-surface-2 rounded-xl p-5 ${className}`}>
       <div className="flex items-center gap-3 mb-4">
         <Skeleton variant="avatar" />
         <div className="flex-1 space-y-2">
@@ -91,7 +91,7 @@ export function SkeletonTable({ rows = 5, columns = 4 }: { rows?: number; column
   return (
     <div className="space-y-3">
       {/* Header */}
-      <div className="flex gap-4 pb-3 border-b border-slate-800">
+      <div className="flex gap-4 pb-3 border-b border-border-DEFAULT">
         {Array.from({ length: columns }, (_, i) => (
           <Skeleton key={i} width={`${100 / columns}%`} height="14px" />
         ))}
@@ -113,7 +113,7 @@ export function SkeletonTable({ rows = 5, columns = 4 }: { rows?: number; column
  */
 export function SkeletonChart({ height = '300px' }: { height?: string }) {
   return (
-    <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
+    <div className="bg-surface-0/50 border border-surface-2 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <Skeleton width="150px" height="20px" />
         <Skeleton width="80px" height="16px" />
@@ -130,7 +130,7 @@ export function SkeletonStats({ count = 4 }: { count?: number }) {
   return (
     <div className={`grid grid-cols-${count} gap-4`}>
       {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="bg-slate-800/50 rounded-lg p-4">
+        <div key={i} className="bg-surface-2/50 rounded-lg p-4">
           <div className="flex items-center gap-3 mb-3">
             <Skeleton variant="avatar" width="36px" height="36px" />
             <Skeleton width="60px" height="12px" />

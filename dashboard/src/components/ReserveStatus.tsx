@@ -46,43 +46,43 @@ function ReserveCard({ reserve }: ReserveCardProps) {
   const displayName = name.replace(/([A-Z])/g, ' $1').trim();
 
   return (
-    <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
+    <div className="p-4 rounded-lg bg-surface-1 border border-border-DEFAULT">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className={`p-2 rounded-lg ${
             belowMinimum
-              ? 'bg-red-500/10'
+              ? 'bg-danger/10'
               : fullyFunded
-              ? 'bg-emerald-500/10'
-              : 'bg-accent-500/10'
+              ? 'bg-success/10'
+              : 'bg-gold-500/10'
           }`}>
             <PiggyBank className={`w-5 h-5 ${
               belowMinimum
-                ? 'text-red-400'
+                ? 'text-danger'
                 : fullyFunded
-                ? 'text-emerald-400'
-                : 'text-accent-400'
+                ? 'text-success'
+                : 'text-gold-500'
             }`} />
           </div>
           <div>
-            <p className="text-sm font-medium text-white">{displayName}</p>
-            <p className="text-xs text-gray-500">
+            <p className="text-sm font-medium text-text-primary">{displayName}</p>
+            <p className="text-xs text-text-muted">
               {belowMinimum ? 'Below minimum' : fullyFunded ? 'Fully funded' : 'Funding in progress'}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-1.5">
           {belowMinimum ? (
-            <AlertCircle className="w-4 h-4 text-red-400" />
+            <AlertCircle className="w-4 h-4 text-danger" />
           ) : fullyFunded ? (
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <CheckCircle2 className="w-4 h-4 text-success" />
           ) : null}
           <span className={`text-lg font-semibold tabular-nums ${
             belowMinimum
-              ? 'text-red-400'
+              ? 'text-danger'
               : fullyFunded
-              ? 'text-emerald-400'
-              : 'text-white'
+              ? 'text-success'
+              : 'text-text-primary'
           }`}>
             {fundedPercent.toFixed(0)}%
           </span>
@@ -92,15 +92,15 @@ function ReserveCard({ reserve }: ReserveCardProps) {
       {/* Progress Bar */}
       <div className="relative">
         {/* Background */}
-        <div className="h-3 bg-slate-700 rounded-full overflow-hidden">
+        <div className="h-3 bg-surface-3 rounded-full overflow-hidden">
           {/* Balance Fill */}
           <div
             className={`h-full rounded-full transition-all duration-500 ${
               belowMinimum
-                ? 'bg-gradient-to-r from-red-600 to-red-500'
+                ? 'bg-gradient-to-r from-red-600 to-danger'
                 : fullyFunded
-                ? 'bg-gradient-to-r from-emerald-600 to-emerald-500'
-                : 'bg-gradient-to-r from-accent-600 to-accent-500'
+                ? 'bg-gradient-to-r from-emerald-600 to-success'
+                : 'bg-gradient-to-r from-gold-600 to-gold-500'
             }`}
             style={{ width: `${balancePercent}%` }}
           />
@@ -108,18 +108,18 @@ function ReserveCard({ reserve }: ReserveCardProps) {
 
         {/* Minimum Marker */}
         <div
-          className="absolute top-0 bottom-0 w-0.5 bg-amber-500"
+          className="absolute top-0 bottom-0 w-0.5 bg-warning"
           style={{ left: `${minimumPercent}%` }}
         >
           <div className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap">
-            <span className="text-[10px] text-amber-500 font-medium">MIN</span>
+            <span className="text-[10px] text-warning font-medium">MIN</span>
           </div>
         </div>
 
         {/* Target Marker (100%) */}
-        <div className="absolute top-0 bottom-0 right-0 w-0.5 bg-gray-500">
+        <div className="absolute top-0 bottom-0 right-0 w-0.5 bg-text-muted">
           <div className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap">
-            <span className="text-[10px] text-gray-500 font-medium">TARGET</span>
+            <span className="text-[10px] text-text-muted font-medium">TARGET</span>
           </div>
         </div>
       </div>
@@ -127,25 +127,25 @@ function ReserveCard({ reserve }: ReserveCardProps) {
       {/* Values */}
       <div className="flex items-center justify-between mt-4 text-xs">
         <div>
-          <span className="text-gray-500">Balance: </span>
-          <span className="text-white font-medium">{formatCurrency(balance)}</span>
+          <span className="text-text-muted">Balance:</span>
+          <span className="text-text-primary font-medium">{formatCurrency(balance)}</span>
         </div>
         <div>
-          <span className="text-gray-500">Min: </span>
-          <span className="text-amber-400 font-medium">{formatCurrency(minimum)}</span>
+          <span className="text-text-muted">Min:</span>
+          <span className="text-warning font-medium">{formatCurrency(minimum)}</span>
         </div>
         <div>
-          <span className="text-gray-500">Target: </span>
-          <span className="text-gray-400 font-medium">{formatCurrency(target)}</span>
+          <span className="text-text-muted">Target:</span>
+          <span className="text-text-tertiary font-medium">{formatCurrency(target)}</span>
         </div>
       </div>
 
       {/* Available for Release */}
       {balance > minimum && (
-        <div className="mt-3 pt-3 border-t border-slate-700/50">
+        <div className="mt-3 pt-3 border-t border-border-DEFAULT/50">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">Available for Release</span>
-            <span className="text-sm font-medium text-emerald-400">
+            <span className="text-xs text-text-muted">Available for Release</span>
+            <span className="text-sm font-medium text-success">
               {formatCurrency(balance - minimum)}
             </span>
           </div>

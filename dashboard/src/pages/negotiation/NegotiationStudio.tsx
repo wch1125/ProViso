@@ -9,7 +9,7 @@
  * - Wired Generate Word button to document generator
  * - Real-time code and prose generation
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Send,
@@ -60,7 +60,14 @@ interface AddedElement {
 
 export function NegotiationStudio() {
   const { dealId } = useParams<{ dealId: string }>();
-  const { getDeal, getVersionsForDeal, getCurrentVersion: getDealCurrentVersion, logActivity } = useDeal();
+  const { getDeal, getVersionsForDeal, getCurrentVersion: getDealCurrentVersion, logActivity, loadScenario } = useDeal();
+
+  // Load scenario data when dealId changes
+  useEffect(() => {
+    if (dealId) {
+      loadScenario(dealId);
+    }
+  }, [dealId, loadScenario]);
 
   // Get deal from context
   const deal = getDeal(dealId ?? '');
@@ -126,11 +133,11 @@ export function NegotiationStudio() {
   // Handle deal not found - AFTER all hooks
   if (!deal) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-surface-0 flex items-center justify-center">
         <div className="text-center">
-          <FileText className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-white mb-2">Deal Not Found</h2>
-          <p className="text-slate-400 mb-4">The deal you're looking for doesn't exist.</p>
+          <FileText className="w-12 h-12 text-text-muted mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-text-primary mb-2">Deal Not Found</h2>
+          <p className="text-text-tertiary mb-4">The deal you're looking for doesn't exist.</p>
           <Button variant="secondary" onClick={() => window.history.back()}>
             Go Back
           </Button>
@@ -248,7 +255,7 @@ export function NegotiationStudio() {
         {/* Left Sidebar - Versions */}
         <DealPageSidebar>
           <div className="mb-4">
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+            <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
               Versions
             </h3>
             <div className="space-y-2">
@@ -258,26 +265,26 @@ export function NegotiationStudio() {
                   onClick={() => handleVersionSelect(version)}
                   className={`w-full text-left p-3 rounded-lg transition-colors ${
                     version.id === effectiveSelectedVersion?.id
-                      ? 'bg-accent-500/10 border border-accent-500/30'
-                      : 'hover:bg-slate-800'
+                      ? 'bg-gold-500/10 border border-gold-500/30'
+                      : 'hover:bg-surface-2'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span
                       className={`text-sm font-medium ${
                         version.id === effectiveSelectedVersion?.id
-                          ? 'text-accent-400'
-                          : 'text-white'
+                          ? 'text-gold-500'
+                          : 'text-text-primary'
                       }`}
                     >
                       v{version.versionNumber}
                     </span>
                     <VersionStatusBadge status={version.status} />
                   </div>
-                  <p className="text-xs text-slate-400 truncate">
+                  <p className="text-xs text-text-tertiary truncate">
                     {version.versionLabel}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-text-muted mt-1">
                     {version.authorParty}
                   </p>
                 </button>
@@ -285,8 +292,8 @@ export function NegotiationStudio() {
             </div>
           </div>
 
-          <div className="border-t border-slate-800 pt-4">
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+          <div className="border-t border-border-DEFAULT pt-4">
+            <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
               Sections
             </h3>
             <nav className="space-y-1">
@@ -306,20 +313,20 @@ export function NegotiationStudio() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <History className="w-5 h-5 text-slate-400" />
-                    <h2 className="text-lg font-semibold text-white">
+                    <History className="w-5 h-5 text-text-tertiary" />
+                    <h2 className="text-lg font-semibold text-text-primary">
                       Changes in This Version
                     </h2>
                   </div>
                   {effectiveSelectedVersion?.changeSummary && (
                     <div className="flex items-center gap-4 text-sm">
-                      <span className="text-emerald-400">
+                      <span className="text-success">
                         {effectiveSelectedVersion?.changeSummary.borrowerFavorable} Borrower
                       </span>
-                      <span className="text-red-400">
+                      <span className="text-danger">
                         {effectiveSelectedVersion?.changeSummary.lenderFavorable} Lender
                       </span>
-                      <span className="text-slate-400">
+                      <span className="text-text-tertiary">
                         {effectiveSelectedVersion?.changeSummary.neutral} Neutral
                       </span>
                     </div>
@@ -343,7 +350,7 @@ export function NegotiationStudio() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-white">
+                  <h2 className="text-lg font-semibold text-text-primary">
                     Article 7 - Financial Covenants
                   </h2>
                   <div className="flex gap-2">
@@ -368,8 +375,8 @@ export function NegotiationStudio() {
               </CardHeader>
               <CardBody>
                 {addedElements.length === 0 ? (
-                  <div className="text-center py-12 text-slate-400">
-                    <Plus className="w-12 h-12 mx-auto mb-4 text-slate-600" />
+                  <div className="text-center py-12 text-text-tertiary">
+                    <Plus className="w-12 h-12 mx-auto mb-4 text-text-muted" />
                     <p className="text-lg mb-2">Add terms to this agreement</p>
                     <p className="text-sm mb-4">
                       Use the buttons above to add covenants, baskets, and other terms.
@@ -422,7 +429,7 @@ export function NegotiationStudio() {
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-text-secondary mb-1">
                 From Version
               </label>
               <Select
@@ -435,7 +442,7 @@ export function NegotiationStudio() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-text-secondary mb-1">
                 To Version
               </label>
               <Select
@@ -453,19 +460,19 @@ export function NegotiationStudio() {
             const summary = getChangeSummary(effectiveCompareFromVersion, effectiveCompareToVersion);
             if (summary) {
               return (
-                <div className="bg-slate-800/50 rounded-lg p-4">
+                <div className="bg-surface-1 rounded-lg p-4">
                   <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-slate-400">
+                    <span className="text-text-tertiary">
                       {summary.totalChanges} change{summary.totalChanges !== 1 ? 's' : ''}
                     </span>
                     <div className="flex gap-4">
-                      <span className="text-emerald-400">
+                      <span className="text-success">
                         {summary.borrowerFavorable} Borrower Favorable
                       </span>
-                      <span className="text-red-400">
+                      <span className="text-danger">
                         {summary.lenderFavorable} Lender Favorable
                       </span>
-                      <span className="text-slate-400">
+                      <span className="text-text-tertiary">
                         {summary.neutral} Neutral
                       </span>
                     </div>
@@ -502,18 +509,18 @@ export function NegotiationStudio() {
         title={`ProViso Code - ${effectiveSelectedVersion?.versionLabel}`}
         size="lg"
       >
-        <div className="rounded-lg border border-slate-700 bg-slate-900 overflow-hidden">
-          <div className="px-4 py-2 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
-            <span className="text-sm text-slate-400">
+        <div className="rounded-lg border border-border-DEFAULT bg-surface-2 overflow-hidden">
+          <div className="px-4 py-2 bg-surface-3 border-b border-border-DEFAULT flex items-center justify-between">
+            <span className="text-sm text-text-tertiary">
               {effectiveSelectedVersion?.authorParty} &middot; v{effectiveSelectedVersion?.versionNumber}
               {addedElements.length > 0 && (
-                <span className="ml-2 text-accent-400">
+                <span className="ml-2 text-gold-400">
                   + {addedElements.length} new element{addedElements.length > 1 ? 's' : ''}
                 </span>
               )}
             </span>
           </div>
-          <pre className="p-4 text-sm font-mono text-slate-300 overflow-auto max-h-[500px]">
+          <pre className="p-4 text-sm font-mono text-text-secondary overflow-auto max-h-[500px]">
             <code>{currentCode}</code>
           </pre>
         </div>
@@ -528,14 +535,14 @@ export function NegotiationStudio() {
       >
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-slate-400">
+            <div className="text-sm text-text-tertiary">
               {generatedDocument?.sections.length || 0} sections generated
             </div>
             <div className="flex gap-2">
               <Button
                 variant="ghost"
                 size="sm"
-                icon={copiedWord ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                icon={copiedWord ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
                 onClick={handleCopyWord}
               >
                 {copiedWord ? 'Copied' : 'Copy'}
@@ -559,8 +566,8 @@ export function NegotiationStudio() {
               </TabList>
 
               <TabPanel id="full">
-                <div className="rounded-lg border border-slate-700 bg-slate-900 overflow-hidden">
-                  <pre className="p-4 text-sm text-slate-300 overflow-auto max-h-[500px] whitespace-pre-wrap font-serif leading-relaxed">
+                <div className="rounded-lg border border-border-DEFAULT bg-surface-2 overflow-hidden">
+                  <pre className="p-4 text-sm text-text-secondary overflow-auto max-h-[500px] whitespace-pre-wrap font-serif leading-relaxed">
                     {generatedDocument.fullText}
                   </pre>
                 </div>
@@ -571,17 +578,17 @@ export function NegotiationStudio() {
                   {generatedDocument.sections.map((section, idx) => (
                     <div
                       key={idx}
-                      className="rounded-lg border border-slate-700 bg-slate-800/50 p-4"
+                      className="rounded-lg border border-border-DEFAULT bg-surface-1 p-4"
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <Badge variant="muted" size="sm">
                           {section.sectionRef}
                         </Badge>
-                        <span className="text-sm font-medium text-white">
+                        <span className="text-sm font-medium text-text-primary">
                           {section.title}
                         </span>
                       </div>
-                      <p className="text-sm text-slate-300 font-serif leading-relaxed">
+                      <p className="text-sm text-text-secondary font-serif leading-relaxed">
                         {section.content}
                       </p>
                     </div>
@@ -590,14 +597,14 @@ export function NegotiationStudio() {
               </TabPanel>
             </Tabs>
           ) : (
-            <div className="text-center py-12 text-slate-400">
-              <FileText className="w-12 h-12 mx-auto mb-4 text-slate-600" />
+            <div className="text-center py-12 text-text-tertiary">
+              <FileText className="w-12 h-12 mx-auto mb-4 text-text-muted" />
               <p>No content to generate</p>
             </div>
           )}
 
-          <div className="pt-4 border-t border-slate-800">
-            <p className="text-xs text-slate-500">
+          <div className="pt-4 border-t border-border-DEFAULT">
+            <p className="text-xs text-text-muted">
               This is a text-based preview. Full .docx export with formatting will be available in a future release.
             </p>
           </div>
@@ -678,11 +685,11 @@ function SectionLink({
     <button
       className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
         active
-          ? 'bg-accent-500/10 text-accent-400'
-          : 'text-slate-400 hover:text-white hover:bg-slate-800'
+          ? 'bg-gold-500/10 text-gold-500'
+          : 'text-text-tertiary hover:text-text-primary hover:bg-surface-2'
       } ${indent ? 'pl-6' : ''}`}
     >
-      <span className="text-slate-500 mr-2">{section}</span>
+      <span className="text-text-muted mr-2">{section}</span>
       {name}
     </button>
   );
@@ -704,22 +711,22 @@ interface ChangeCardProps {
 function ChangeCard({ change }: ChangeCardProps) {
   const impactConfig: Record<string, { border: string; bg: string; icon: string }> = {
     borrower_favorable: {
-      border: 'border-l-emerald-500',
-      bg: 'bg-emerald-500/5',
+      border: 'border-l-success',
+      bg: 'bg-success/5',
       icon: '\u2191',
     },
     lender_favorable: {
-      border: 'border-l-red-500',
-      bg: 'bg-red-500/5',
+      border: 'border-l-danger',
+      bg: 'bg-danger/5',
       icon: '\u2193',
     },
     neutral: {
-      border: 'border-l-slate-500',
-      bg: 'bg-slate-500/5',
+      border: 'border-l-text-muted',
+      bg: 'bg-surface-2/50',
       icon: '\u2022',
     },
     unclear: {
-      border: 'border-l-slate-600',
+      border: 'border-l-border-strong',
       bg: '',
       icon: '?',
     },
@@ -731,24 +738,24 @@ function ChangeCard({ change }: ChangeCardProps) {
     <div className={`border-l-4 rounded-r-lg p-4 ${config.border} ${config.bg}`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 font-mono">
+          <span className="text-xs text-text-muted font-mono">
             {change.sectionReference}
           </span>
           <Badge variant="muted" size="sm">
             {change.elementType}
           </Badge>
         </div>
-        <span className="text-xs text-slate-500" title={change.impact.replace('_', ' ')}>
+        <span className="text-xs text-text-muted" title={change.impact.replace('_', ' ')}>
           {config.icon}
         </span>
       </div>
-      <h4 className="text-sm font-medium text-white mb-1">{change.title}</h4>
-      <p className="text-sm text-slate-400">{change.description}</p>
+      <h4 className="text-sm font-medium text-text-primary mb-1">{change.title}</h4>
+      <p className="text-sm text-text-tertiary">{change.description}</p>
       {change.beforeValue && change.afterValue && (
         <div className="flex items-center gap-3 mt-2 text-sm">
-          <span className="text-slate-500 line-through">{change.beforeValue}</span>
-          <span className="text-slate-600">&rarr;</span>
-          <span className="text-white font-medium">{change.afterValue}</span>
+          <span className="text-text-muted line-through">{change.beforeValue}</span>
+          <span className="text-text-muted">&rarr;</span>
+          <span className="text-text-primary font-medium">{change.afterValue}</span>
         </div>
       )}
     </div>
@@ -765,15 +772,15 @@ function AddedElementCard({
   const [showCode, setShowCode] = useState(false);
 
   return (
-    <div className="border border-emerald-500/30 bg-emerald-500/5 rounded-lg p-4">
+    <div className="border border-success/30 bg-success/5 rounded-lg p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           {element.type === 'covenant' ? (
-            <Scale className="w-4 h-4 text-emerald-400" />
+            <Scale className="w-4 h-4 text-success" />
           ) : (
-            <Wallet className="w-4 h-4 text-emerald-400" />
+            <Wallet className="w-4 h-4 text-success" />
           )}
-          <span className="text-sm font-medium text-white">{element.name}</span>
+          <span className="text-sm font-medium text-text-primary">{element.name}</span>
           <Badge variant="success" size="sm">
             {element.type === 'covenant' ? 'Covenant' : 'Basket'}
           </Badge>
@@ -793,20 +800,20 @@ function AddedElementCard({
             variant="ghost"
             size="sm"
             onClick={onRemove}
-            className="text-red-400 hover:text-red-300"
+            className="text-danger hover:text-danger/80"
           >
             Remove
           </Button>
         </div>
       </div>
 
-      <p className="text-sm text-slate-300 font-serif leading-relaxed mb-2">
+      <p className="text-sm text-text-secondary font-serif leading-relaxed mb-2">
         {element.prose}
       </p>
 
       {showCode && (
-        <div className="mt-3 rounded border border-slate-700 bg-slate-900 p-3">
-          <pre className="text-xs font-mono text-slate-400 whitespace-pre-wrap">
+        <div className="mt-3 rounded border border-border-DEFAULT bg-surface-2 p-3">
+          <pre className="text-xs font-mono text-text-tertiary whitespace-pre-wrap">
             {element.code}
           </pre>
         </div>
