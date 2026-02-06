@@ -115,18 +115,18 @@ DEFINE Leverage AS TotalDebt / EBITDA
 
 COVENANT MaxLeverage
   REQUIRES Leverage <= 5.00
-  TESTED quarterly
+  TESTED QUARTERLY
 
 COVENANT MinInterestCoverage
   REQUIRES EBITDA / InterestExpense >= 2.50
-  TESTED quarterly
+  TESTED QUARTERLY
 
 BASKET GeneralInvestments
   CAPACITY GreaterOf($25_000_000, 10% * EBITDA)
 
 BASKET PermittedAcquisitions
   CAPACITY $50_000_000
-  SUBJECT_TO ProFormaCompliance
+  SUBJECT TO ProFormaCompliance
 `;
 
 const VERSION_2_CODE = `// ABC Acquisition Facility - Borrower's Markup
@@ -146,19 +146,19 @@ DEFINE Leverage AS TotalDebt / EBITDA
 
 COVENANT MaxLeverage
   REQUIRES Leverage <= 5.25      // Increased from 5.00
-  TESTED quarterly
-  CURE EquityCure MAX_USES 2 OVER "rolling 4 quarters" MAX_AMOUNT $25_000_000
+  TESTED QUARTERLY
+  CURE EquityCure MAX_USES 2 OVER trailing_4_quarters MAX_AMOUNT $25_000_000
 
 COVENANT MinInterestCoverage
   REQUIRES EBITDA / InterestExpense >= 2.25    // Decreased from 2.50
-  TESTED quarterly
+  TESTED QUARTERLY
 
 BASKET GeneralInvestments
   CAPACITY GreaterOf($35_000_000, 15% * EBITDA)   // Increased from $25M/10%
 
 BASKET PermittedAcquisitions
   CAPACITY $75_000_000    // Increased from $50M
-  SUBJECT_TO ProFormaCompliance
+  SUBJECT TO ProFormaCompliance
 `;
 
 const VERSION_3_CODE = `// ABC Acquisition Facility - Lender's Counter
@@ -171,27 +171,27 @@ DEFINE EBITDA AS (
   + DepreciationAmortization
   + StockBasedComp        // Accepted
 ) EXCLUDING extraordinary_items
-  CAP StockBasedComp AT $5_000_000 PER YEAR   // Added cap
+  CAPPED AT $5_000_000   // Added cap on StockBasedComp
 
 DEFINE TotalDebt AS SeniorDebt + SubordinatedDebt
 
 DEFINE Leverage AS TotalDebt / EBITDA
 
 COVENANT MaxLeverage
-  REQUIRES Leverage <= 5.00 UNTIL 2025-12-31, THEN <= 4.75   // Step-down
-  TESTED quarterly
-  CURE EquityCure MAX_USES 2 OVER "rolling 4 quarters" MAX_AMOUNT $20_000_000  // Reduced max
+  REQUIRES Leverage <= 4.75   // Tightened from 5.00 (was step-down, now flat)
+  TESTED QUARTERLY
+  CURE EquityCure MAX_USES 2 OVER trailing_4_quarters MAX_AMOUNT $20_000_000  // Reduced max
 
 COVENANT MinInterestCoverage
   REQUIRES EBITDA / InterestExpense >= 2.25    // Accepted
-  TESTED quarterly
+  TESTED QUARTERLY
 
 BASKET GeneralInvestments
   CAPACITY GreaterOf($30_000_000, 12.5% * EBITDA)   // Compromise
 
 BASKET PermittedAcquisitions
   CAPACITY $60_000_000    // Compromise from $50M/$75M
-  SUBJECT_TO ProFormaCompliance
+  SUBJECT TO ProFormaCompliance
 `;
 
 // =============================================================================
@@ -357,7 +357,7 @@ const changeSummaryV1toV2: ChangeSummary = {
       description: 'Added equity cure mechanism with 2 uses over rolling 4 quarters, max $25M',
       rationale: 'Standard borrower protection for covenant breach scenarios',
       beforeCode: null,
-      afterCode: 'CURE EquityCure MAX_USES 2 OVER "rolling 4 quarters" MAX_AMOUNT $25_000_000',
+      afterCode: 'CURE EquityCure MAX_USES 2 OVER trailing_4_quarters MAX_AMOUNT $25_000_000',
       beforeValue: null,
       afterValue: '2 uses / $25M max',
       impact: 'borrower_favorable',
@@ -442,13 +442,13 @@ const changeSummaryV2toV3: ChangeSummary = {
       elementType: 'covenant',
       sectionReference: '7.11(a)',
       elementName: 'MaxLeverage',
-      title: 'Leverage step-down added',
-      description: 'Opening 5.00x stepping to 4.75x after Dec 2025',
-      rationale: 'Compromise on opening ratio with step-down for deleveraging',
+      title: 'Leverage ratio tightened',
+      description: 'Ratio tightened from 5.25x to 4.75x',
+      rationale: 'Compromise — accepted SBC add-back but tightened covenant',
       beforeCode: 'REQUIRES Leverage <= 5.25',
-      afterCode: 'REQUIRES Leverage <= 5.00 UNTIL 2025-12-31, THEN <= 4.75',
+      afterCode: 'REQUIRES Leverage <= 4.75',
       beforeValue: '5.25x',
-      afterValue: '5.00x → 4.75x',
+      afterValue: '4.75x',
       impact: 'lender_favorable',
       impactDescription: 'Reverts to original 5.00x opening, adds step-down',
       sourceForm: 'covenant-stepdown',
@@ -482,7 +482,7 @@ const changeSummaryV2toV3: ChangeSummary = {
       description: 'Accepted SBC add-back but with $5M annual cap',
       rationale: 'Compromise: accept add-back but limit exposure',
       beforeCode: '+ StockBasedComp',
-      afterCode: '+ StockBasedComp\n  CAP StockBasedComp AT $5_000_000 PER YEAR',
+      afterCode: '+ StockBasedComp\n  CAPPED AT $5_000_000',
       beforeValue: 'Unlimited',
       afterValue: '$5M cap',
       impact: 'lender_favorable',

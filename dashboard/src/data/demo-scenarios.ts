@@ -1339,27 +1339,27 @@ DEFINE EBITDA AS (
   + DepreciationAmortization
   + StockBasedComp
 ) EXCLUDING extraordinary_items
-  CAP StockBasedComp AT $5_000_000 PER YEAR
+  CAPPED AT $5_000_000
 
 DEFINE TotalDebt AS SeniorDebt + SubordinatedDebt
 
 DEFINE Leverage AS TotalDebt / EBITDA
 
 COVENANT MaxLeverage
-  REQUIRES Leverage <= 5.00 UNTIL 2025-12-31, THEN <= 4.75
-  TESTED quarterly
-  CURE EquityCure MAX_USES 2 OVER "rolling 4 quarters" MAX_AMOUNT $20_000_000
+  REQUIRES Leverage <= 4.75
+  TESTED QUARTERLY
+  CURE EquityCure MAX_USES 2 OVER trailing_4_quarters MAX_AMOUNT $20_000_000
 
 COVENANT MinInterestCoverage
   REQUIRES EBITDA / InterestExpense >= 2.25
-  TESTED quarterly
+  TESTED QUARTERLY
 
 BASKET GeneralInvestments
   CAPACITY GreaterOf($30_000_000, 12.5% * EBITDA)
 
 BASKET PermittedAcquisitions
   CAPACITY $60_000_000
-  SUBJECT_TO ProFormaCompliance
+  SUBJECT TO ProFormaCompliance
 `;
 
 const abcFinancials: SimpleFinancialData = {
@@ -1466,10 +1466,10 @@ const abcNegotiationVersions: DealVersion[] = [
 DEFINE EBITDA AS (NetIncome + InterestExpense + TaxExpense + DepreciationAmortization) EXCLUDING extraordinary_items
 DEFINE TotalDebt AS SeniorDebt + SubordinatedDebt
 DEFINE Leverage AS TotalDebt / EBITDA
-COVENANT MaxLeverage REQUIRES Leverage <= 5.00 TESTED quarterly
-COVENANT MinInterestCoverage REQUIRES EBITDA / InterestExpense >= 2.50 TESTED quarterly
+COVENANT MaxLeverage REQUIRES Leverage <= 5.00 TESTED QUARTERLY
+COVENANT MinInterestCoverage REQUIRES EBITDA / InterestExpense >= 2.50 TESTED QUARTERLY
 BASKET GeneralInvestments CAPACITY GreaterOf($25_000_000, 10% * EBITDA)
-BASKET PermittedAcquisitions CAPACITY $50_000_000 SUBJECT_TO ProFormaCompliance`,
+BASKET PermittedAcquisitions CAPACITY $50_000_000 SUBJECT TO ProFormaCompliance`,
     createdBy: 'wharris@stblaw.com',
     authorParty: 'Simpson Thacher',
     createdAt: new Date('2026-01-10T09:00:00Z'),
@@ -1487,10 +1487,10 @@ BASKET PermittedAcquisitions CAPACITY $50_000_000 SUBJECT_TO ProFormaCompliance`
 DEFINE EBITDA AS (NetIncome + InterestExpense + TaxExpense + DepreciationAmortization + StockBasedComp) EXCLUDING extraordinary_items
 DEFINE TotalDebt AS SeniorDebt + SubordinatedDebt
 DEFINE Leverage AS TotalDebt / EBITDA
-COVENANT MaxLeverage REQUIRES Leverage <= 5.25 TESTED quarterly CURE EquityCure MAX_USES 2 OVER "rolling 4 quarters" MAX_AMOUNT $25_000_000
-COVENANT MinInterestCoverage REQUIRES EBITDA / InterestExpense >= 2.25 TESTED quarterly
+COVENANT MaxLeverage REQUIRES Leverage <= 5.25 TESTED QUARTERLY CURE EquityCure MAX_USES 2 OVER trailing_4_quarters MAX_AMOUNT $25_000_000
+COVENANT MinInterestCoverage REQUIRES EBITDA / InterestExpense >= 2.25 TESTED QUARTERLY
 BASKET GeneralInvestments CAPACITY GreaterOf($35_000_000, 15% * EBITDA)
-BASKET PermittedAcquisitions CAPACITY $75_000_000 SUBJECT_TO ProFormaCompliance`,
+BASKET PermittedAcquisitions CAPACITY $75_000_000 SUBJECT TO ProFormaCompliance`,
     createdBy: 'elizabeth.warren@davispolk.com',
     authorParty: 'Davis Polk',
     createdAt: new Date('2026-01-15T14:30:00Z'),
@@ -1503,7 +1503,7 @@ BASKET PermittedAcquisitions CAPACITY $75_000_000 SUBJECT_TO ProFormaCompliance`
       borrowerFavorable: 5, lenderFavorable: 0, neutral: 0,
       changes: [
         { id: 'abc-c1', changeType: 'modified', elementType: 'covenant', sectionReference: '7.11(a)', elementName: 'MaxLeverage', title: 'Leverage ratio threshold increased', description: 'Maximum leverage ratio increased from 5.00x to 5.25x', rationale: 'Provides additional headroom for acquisition integration', beforeCode: 'REQUIRES Leverage <= 5.00', afterCode: 'REQUIRES Leverage <= 5.25', beforeValue: '5.00x', afterValue: '5.25x', impact: 'borrower_favorable', impactDescription: '+0.25x headroom at closing', sourceForm: 'covenant-simple', isManualEdit: false },
-        { id: 'abc-c2', changeType: 'added', elementType: 'covenant', sectionReference: '7.11(a)', elementName: 'MaxLeverage', title: 'Equity cure right added', description: 'Added equity cure mechanism with 2 uses over rolling 4 quarters, max $25M', rationale: 'Standard borrower protection', beforeCode: null, afterCode: 'CURE EquityCure MAX_USES 2 OVER "rolling 4 quarters" MAX_AMOUNT $25_000_000', beforeValue: null, afterValue: '2 uses / $25M max', impact: 'borrower_favorable', impactDescription: 'Provides cure rights for leverage covenant breaches', sourceForm: 'covenant-cure', isManualEdit: false },
+        { id: 'abc-c2', changeType: 'added', elementType: 'covenant', sectionReference: '7.11(a)', elementName: 'MaxLeverage', title: 'Equity cure right added', description: 'Added equity cure mechanism with 2 uses over rolling 4 quarters, max $25M', rationale: 'Standard borrower protection', beforeCode: null, afterCode: 'CURE EquityCure MAX_USES 2 OVER trailing_4_quarters MAX_AMOUNT $25_000_000', beforeValue: null, afterValue: '2 uses / $25M max', impact: 'borrower_favorable', impactDescription: 'Provides cure rights for leverage covenant breaches', sourceForm: 'covenant-cure', isManualEdit: false },
         { id: 'abc-c3', changeType: 'modified', elementType: 'covenant', sectionReference: '7.11(b)', elementName: 'MinInterestCoverage', title: 'Interest coverage threshold decreased', description: 'Minimum interest coverage reduced from 2.50x to 2.25x', rationale: null, beforeCode: 'REQUIRES EBITDA / InterestExpense >= 2.50', afterCode: 'REQUIRES EBITDA / InterestExpense >= 2.25', beforeValue: '2.50x', afterValue: '2.25x', impact: 'borrower_favorable', impactDescription: '-0.25x requirement provides more operational flexibility', sourceForm: 'covenant-simple', isManualEdit: false },
         { id: 'abc-c4', changeType: 'modified', elementType: 'basket', sectionReference: '7.02(f)', elementName: 'GeneralInvestments', title: 'General investment basket increased', description: 'Capacity increased from $25M/10% to $35M/15%', rationale: null, beforeCode: 'CAPACITY GreaterOf($25_000_000, 10% * EBITDA)', afterCode: 'CAPACITY GreaterOf($35_000_000, 15% * EBITDA)', beforeValue: '$25M / 10%', afterValue: '$35M / 15%', impact: 'borrower_favorable', impactDescription: '+$10M fixed capacity, +5% grower component', sourceForm: 'basket-grower', isManualEdit: false },
         { id: 'abc-c5', changeType: 'modified', elementType: 'basket', sectionReference: '7.02(g)', elementName: 'PermittedAcquisitions', title: 'Acquisition basket increased', description: 'Capacity increased from $50M to $75M', rationale: null, beforeCode: 'CAPACITY $50_000_000', afterCode: 'CAPACITY $75_000_000', beforeValue: '$50M', afterValue: '$75M', impact: 'borrower_favorable', impactDescription: '+$25M additional acquisition capacity', sourceForm: 'basket-fixed', isManualEdit: false },
@@ -1527,9 +1527,9 @@ BASKET PermittedAcquisitions CAPACITY $75_000_000 SUBJECT_TO ProFormaCompliance`
       totalChanges: 4, covenantChanges: 2, definitionChanges: 1, basketChanges: 1, otherChanges: 0,
       borrowerFavorable: 0, lenderFavorable: 3, neutral: 1,
       changes: [
-        { id: 'abc-c6', changeType: 'modified', elementType: 'covenant', sectionReference: '7.11(a)', elementName: 'MaxLeverage', title: 'Leverage step-down added', description: 'Opening 5.00x stepping to 4.75x after Dec 2025', rationale: 'Compromise on opening ratio with step-down', beforeCode: 'REQUIRES Leverage <= 5.25', afterCode: 'REQUIRES Leverage <= 5.00 UNTIL 2025-12-31, THEN <= 4.75', beforeValue: '5.25x', afterValue: '5.00x → 4.75x', impact: 'lender_favorable', impactDescription: 'Reverts to original 5.00x opening, adds step-down', sourceForm: 'covenant-stepdown', isManualEdit: false },
+        { id: 'abc-c6', changeType: 'modified', elementType: 'covenant', sectionReference: '7.11(a)', elementName: 'MaxLeverage', title: 'Leverage ratio tightened', description: 'Ratio tightened from 5.25x to 4.75x', rationale: 'Compromise — accepted SBC add-back but tightened covenant', beforeCode: 'REQUIRES Leverage <= 5.25', afterCode: 'REQUIRES Leverage <= 4.75', beforeValue: '5.25x', afterValue: '4.75x', impact: 'lender_favorable', impactDescription: 'Tightened from borrower markup, compromise on EBITDA definition', sourceForm: 'covenant-simple', isManualEdit: false },
         { id: 'abc-c7', changeType: 'modified', elementType: 'covenant', sectionReference: '7.11(a)', elementName: 'MaxLeverage', title: 'Cure maximum reduced', description: 'Maximum cure amount reduced from $25M to $20M', rationale: null, beforeCode: 'MAX_AMOUNT $25_000_000', afterCode: 'MAX_AMOUNT $20_000_000', beforeValue: '$25M', afterValue: '$20M', impact: 'lender_favorable', impactDescription: '-$5M cure capacity', sourceForm: 'covenant-cure', isManualEdit: false },
-        { id: 'abc-c8', changeType: 'modified', elementType: 'definition', sectionReference: '1.01', elementName: 'EBITDA', title: 'Stock-based comp add-back capped', description: 'Accepted SBC add-back but with $5M annual cap', rationale: 'Compromise: accept add-back but limit exposure', beforeCode: '+ StockBasedComp', afterCode: '+ StockBasedComp\n  CAP StockBasedComp AT $5_000_000 PER YEAR', beforeValue: 'Unlimited', afterValue: '$5M cap', impact: 'lender_favorable', impactDescription: 'Limits EBITDA benefit to $5M annually', sourceForm: 'definition-ebitda', isManualEdit: false },
+        { id: 'abc-c8', changeType: 'modified', elementType: 'definition', sectionReference: '1.01', elementName: 'EBITDA', title: 'Stock-based comp add-back capped', description: 'Accepted SBC add-back but with $5M annual cap', rationale: 'Compromise: accept add-back but limit exposure', beforeCode: '+ StockBasedComp', afterCode: '+ StockBasedComp\n  CAPPED AT $5_000_000', beforeValue: 'Unlimited', afterValue: '$5M cap', impact: 'lender_favorable', impactDescription: 'Limits EBITDA benefit to $5M annually', sourceForm: 'definition-ebitda', isManualEdit: false },
         { id: 'abc-c9', changeType: 'modified', elementType: 'basket', sectionReference: '7.02(f)', elementName: 'GeneralInvestments', title: 'Investment basket compromise', description: 'Capacity set to $30M/12.5%', rationale: null, beforeCode: 'CAPACITY GreaterOf($35_000_000, 15% * EBITDA)', afterCode: 'CAPACITY GreaterOf($30_000_000, 12.5% * EBITDA)', beforeValue: '$35M / 15%', afterValue: '$30M / 12.5%', impact: 'neutral', impactDescription: 'Split the difference on basket sizing', sourceForm: 'basket-grower', isManualEdit: false },
       ],
     },
@@ -1648,8 +1648,8 @@ const solarNegotiationParties: DealParty[] = [
 ];
 
 const solarNegotiationVersions: DealVersion[] = [
-  { id: 'solar-version-1', dealId: 'solar-demo', versionNumber: 1, versionLabel: "Lender's Initial Draft", creditLangCode: '// Solar - Lender Initial\nCOVENANT MinDSCR REQUIRES DSCR >= 1.35 TESTED quarterly', createdBy: 'jwalsh@milbank.com', authorParty: 'Milbank', createdAt: new Date('2025-11-01'), parentVersionId: null, status: 'superseded', generatedWordDoc: null, changeSummary: null },
-  { id: 'solar-version-2', dealId: 'solar-demo', versionNumber: 2, versionLabel: "Sponsor's Markup", creditLangCode: '// Solar - Sponsor Markup\nCOVENANT MinDSCR REQUIRES DSCR >= 1.20 TESTED quarterly\nDEGRADATION_SCHEDULE PanelDegradation ANNUAL_DEGRADATION 0.5', createdBy: 'david.kim@lw.com', authorParty: 'Latham', createdAt: new Date('2025-11-15'), parentVersionId: 'solar-version-1', status: 'superseded', generatedWordDoc: null, changeSummary: { versionFrom: 1, versionTo: 2, authorParty: 'Latham', createdAt: new Date('2025-11-15'), totalChanges: 2, covenantChanges: 1, definitionChanges: 0, basketChanges: 0, otherChanges: 1, borrowerFavorable: 2, lenderFavorable: 0, neutral: 0, changes: [
+  { id: 'solar-version-1', dealId: 'solar-demo', versionNumber: 1, versionLabel: "Lender's Initial Draft", creditLangCode: '// Solar - Lender Initial\nCOVENANT MinDSCR REQUIRES DSCR >= 1.35 TESTED QUARTERLY', createdBy: 'jwalsh@milbank.com', authorParty: 'Milbank', createdAt: new Date('2025-11-01'), parentVersionId: null, status: 'superseded', generatedWordDoc: null, changeSummary: null },
+  { id: 'solar-version-2', dealId: 'solar-demo', versionNumber: 2, versionLabel: "Sponsor's Markup", creditLangCode: '// Solar - Sponsor Markup\nCOVENANT MinDSCR REQUIRES DSCR >= 1.20 TESTED QUARTERLY\nDEGRADATION_SCHEDULE PanelDegradation ANNUAL_DEGRADATION 0.5', createdBy: 'david.kim@lw.com', authorParty: 'Latham', createdAt: new Date('2025-11-15'), parentVersionId: 'solar-version-1', status: 'superseded', generatedWordDoc: null, changeSummary: { versionFrom: 1, versionTo: 2, authorParty: 'Latham', createdAt: new Date('2025-11-15'), totalChanges: 2, covenantChanges: 1, definitionChanges: 0, basketChanges: 0, otherChanges: 1, borrowerFavorable: 2, lenderFavorable: 0, neutral: 0, changes: [
     { id: 'solar-c1', changeType: 'modified', elementType: 'covenant', sectionReference: '7.01', elementName: 'MinDSCR', title: 'DSCR threshold reduced', description: 'Minimum DSCR reduced from 1.35x to 1.20x', rationale: 'Standard project finance threshold', beforeCode: 'REQUIRES DSCR >= 1.35', afterCode: 'REQUIRES DSCR >= 1.20', beforeValue: '1.35x', afterValue: '1.20x', impact: 'borrower_favorable', impactDescription: 'More operational flexibility during ramp-up', sourceForm: 'covenant-simple', isManualEdit: false },
     { id: 'solar-c2', changeType: 'modified', elementType: 'other', sectionReference: '6.05', elementName: 'PanelDegradation', title: 'Higher degradation allowance', description: 'Annual degradation increased from 0.4% to 0.5%', rationale: 'Reflects actual panel performance', beforeCode: 'ANNUAL_DEGRADATION 0.4', afterCode: 'ANNUAL_DEGRADATION 0.5', beforeValue: '0.4%', afterValue: '0.5%', impact: 'borrower_favorable', impactDescription: 'More conservative production assumptions', sourceForm: 'degradation', isManualEdit: false },
   ] } },

@@ -5,7 +5,7 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Terminal as TerminalIcon, Loader2 } from 'lucide-react';
+import { Terminal as TerminalIcon, Loader2, AlertTriangle } from 'lucide-react';
 import { useDemoTerminal, useDemoInterpreter } from '../../context/DemoContext';
 import { executeCommand } from '../../utils/commandRunner';
 import { TerminalOutput } from './TerminalOutput';
@@ -25,7 +25,7 @@ export function InteractiveTerminal() {
     resetCommandHistoryIndex,
   } = useDemoTerminal();
 
-  const { interpreter, isLoading } = useDemoInterpreter();
+  const { interpreter, isLoading, error } = useDemoInterpreter();
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -92,6 +92,17 @@ export function InteractiveTerminal() {
           <Loader2 className="w-4 h-4 text-gold-400 animate-spin ml-auto" />
         )}
       </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="flex items-start gap-2 px-4 py-3 bg-red-500/10 border-b border-red-500/20">
+          <AlertTriangle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+          <div className="text-sm">
+            <p className="text-red-400 font-medium">Interpreter failed to load</p>
+            <p className="text-red-400/70 text-xs mt-1 font-mono">{error}</p>
+          </div>
+        </div>
+      )}
 
       {/* Terminal Output */}
       <div
