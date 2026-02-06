@@ -3,6 +3,8 @@ export {
   useProViso,
   useCovenants,
   useProVisoStatus,
+  type ComplianceHistoryEntry,
+  type ComplianceHistoryMap,
 } from './ProVisoContext';
 
 export { ClosingProvider, useClosing, type Toast } from './ClosingContext';

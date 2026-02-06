@@ -9,7 +9,7 @@
  */
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FileText, AlertTriangle, RefreshCw, DollarSign, X, Upload, TrendingUp, BarChart3, Activity } from 'lucide-react';
+import { FileText, AlertTriangle, RefreshCw, DollarSign, X, Upload, TrendingUp, BarChart3, Activity, Download } from 'lucide-react';
 import { Button } from '../../components/base/Button';
 import { Skeleton, SkeletonCard, SkeletonChart } from '../../components/base/Skeleton';
 import { EmptyState } from '../../components/base/EmptyState';
@@ -40,6 +40,7 @@ import { CollapsibleActivityFeed } from '../../components/ActivityFeed';
 import { DEFAULT_PROVISO_CODE } from '../../data/default-code';
 import { DEFAULT_FINANCIALS } from '../../data/default-financials';
 import { getScenarioById } from '../../data/demo-scenarios';
+import { downloadAsFile } from '../../utils/complianceExport';
 
 /**
  * Loading skeleton for the dashboard
@@ -110,6 +111,8 @@ export function MonitoringDashboard() {
     isLoading,
     error,
     dashboardData,
+    code: contextCode,
+    financials: contextFinancials,
     loadFromCode,
     refresh,
   } = useProViso();
@@ -199,6 +202,14 @@ export function MonitoringDashboard() {
     setTimeout(() => {
       setShowFileUploader(false);
     }, 1500);
+  };
+
+  // Download current ProViso code as .proviso file
+  const handleDownloadCode = () => {
+    const codeToExport = contextCode || currentCode;
+    const projectName = dashboardData?.project.name || 'agreement';
+    const sanitized = projectName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+    downloadAsFile(codeToExport, `${sanitized}.proviso`, 'text/plain');
   };
 
   // Loading state - also show loading when dealId changes
@@ -296,6 +307,14 @@ export function MonitoringDashboard() {
           </Button>
           <Button
             variant="ghost"
+            icon={<Download className="w-4 h-4" />}
+            size="sm"
+            onClick={handleDownloadCode}
+          >
+            Download Code
+          </Button>
+          <Button
+            variant="ghost"
             icon={<FileText className="w-4 h-4" />}
             size="sm"
             onClick={() => setShowExportModal(true)}
@@ -345,8 +364,8 @@ export function MonitoringDashboard() {
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
         dashboardData={dashboardData}
-        provisoCode={currentCode}
-        financials={currentFinancials}
+        provisoCode={contextCode || currentCode}
+        financials={Object.keys(contextFinancials).length > 0 ? contextFinancials : currentFinancials}
       />
 
       <DealPageContent>

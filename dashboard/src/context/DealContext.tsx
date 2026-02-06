@@ -104,6 +104,10 @@ interface DealContextValue {
   getCurrentVersion: (dealId: string) => DealVersion | undefined;
   createVersion: (dealId: string, code: string, label: string) => DealVersion;
 
+  // Change summary cache (v2.5)
+  getCachedChangeSummary: (fromId: string, toId: string) => ChangeSummary | undefined;
+  cacheChangeSummary: (fromId: string, toId: string, summary: ChangeSummary) => void;
+
   // Party operations
   getPartiesForDeal: (dealId: string) => DealParty[];
   addParty: (party: Omit<DealParty, 'id'>) => DealParty;
@@ -265,6 +269,21 @@ export function DealProvider({ children }: DealProviderProps) {
   const [parties, setParties] = useState<DealParty[]>(getInitialParties);
   const [activities, setActivities] = useState<Activity[]>(getInitialActivities);
   const [currentDealId, setCurrentDealId] = useState<string | null>(getInitialCurrentDeal);
+
+  // Change summary cache (v2.5) — keyed by "fromId:toId"
+  const [changeSummaryCache, setChangeSummaryCache] = useState<Map<string, ChangeSummary>>(new Map());
+
+  const getCachedChangeSummary = useCallback((fromId: string, toId: string): ChangeSummary | undefined => {
+    return changeSummaryCache.get(`${fromId}:${toId}`);
+  }, [changeSummaryCache]);
+
+  const cacheChangeSummary = useCallback((fromId: string, toId: string, summary: ChangeSummary) => {
+    setChangeSummaryCache(prev => {
+      const next = new Map(prev);
+      next.set(`${fromId}:${toId}`, summary);
+      return next;
+    });
+  }, []);
 
   // Persist to localStorage
   useEffect(() => {
@@ -575,6 +594,8 @@ export function DealProvider({ children }: DealProviderProps) {
     getVersionsForDeal,
     getCurrentVersion,
     createVersion,
+    getCachedChangeSummary,
+    cacheChangeSummary,
     getPartiesForDeal,
     addParty,
     logActivity,

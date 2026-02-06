@@ -9,7 +9,7 @@
  * - Wired Generate Word button to document generator
  * - Real-time code and prose generation
  */
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Send,
@@ -23,6 +23,8 @@ import {
   Copy,
   Check,
   Download,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import { Card, CardHeader, CardBody } from '../../components/Card';
 import { Badge } from '../../components/base/Badge';
@@ -39,8 +41,8 @@ import { BasketEditor } from '../../components/editors/BasketEditor';
 import type { CovenantFormValues } from '../../components/editors/CovenantEditor';
 import type { BasketFormValues } from '../../components/editors/BasketEditor';
 import { generateWordDocument, copyDocumentToClipboard, downloadDocument } from '../../utils/wordGenerator';
+import { computeChangeSummary } from '../../utils/versionDiff';
 import { useDeal, type DealVersion, type ChangeSummary } from '../../context';
-import { demoChangeSummaryV1toV2, demoChangeSummaryV2toV3 } from '../../data/negotiation-demo';
 import type { Change } from '../../data/negotiation-demo';
 
 // =============================================================================
@@ -60,7 +62,7 @@ interface AddedElement {
 
 export function NegotiationStudio() {
   const { dealId } = useParams<{ dealId: string }>();
-  const { getDeal, getVersionsForDeal, getCurrentVersion: getDealCurrentVersion, logActivity, loadScenario } = useDeal();
+  const { getDeal, getVersionsForDeal, getCurrentVersion: getDealCurrentVersion, logActivity, loadScenario, getCachedChangeSummary, cacheChangeSummary } = useDeal();
 
   // Load scenario data when dealId changes
   useEffect(() => {
@@ -91,21 +93,67 @@ export function NegotiationStudio() {
   // Copy state
   const [copiedWord, setCopiedWord] = useState(false);
 
+  // Diff state
+  const [compareSummary, setCompareSummary] = useState<ChangeSummary | null>(null);
+  const [diffLoading, setDiffLoading] = useState(false);
+  const [diffError, setDiffError] = useState<string | null>(null);
+
+  // "Changes in This Version" summary (current vs parent)
+  const [currentVersionSummary, setCurrentVersionSummary] = useState<ChangeSummary | null>(null);
+
   // Initialize version state when deal becomes available
   const effectiveSelectedVersion = selectedVersion || currentVersion || null;
   const effectiveCompareFromVersion = compareFromVersion || versions[0]?.id || '';
   const effectiveCompareToVersion = compareToVersion || versions[versions.length - 1]?.id || '';
 
-  // Get change summary for display
-  const getChangeSummary = (fromId: string, toId: string): ChangeSummary | null => {
-    if (fromId === 'version-1' && toId === 'version-2') {
-      return demoChangeSummaryV1toV2;
+  // Compute change summary between two versions (async, with caching)
+  const loadChangeSummary = useCallback(async (fromId: string, toId: string): Promise<ChangeSummary | null> => {
+    if (fromId === toId) return null;
+
+    // Check cache first
+    const cached = getCachedChangeSummary(fromId, toId);
+    if (cached) return cached;
+
+    const fromVersion = versions.find(v => v.id === fromId);
+    const toVersion = versions.find(v => v.id === toId);
+    if (!fromVersion || !toVersion) return null;
+
+    // Use the version's embedded changeSummary if available (demo data)
+    if (toVersion.changeSummary && toVersion.parentVersionId === fromId) {
+      cacheChangeSummary(fromId, toId, toVersion.changeSummary);
+      return toVersion.changeSummary;
     }
-    if (fromId === 'version-2' && toId === 'version-3') {
-      return demoChangeSummaryV2toV3;
+
+    // Compute live diff
+    try {
+      const summary = await computeChangeSummary(
+        fromVersion.creditLangCode,
+        toVersion.creditLangCode,
+        fromVersion.versionNumber,
+        toVersion.versionNumber,
+        toVersion.authorParty,
+      );
+      cacheChangeSummary(fromId, toId, summary);
+      return summary;
+    } catch (e) {
+      console.error('Failed to compute change summary:', e);
+      return null;
     }
-    return null;
-  };
+  }, [versions, getCachedChangeSummary, cacheChangeSummary]);
+
+  // Compute "Changes in This Version" when selected version changes
+  useEffect(() => {
+    if (!effectiveSelectedVersion?.parentVersionId) {
+      setCurrentVersionSummary(effectiveSelectedVersion?.changeSummary ?? null);
+      return;
+    }
+    let cancelled = false;
+    loadChangeSummary(effectiveSelectedVersion.parentVersionId, effectiveSelectedVersion.id)
+      .then(summary => {
+        if (!cancelled) setCurrentVersionSummary(summary);
+      });
+    return () => { cancelled = true; };
+  }, [effectiveSelectedVersion?.id, effectiveSelectedVersion?.parentVersionId, effectiveSelectedVersion?.changeSummary, loadChangeSummary]);
 
   // Get the current code including any added elements
   const currentCode = useMemo(() => {
@@ -156,8 +204,39 @@ export function NegotiationStudio() {
       setCompareFromVersion(versions[currentIdx - 1].id);
       setCompareToVersion(versions[currentIdx].id);
     }
+    setCompareSummary(null);
+    setDiffError(null);
     setShowCompareModal(true);
   };
+
+  // Trigger diff computation when compare versions change while modal is open
+  useEffect(() => {
+    if (!showCompareModal || !effectiveCompareFromVersion || !effectiveCompareToVersion) return;
+    if (effectiveCompareFromVersion === effectiveCompareToVersion) {
+      setCompareSummary(null);
+      return;
+    }
+
+    let cancelled = false;
+    setDiffLoading(true);
+    setDiffError(null);
+
+    loadChangeSummary(effectiveCompareFromVersion, effectiveCompareToVersion)
+      .then(summary => {
+        if (!cancelled) {
+          setCompareSummary(summary);
+          setDiffLoading(false);
+        }
+      })
+      .catch(e => {
+        if (!cancelled) {
+          setDiffError((e as Error).message);
+          setDiffLoading(false);
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, [showCompareModal, effectiveCompareFromVersion, effectiveCompareToVersion, loadChangeSummary]);
 
   const handleSendToCounterparty = () => {
     setShowSendConfirmation(false);
@@ -318,25 +397,25 @@ export function NegotiationStudio() {
                       Changes in This Version
                     </h2>
                   </div>
-                  {effectiveSelectedVersion?.changeSummary && (
+                  {currentVersionSummary && (
                     <div className="flex items-center gap-4 text-sm">
                       <span className="text-success">
-                        {effectiveSelectedVersion?.changeSummary.borrowerFavorable} Borrower
+                        {currentVersionSummary.borrowerFavorable} Borrower
                       </span>
                       <span className="text-danger">
-                        {effectiveSelectedVersion?.changeSummary.lenderFavorable} Lender
+                        {currentVersionSummary.lenderFavorable} Lender
                       </span>
                       <span className="text-text-tertiary">
-                        {effectiveSelectedVersion?.changeSummary.neutral} Neutral
+                        {currentVersionSummary.neutral} Neutral
                       </span>
                     </div>
                   )}
                 </div>
               </CardHeader>
               <CardBody>
-                {effectiveSelectedVersion?.changeSummary ? (
+                {currentVersionSummary ? (
                   <div className="space-y-4">
-                    {effectiveSelectedVersion?.changeSummary.changes.map((change: Change) => (
+                    {currentVersionSummary.changes.map((change: Change) => (
                       <ChangeCard key={change.id} change={change} />
                     ))}
                   </div>
@@ -456,32 +535,40 @@ export function NegotiationStudio() {
             </div>
           </div>
 
-          {(() => {
-            const summary = getChangeSummary(effectiveCompareFromVersion, effectiveCompareToVersion);
-            if (summary) {
-              return (
-                <div className="bg-surface-1 rounded-lg p-4">
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-text-tertiary">
-                      {summary.totalChanges} change{summary.totalChanges !== 1 ? 's' : ''}
-                    </span>
-                    <div className="flex gap-4">
-                      <span className="text-success">
-                        {summary.borrowerFavorable} Borrower Favorable
-                      </span>
-                      <span className="text-danger">
-                        {summary.lenderFavorable} Lender Favorable
-                      </span>
-                      <span className="text-text-tertiary">
-                        {summary.neutral} Neutral
-                      </span>
-                    </div>
-                  </div>
+          {diffLoading && (
+            <div className="bg-surface-1 rounded-lg p-4 flex items-center gap-3">
+              <Loader2 className="w-4 h-4 text-gold-500 animate-spin" />
+              <span className="text-sm text-text-tertiary">Computing diff...</span>
+            </div>
+          )}
+
+          {diffError && (
+            <div className="bg-danger/5 border border-danger/20 rounded-lg p-4 flex items-center gap-3">
+              <AlertCircle className="w-4 h-4 text-danger" />
+              <span className="text-sm text-danger">{diffError}</span>
+            </div>
+          )}
+
+          {!diffLoading && !diffError && compareSummary && (
+            <div className="bg-surface-1 rounded-lg p-4">
+              <div className="flex items-center justify-between text-sm mb-2">
+                <span className="text-text-tertiary">
+                  {compareSummary.totalChanges} change{compareSummary.totalChanges !== 1 ? 's' : ''}
+                </span>
+                <div className="flex gap-4">
+                  <span className="text-success">
+                    {compareSummary.borrowerFavorable} Borrower Favorable
+                  </span>
+                  <span className="text-danger">
+                    {compareSummary.lenderFavorable} Lender Favorable
+                  </span>
+                  <span className="text-text-tertiary">
+                    {compareSummary.neutral} Neutral
+                  </span>
                 </div>
-              );
-            }
-            return null;
-          })()}
+              </div>
+            </div>
+          )}
 
           {(() => {
             const fromVersion = versions.find((v) => v.id === effectiveCompareFromVersion);
@@ -623,7 +710,7 @@ export function NegotiationStudio() {
         cancelLabel="Cancel"
         details={[
           `Version: v${effectiveSelectedVersion?.versionNumber} - ${effectiveSelectedVersion?.versionLabel}`,
-          `Changes: ${(effectiveSelectedVersion?.changeSummary?.totalChanges || 0) + addedElements.length} modifications`,
+          `Changes: ${(currentVersionSummary?.totalChanges || 0) + addedElements.length} modifications`,
         ]}
       />
 

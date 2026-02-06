@@ -8,9 +8,8 @@
  * Act 4: Single Source - CP extraction from code
  */
 
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
 import { DemoProvider, useDemoNavigation } from '../../context/DemoContext';
+import { TopNav } from '../../components/layout';
 import {
   DemoNavigation,
   StepGuide,
@@ -21,37 +20,12 @@ import {
 } from '../../components/demo';
 
 function GuidedDemoContent() {
-  const navigate = useNavigate();
   const { currentAct } = useDemoNavigation();
 
   return (
     <div className="min-h-screen bg-surface-0 flex flex-col">
-      {/* Top Bar */}
-      <header className="bg-surface-1 border-b border-border-DEFAULT">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Home
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gold-600 rounded-lg flex items-center justify-center">
-              <span className="font-display font-semibold text-navy-600">P</span>
-            </div>
-            <span className="font-display font-medium text-white">
-              Pro<span className="text-gold-400">Viso</span>
-            </span>
-            <span className="text-text-muted ml-2">Interactive Demo</span>
-          </div>
-
-          <div className="w-[100px]" /> {/* Spacer for centering */}
-        </div>
-      </header>
+      {/* Global navigation with breadcrumb */}
+      <TopNav breadcrumbs={[{ label: 'Interactive Demo' }]} />
 
       {/* Act Navigation */}
       <DemoNavigation />

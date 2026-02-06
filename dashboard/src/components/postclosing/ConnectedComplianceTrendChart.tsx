@@ -125,7 +125,9 @@ function getDefaultPeriodLabels(count: number): string[] {
 }
 
 /**
- * Connected ComplianceTrendChart that uses ProViso context
+ * Connected ComplianceTrendChart that uses ProViso context.
+ * When multi-period financial data is loaded, displays real compliance
+ * history from the interpreter. Otherwise falls back to simulated data.
  */
 export function ConnectedComplianceTrendChart({
   covenantName,
@@ -133,23 +135,30 @@ export function ConnectedComplianceTrendChart({
   periodLabels,
   className = '',
 }: ConnectedComplianceTrendChartProps) {
-  const { covenants, isLoaded } = useProViso();
+  const { covenants, isLoaded, isMultiPeriod, complianceHistory } = useProViso();
 
   // Find the covenant by name
   const covenant = useMemo(() => {
     return covenants.find((c) => c.name === covenantName);
   }, [covenants, covenantName]);
 
-  // Generate period labels
+  // Generate period labels (for simulated fallback)
   const labels = useMemo(() => {
     return periodLabels || getDefaultPeriodLabels(periods);
   }, [periodLabels, periods]);
 
-  // Generate historical data
+  // Use real compliance history when available, otherwise simulate
   const trendData = useMemo(() => {
     if (!covenant) return [];
+
+    // Prefer real multi-period data from the interpreter
+    if (isMultiPeriod && complianceHistory[covenantName]?.length > 1) {
+      return complianceHistory[covenantName];
+    }
+
+    // Fall back to simulated data for single-period mode
     return generateHistoricalData(covenant, periods, labels);
-  }, [covenant, periods, labels]);
+  }, [covenant, periods, labels, isMultiPeriod, complianceHistory, covenantName]);
 
   // Loading/not found states
   if (!isLoaded) {
@@ -172,13 +181,21 @@ export function ConnectedComplianceTrendChart({
     );
   }
 
+  const isRealData = isMultiPeriod && (complianceHistory[covenantName]?.length ?? 0) > 1;
+
   return (
-    <ComplianceTrendChart
-      covenantName={covenantName}
-      data={trendData}
-      operator={covenant.operator}
-      className={className}
-    />
+    <div className={className}>
+      <ComplianceTrendChart
+        covenantName={covenantName}
+        data={trendData}
+        operator={covenant.operator}
+      />
+      <div className="text-xs text-text-muted mt-1 px-2">
+        {isRealData
+          ? `${trendData.length} periods of actual compliance data`
+          : 'Simulated trend \u2014 upload multi-period financials for real history'}
+      </div>
+    </div>
   );
 }
 

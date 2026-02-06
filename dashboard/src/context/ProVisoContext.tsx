@@ -250,6 +250,17 @@ function transformFlipEvent(result: FlipEventResult): FlipEventData {
 // CONTEXT TYPES
 // =============================================================================
 
+/** Per-covenant compliance trend: period → { actual, threshold, compliant } */
+export interface ComplianceHistoryEntry {
+  period: string;
+  actual: number;
+  threshold: number;
+  compliant: boolean;
+}
+
+/** Compliance history keyed by covenant name */
+export type ComplianceHistoryMap = Record<string, ComplianceHistoryEntry[]>;
+
 interface ProVisoState {
   // Loading state
   isLoaded: boolean;
@@ -258,6 +269,9 @@ interface ProVisoState {
 
   // Raw interpreter (for advanced use)
   interpreter: ProVisoInterpreter | null;
+
+  // Source code (for export round-trip, v2.5)
+  code: string;
 
   // Financial data
   financials: SimpleFinancialData;
@@ -273,6 +287,10 @@ interface ProVisoState {
   // Industry data (v2.1)
   industry: IndustryData | null;
 
+  // Compliance history (v2.5)
+  isMultiPeriod: boolean;
+  complianceHistory: ComplianceHistoryMap;
+
   // Project metadata
   projectName: string;
   currentPhase: string | null;
@@ -287,6 +305,9 @@ interface ProVisoState {
   // Calculation drilldown (v2.2)
   getCalculationTree: (definitionName: string) => CalculationTree | null;
   getDefinitionNames: () => string[];
+
+  // Raw CP data for closing pipeline (v2.5)
+  getConditionsPrecedentRaw: () => CPChecklistResult[];
 
   // Computed dashboard data (convenience)
   dashboardData: DashboardData | null;
@@ -308,6 +329,7 @@ const defaultState: ProVisoState = {
   isLoading: false,
   error: null,
   interpreter: null,
+  code: '',
   financials: {},
   covenants: [],
   baskets: [],
@@ -316,6 +338,8 @@ const defaultState: ProVisoState = {
   waterfall: null,
   conditionsPrecedent: [],
   industry: null,
+  isMultiPeriod: false,
+  complianceHistory: {},
   projectName: '',
   currentPhase: null,
   loadFromCode: async (_code: string, _financials?: SimpleFinancialData) => false,
@@ -325,6 +349,7 @@ const defaultState: ProVisoState = {
   executeWaterfall: () => null,
   getCalculationTree: () => null,
   getDefinitionNames: () => [],
+  getConditionsPrecedentRaw: () => [],
   dashboardData: null,
 };
 
@@ -351,6 +376,7 @@ export function ProVisoProvider({
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [code, setCode] = useState('');
   const [financials, setFinancials] = useState<SimpleFinancialData>(initialFinancials ?? {});
 
   // Computed state from interpreter
@@ -361,6 +387,8 @@ export function ProVisoProvider({
   const [waterfall, setWaterfall] = useState<WaterfallData | null>(null);
   const [conditionsPrecedent, setConditionsPrecedent] = useState<CPChecklistData[]>([]);
   const [industry, setIndustry] = useState<IndustryData | null>(null);
+  const [isMultiPeriod, setIsMultiPeriod] = useState(false);
+  const [complianceHistory, setComplianceHistory] = useState<ComplianceHistoryMap>({});
   const [projectName, setProjectName] = useState('');
   const [currentPhase, setCurrentPhase] = useState<string | null>(null);
 
@@ -477,6 +505,33 @@ export function ProVisoProvider({
       } else {
         setIndustry(null);
       }
+
+      // Build compliance history (v2.5)
+      const multiPeriod = interpreter.hasMultiPeriodData();
+      setIsMultiPeriod(multiPeriod);
+
+      if (multiPeriod) {
+        const history = interpreter.getComplianceHistory();
+        const historyMap: ComplianceHistoryMap = {};
+
+        for (const periodEntry of history) {
+          for (const cov of periodEntry.covenants) {
+            if (!historyMap[cov.name]) {
+              historyMap[cov.name] = [];
+            }
+            historyMap[cov.name].push({
+              period: periodEntry.period,
+              actual: cov.actual,
+              threshold: cov.threshold,
+              compliant: cov.compliant,
+            });
+          }
+        }
+
+        setComplianceHistory(historyMap);
+      } else {
+        setComplianceHistory({});
+      }
     } catch (e) {
       console.error('Error refreshing ProViso state:', e);
     }
@@ -510,6 +565,7 @@ export function ProVisoProvider({
       }
 
       setInterpreter(newInterpreter);
+      setCode(code);
       setIsLoaded(true);
       setIsLoading(false);
 
@@ -579,6 +635,18 @@ export function ProVisoProvider({
     return interpreter.getDefinitionNames();
   }, [interpreter]);
 
+  // Get raw CP checklist results for closing pipeline (v2.5)
+  const getConditionsPrecedentRaw = useCallback((): CPChecklistResult[] => {
+    if (!interpreter) return [];
+    try {
+      const cpNames = interpreter.getCPChecklistNames();
+      return cpNames.map(name => interpreter.getCPChecklist(name));
+    } catch (e) {
+      console.error('Error getting CP checklists:', e);
+      return [];
+    }
+  }, [interpreter]);
+
   // Refresh when interpreter changes
   useMemo(() => {
     if (interpreter) {
@@ -625,6 +693,7 @@ export function ProVisoProvider({
     isLoading,
     error,
     interpreter,
+    code,
     financials,
     covenants,
     baskets,
@@ -633,6 +702,8 @@ export function ProVisoProvider({
     waterfall,
     conditionsPrecedent,
     industry,
+    isMultiPeriod,
+    complianceHistory,
     projectName,
     currentPhase,
     loadFromCode,
@@ -642,6 +713,7 @@ export function ProVisoProvider({
     executeWaterfall: executeWaterfallFn,
     getCalculationTree,
     getDefinitionNames,
+    getConditionsPrecedentRaw,
     dashboardData,
   };
 

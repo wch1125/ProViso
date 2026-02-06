@@ -1,7 +1,8 @@
-import { lazy, Suspense, useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect, useMemo, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ProVisoProvider, ClosingProvider, DealProvider, IndustryThemeProvider } from './context';
+import { ProVisoProvider, ClosingProvider, DealProvider, IndustryThemeProvider, useProViso } from './context';
 import { LoadingScreen } from './components/landing';
+import { transformCPChecklistsToConditions } from './utils/cpTransformer';
 
 // Lazy-loaded page components for code splitting
 const Landing = lazy(() => import('./pages/Landing'));
@@ -11,6 +12,27 @@ const DealList = lazy(() => import('./pages/deals/DealList'));
 const NegotiationStudio = lazy(() => import('./pages/negotiation/NegotiationStudio'));
 const ClosingDashboard = lazy(() => import('./pages/closing/ClosingDashboard'));
 const MonitoringDashboard = lazy(() => import('./pages/monitoring/MonitoringDashboard'));
+
+/**
+ * Bridge component: reads interpreter CPs from ProVisoContext
+ * and passes them to ClosingProvider as initial conditions.
+ */
+function ClosingProviderWithInterpreter({ children }: { children: ReactNode }) {
+  const { getConditionsPrecedentRaw, isLoaded } = useProViso();
+
+  const interpreterConditions = useMemo(() => {
+    if (!isLoaded) return undefined;
+    const raw = getConditionsPrecedentRaw();
+    if (raw.length === 0) return undefined;
+    return transformCPChecklistsToConditions(raw, 'current', 'current');
+  }, [isLoaded, getConditionsPrecedentRaw]);
+
+  return (
+    <ClosingProvider interpreterConditions={interpreterConditions}>
+      {children}
+    </ClosingProvider>
+  );
+}
 
 // Loading fallback component for route transitions
 function PageLoader() {
@@ -71,7 +93,7 @@ function App() {
 
                 {/* Deal-specific routes */}
                 <Route path="/deals/:dealId/negotiate" element={<NegotiationStudio />} />
-                <Route path="/deals/:dealId/closing" element={<ClosingProvider><ClosingDashboard /></ClosingProvider>} />
+                <Route path="/deals/:dealId/closing" element={<ClosingProviderWithInterpreter><ClosingDashboard /></ClosingProviderWithInterpreter>} />
                 <Route path="/deals/:dealId/monitor" element={<MonitoringDashboard />} />
 
                 {/* Fallback - redirect unknown routes to landing */}

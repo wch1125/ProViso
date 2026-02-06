@@ -2,15 +2,16 @@
  * DealPageLayout - Unified layout for all deal-specific pages
  *
  * v2.4 Design System: Two-tier header below TopNav.
- * Tier 1: Deal context header (72px) — back arrow, deal name, status, actions
+ * Tier 1: Deal context header (72px) — deal name, status badge, actions
  * Tier 2: Sub-navigation tabs (56px) — Negotiate | Closing | Monitor
  */
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText, CheckCircle, BarChart3, HardHat, Zap, RotateCcw } from 'lucide-react';
+import { FileText, CheckCircle, BarChart3, HardHat, Zap, RotateCcw } from 'lucide-react';
 import { Badge } from '../base/Badge';
 import { Button } from '../base/Button';
 import { TopNav } from './TopNav';
+import type { Breadcrumb } from './TopNav';
 
 type DealView = 'negotiate' | 'closing' | 'monitor';
 type DealStatus = 'draft' | 'negotiation' | 'closing' | 'active' | 'matured';
@@ -76,10 +77,22 @@ export function DealPageLayout({
     navigate('/');
   };
 
+  // Build breadcrumbs: Deals > Deal Name > Current Tab
+  const viewLabels: Record<string, string> = {
+    negotiate: 'Negotiate',
+    closing: 'Closing',
+    monitor: 'Monitor',
+  };
+  const breadcrumbs: Breadcrumb[] = [
+    { label: 'Deals', to: '/deals' },
+    { label: dealName, to: currentView ? `/deals/${dealId}/${currentView}` : undefined },
+    ...(currentView ? [{ label: viewLabels[currentView] }] : []),
+  ];
+
   return (
     <div className="min-h-screen bg-surface-0" data-phase={currentPhase}>
-      {/* Global navigation */}
-      <TopNav />
+      {/* Global navigation with breadcrumbs */}
+      <TopNav breadcrumbs={breadcrumbs} />
 
       {/* Deal Context Header */}
       <header className="bg-surface-1 border-b border-border-strong sticky top-16 z-20">
@@ -87,18 +100,6 @@ export function DealPageLayout({
           {/* Deal info row */}
           <div className="flex items-center justify-between h-[72px]">
             <div className="flex items-center gap-4">
-              <Link
-                to="/"
-                className="
-                  p-2 -ml-2 rounded-lg
-                  text-text-tertiary hover:text-text-primary
-                  hover:bg-surface-2
-                  transition-colors duration-200
-                "
-                aria-label="Back to home"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Link>
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className="font-display text-2xl font-semibold text-text-primary">

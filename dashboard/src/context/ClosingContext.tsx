@@ -242,15 +242,21 @@ function cloneDocuments(documents: Document[]): Document[] {
 
 interface ClosingProviderProps {
   children: ReactNode;
+  /** Optional interpreter-sourced conditions to use instead of demo data */
+  interpreterConditions?: ConditionPrecedent[];
 }
 
-export function ClosingProvider({ children }: ClosingProviderProps) {
+export function ClosingProvider({ children, interpreterConditions }: ClosingProviderProps) {
   // Current deal state
   const [deal, setDeal] = useState<ClosingDeal>(defaultClosingDeal);
   const [parties, setParties] = useState<DealParty[]>(defaultClosingParties);
 
-  // Initialize from localStorage or defaults
+  // Initialize from interpreter conditions, localStorage, or defaults
   const [conditions, setConditions] = useState<ConditionPrecedent[]>(() => {
+    // Prefer interpreter-sourced conditions when available
+    if (interpreterConditions && interpreterConditions.length > 0) {
+      return cloneConditions(interpreterConditions);
+    }
     try {
       const stored = localStorage.getItem(STORAGE_KEY_CONDITIONS);
       if (stored) {
@@ -291,6 +297,14 @@ export function ClosingProvider({ children }: ClosingProviderProps) {
   });
 
   const [toasts, setToasts] = useState<Toast[]>([]);
+
+  // When interpreter conditions change, merge them in
+  useEffect(() => {
+    if (interpreterConditions && interpreterConditions.length > 0) {
+      setConditions(cloneConditions(interpreterConditions));
+      localStorage.removeItem(STORAGE_KEY_CONDITIONS);
+    }
+  }, [interpreterConditions]);
 
   // Persist to localStorage
   useEffect(() => {

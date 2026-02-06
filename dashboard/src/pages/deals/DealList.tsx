@@ -140,57 +140,52 @@ export function DealList() {
 
   return (
     <div className="min-h-screen bg-surface-0">
-      {/* Global navigation */}
-      <TopNav />
-
-      {/* Page header */}
-      <header className="bg-surface-1 border-b border-border-DEFAULT">
-        <div className="max-w-screen-2xl mx-auto px-8 py-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-display font-semibold text-text-primary">
-                Deal Pipeline
-              </h1>
-              <Badge variant="gold" size="sm">
-                v2.1
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                icon={<RotateCcw className="w-4 h-4" />}
-                onClick={resetToDefaults}
-                title="Reset demo data"
-              >
-                Reset
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                icon={<Activity className="w-4 h-4" />}
-                onClick={() => setIsActivityPanelOpen(true)}
-              >
-                Activity
-                {activities.length > 0 && (
-                  <span className="ml-1 text-xs bg-gold-500 text-navy-900 px-1.5 py-0.5 rounded-full">
-                    {activities.length}
-                  </span>
-                )}
-              </Button>
-              <Button
-                icon={<Plus className="w-4 h-4" />}
-                onClick={() => setIsCreateModalOpen(true)}
-              >
-                New Deal
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Global navigation with breadcrumb */}
+      <TopNav breadcrumbs={[{ label: 'Deal Pipeline' }]} />
 
       {/* Content */}
       <main className="max-w-screen-2xl mx-auto px-8 py-8">
+        {/* Page title row */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-display font-semibold text-text-primary">
+              Deal Pipeline
+            </h1>
+            <Badge variant="gold" size="sm">
+              v2.1
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<RotateCcw className="w-4 h-4" />}
+              onClick={resetToDefaults}
+              title="Reset demo data"
+            >
+              Reset
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Activity className="w-4 h-4" />}
+              onClick={() => setIsActivityPanelOpen(true)}
+            >
+              Activity
+              {activities.length > 0 && (
+                <span className="ml-1 text-xs bg-gold-500 text-navy-900 px-1.5 py-0.5 rounded-full">
+                  {activities.length}
+                </span>
+              )}
+            </Button>
+            <Button
+              icon={<Plus className="w-4 h-4" />}
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              New Deal
+            </Button>
+          </div>
+        </div>
         {/* Stats Row */}
         <div className="grid grid-cols-4 gap-4 mb-8">
           <StatCard
