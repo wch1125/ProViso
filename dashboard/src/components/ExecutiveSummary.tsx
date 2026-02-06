@@ -7,18 +7,31 @@ import { generateAlerts } from '../utils/thresholds';
 import type { DashboardData } from '../types';
 
 /**
- * Generate simulated historical trend data for sparklines
- * In a real app, this would come from the backend
+ * Simple seeded PRNG for deterministic sparkline data.
+ * Uses a hash of the seed string to produce stable pseudo-random values.
  */
-function generateTrendData(currentValue: number, periods: number = 6, volatility: number = 0.1): number[] {
+function seededRandom(seed: string, index: number): number {
+  let hash = 0;
+  const str = `${seed}-${index}`;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  // Normalize to 0..1
+  return ((hash & 0x7fffffff) % 1000) / 1000;
+}
+
+/**
+ * Generate deterministic historical trend data for sparklines.
+ * Uses a seed string so the same metric always produces the same sparkline.
+ */
+function generateTrendData(currentValue: number, periods: number = 6, volatility: number = 0.1, seed: string = 'default'): number[] {
   const data: number[] = [];
   let value = currentValue * (1 - volatility * (periods / 2) * 0.5);
 
   for (let i = 0; i < periods - 1; i++) {
     data.push(value);
-    // Gradual trend toward current value with some noise
     const trend = (currentValue - value) / (periods - i);
-    const noise = (Math.random() - 0.5) * currentValue * volatility * 0.5;
+    const noise = (seededRandom(seed, i) - 0.5) * currentValue * volatility * 0.5;
     value += trend + noise;
   }
   data.push(currentValue);
@@ -72,11 +85,11 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
 
   // Generate trend data for sparklines (simulated - in production this would come from the backend)
   const reserveTrendData = useMemo(
-    () => generateTrendData(reserveFunding, 6, 0.08),
+    () => generateTrendData(reserveFunding, 6, 0.08, 'reserve-funding'),
     [reserveFunding]
   );
   const revenueTrendData = useMemo(
-    () => generateTrendData(data.waterfall.revenue, 6, 0.12),
+    () => generateTrendData(data.waterfall.revenue, 6, 0.12, 'waterfall-revenue'),
     [data.waterfall.revenue]
   );
 

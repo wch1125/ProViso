@@ -38,6 +38,12 @@ export interface CovenantData {
   compliant: boolean;
   headroom?: number;
   suspended?: boolean;
+  /** If covenant has step-down, the original (initial) threshold */
+  originalThreshold?: number;
+  /** Currently active step-down entry */
+  activeStep?: { afterDate: string; threshold: number };
+  /** Next upcoming step-down (future tightening) */
+  nextStep?: { afterDate: string; threshold: number };
 }
 
 export interface MilestoneData {
@@ -205,11 +211,21 @@ export interface IndustryData {
   };
 }
 
+export interface BasketData {
+  name: string;
+  capacity: number;
+  used: number;
+  available: number;
+  /** Utilization percentage (0-100) */
+  utilization: number;
+}
+
 export interface DashboardData {
   project: ProjectInfo;
   phase: PhaseInfo;
   financials: Record<string, number>;
   covenants: CovenantData[];
+  baskets: BasketData[];
   milestones: MilestoneData[];
   reserves: ReserveData[];
   waterfall: WaterfallData;

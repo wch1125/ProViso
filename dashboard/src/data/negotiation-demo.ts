@@ -560,7 +560,7 @@ const versions: DealVersion[] = [
     parentVersionId: 'version-1',
     status: 'superseded',
     generatedWordDoc: null,
-    changeSummary: changeSummaryV1toV2,
+    changeSummary: null, // Auto-computed by version diff engine
   },
   {
     id: 'version-3',
@@ -574,7 +574,7 @@ const versions: DealVersion[] = [
     parentVersionId: 'version-2',
     status: 'draft',
     generatedWordDoc: null,
-    changeSummary: changeSummaryV2toV3,
+    changeSummary: null, // Auto-computed by version diff engine
   },
 ];
 

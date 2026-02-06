@@ -57,6 +57,7 @@ export interface CovenantCodeInput {
   operator: string;
   threshold: number;
   tested?: 'quarterly' | 'annually' | 'monthly';
+  stepDown?: { afterDate: string; threshold: number }[];
   cure?: {
     type: 'EquityCure' | 'PaymentCure';
     maxUses?: number;
@@ -72,6 +73,13 @@ export function generateCovenantCode(input: CovenantCodeInput): string {
 
   lines.push(`COVENANT ${input.name}`);
   lines.push(`  REQUIRES ${input.metric} ${input.operator} ${formatRatioCode(input.threshold)}`);
+
+  if (input.stepDown && input.stepDown.length > 0) {
+    lines.push('  STEP_DOWN');
+    for (const step of input.stepDown) {
+      lines.push(`    AFTER ${step.afterDate} TO ${formatRatioCode(step.threshold)}`);
+    }
+  }
 
   if (input.tested) {
     const testedMap: Record<string, string> = {

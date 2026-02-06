@@ -37,6 +37,8 @@ import type {
   DepreciationResult,
   FlipEventResult,
   SimpleFinancialData,
+  MultiPeriodFinancialData,
+  FinancialData,
 } from '@proviso/types.js';
 
 // Dashboard display types
@@ -64,7 +66,7 @@ import type {
 // =============================================================================
 
 function transformCovenant(result: CovenantResult, suspended: boolean = false): CovenantData {
-  return {
+  const data: CovenantData = {
     name: result.name,
     actual: result.actual,
     required: result.threshold,
@@ -73,6 +75,19 @@ function transformCovenant(result: CovenantResult, suspended: boolean = false): 
     headroom: result.headroom,
     suspended,
   };
+
+  // Pass step-down metadata if present
+  if (result.originalThreshold !== undefined) {
+    data.originalThreshold = result.originalThreshold;
+  }
+  if (result.activeStep) {
+    data.activeStep = result.activeStep;
+  }
+  if (result.nextStep) {
+    data.nextStep = result.nextStep;
+  }
+
+  return data;
 }
 
 function transformMilestone(result: MilestoneResult): MilestoneData {
@@ -296,7 +311,7 @@ interface ProVisoState {
   currentPhase: string | null;
 
   // Actions
-  loadFromCode: (code: string, initialFinancials?: SimpleFinancialData) => Promise<boolean>;
+  loadFromCode: (code: string, initialFinancials?: SimpleFinancialData, historicalData?: MultiPeriodFinancialData) => Promise<boolean>;
   loadFinancials: (data: SimpleFinancialData) => void;
   updateFinancial: (key: string, value: number) => void;
   refresh: () => void;
@@ -342,7 +357,7 @@ const defaultState: ProVisoState = {
   complianceHistory: {},
   projectName: '',
   currentPhase: null,
-  loadFromCode: async (_code: string, _financials?: SimpleFinancialData) => false,
+  loadFromCode: async (_code: string, _financials?: SimpleFinancialData, _historicalData?: MultiPeriodFinancialData) => false,
   loadFinancials: () => {},
   updateFinancial: () => {},
   refresh: () => {},
@@ -381,7 +396,7 @@ export function ProVisoProvider({
 
   // Computed state from interpreter
   const [covenants, setCovenants] = useState<CovenantData[]>([]);
-  const [baskets, setBaskets] = useState<BasketStatus[]>([]);
+  const [basketStatuses, setBasketStatuses] = useState<BasketStatus[]>([]);
   const [milestones, setMilestones] = useState<MilestoneData[]>([]);
   const [reserves, setReserves] = useState<ReserveData[]>([]);
   const [waterfall, setWaterfall] = useState<WaterfallData | null>(null);
@@ -405,7 +420,7 @@ export function ProVisoProvider({
       setCovenants(covenantResults.map(c => transformCovenant(c, suspendedNames.has(c.name))));
 
       // Transform baskets
-      setBaskets(interpreter.getAllBasketStatuses());
+      setBasketStatuses(interpreter.getAllBasketStatuses());
 
       // Transform milestones
       const milestoneResults = interpreter.getAllMilestoneStatuses();
@@ -506,6 +521,19 @@ export function ProVisoProvider({
         setIndustry(null);
       }
 
+      // Auto-execute primary waterfall if available
+      const waterfallNames = interpreter.getWaterfallNames();
+      if (waterfallNames.length > 0) {
+        try {
+          // Use revenue from financials, or a reasonable default
+          const revenue = interpreter.evaluate('Revenue') ?? interpreter.evaluate('revenue') ?? 0;
+          const result = interpreter.executeWaterfall(waterfallNames[0]!, revenue);
+          setWaterfall(transformWaterfall(result));
+        } catch {
+          // Revenue identifier may not exist — that's OK, waterfall stays null
+        }
+      }
+
       // Build compliance history (v2.5)
       const multiPeriod = interpreter.hasMultiPeriodData();
       setIsMultiPeriod(multiPeriod);
@@ -537,8 +565,8 @@ export function ProVisoProvider({
     }
   }, [interpreter]);
 
-  // Load ProViso code (with optional initial financials to avoid race condition)
-  const loadFromCode = useCallback(async (code: string, initialFinancials?: SimpleFinancialData): Promise<boolean> => {
+  // Load ProViso code (with optional initial financials and multi-period history)
+  const loadFromCode = useCallback(async (code: string, initialFinancials?: SimpleFinancialData, historicalData?: MultiPeriodFinancialData): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
 
@@ -554,13 +582,21 @@ export function ProVisoProvider({
 
       const newInterpreter = new ProVisoInterpreter(result.ast as Program);
 
-      // Load financials - prefer initialFinancials (if provided), then existing state
-      const financialsToLoad = initialFinancials ?? (Object.keys(financials).length > 0 ? financials : null);
-      if (financialsToLoad) {
-        newInterpreter.loadFinancials(financialsToLoad);
-        // Also update state if initialFinancials provided
+      // Load financials - prefer multi-period data, then single-period, then existing state
+      if (historicalData) {
+        // Multi-period mode: load the full period array for compliance history
+        newInterpreter.loadFinancials(historicalData as FinancialData);
         if (initialFinancials) {
           setFinancials(initialFinancials);
+        }
+      } else {
+        const financialsToLoad = initialFinancials ?? (Object.keys(financials).length > 0 ? financials : null);
+        if (financialsToLoad) {
+          newInterpreter.loadFinancials(financialsToLoad);
+          // Also update state if initialFinancials provided
+          if (initialFinancials) {
+            setFinancials(initialFinancials);
+          }
         }
       }
 
@@ -673,13 +709,20 @@ export function ProVisoProvider({
       },
       financials,
       covenants,
+      baskets: basketStatuses.map(b => ({
+        name: b.name,
+        capacity: b.capacity,
+        used: b.used,
+        available: b.capacity - b.used,
+        utilization: b.capacity > 0 ? (b.used / b.capacity) * 100 : 0,
+      })),
       milestones,
       reserves,
       waterfall: waterfall ?? { revenue: 0, tiers: [] },
       conditionsPrecedent,
       industry: industry ?? undefined,
     };
-  }, [isLoaded, projectName, currentPhase, financials, covenants, milestones, reserves, waterfall, conditionsPrecedent, industry]);
+  }, [isLoaded, projectName, currentPhase, financials, covenants, basketStatuses, milestones, reserves, waterfall, conditionsPrecedent, industry]);
 
   // Load initial code if provided
   useMemo(() => {
@@ -696,7 +739,7 @@ export function ProVisoProvider({
     code,
     financials,
     covenants,
-    baskets,
+    baskets: basketStatuses,
     milestones,
     reserves,
     waterfall,

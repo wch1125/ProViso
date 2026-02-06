@@ -500,30 +500,44 @@ DEGRADATION_SCHEDULE PanelDegradation
 CONDITIONS_PRECEDENT InitialFunding
   SECTION "4.01"
 
-  CP ExecutedCreditAgreement
-    DESCRIPTION "Executed Credit Agreement and all Loan Documents"
-    RESPONSIBLE Agent
-    STATUS satisfied
-
-  CP LegalOpinions
-    DESCRIPTION "Opinions of Borrower's Counsel and Local Counsel"
+  CP CreditAgreementExecution
+    DESCRIPTION "Fully executed Credit Agreement"
     RESPONSIBLE BorrowerCounsel
-    STATUS satisfied
+    STATUS pending
 
-  CP EquityContribution
-    DESCRIPTION "Evidence of Initial Equity Contribution"
-    RESPONSIBLE Sponsor
-    STATUS satisfied
-    SATISFIES MinEquityContribution
-
-  CP InsuranceCertificates
-    DESCRIPTION "Evidence of Required Insurance Coverage"
+  CP PPAExecuted
+    DESCRIPTION "Executed Power Purchase Agreement with utility"
     RESPONSIBLE Borrower
     STATUS satisfied
 
-  CP TaxEquityDocuments
+  CP InterconnectionAgreement
+    DESCRIPTION "Executed Large Generator Interconnection Agreement"
+    RESPONSIBLE Borrower
+    STATUS satisfied
+
+  CP EPCContract
+    DESCRIPTION "Executed EPC contract with creditworthy contractor"
+    RESPONSIBLE Borrower
+    STATUS satisfied
+
+  CP TaxEquityCommitment
     DESCRIPTION "Executed Tax Equity Partnership Agreement"
     RESPONSIBLE TaxCounsel
+    STATUS pending
+
+  CP EnvironmentalPermits
+    DESCRIPTION "All required environmental permits obtained"
+    RESPONSIBLE Borrower
+    STATUS satisfied
+
+  CP ALTASurvey
+    DESCRIPTION "ALTA/NSPS Land Title Survey"
+    RESPONSIBLE Borrower
+    STATUS pending
+
+  CP InsuranceCertificates
+    DESCRIPTION "Builder's risk and liability insurance"
+    RESPONSIBLE Borrower
     STATUS satisfied
 `;
 
@@ -871,30 +885,35 @@ PERFORMANCE_GUARANTEE NetCapacityFactor
 CONDITIONS_PRECEDENT InitialFunding
   SECTION "4.01"
 
-  CP ExecutedCreditAgreement
-    DESCRIPTION "Executed Credit Agreement"
-    RESPONSIBLE Agent
-    STATUS satisfied
+  CP CreditAgreementExecution
+    DESCRIPTION "Fully executed Credit Agreement"
+    RESPONSIBLE BorrowerCounsel
+    STATUS pending
 
-  CP EquityContribution
-    DESCRIPTION "Initial Equity Contribution"
-    RESPONSIBLE Sponsor
-    STATUS satisfied
-
-  CP FAA_Determination
-    DESCRIPTION "FAA No Hazard Determination"
+  CP TurbineSupplyAgreement
+    DESCRIPTION "Executed TSA with Vestas"
     RESPONSIBLE Borrower
     STATUS satisfied
 
-  CP AvianProtectionPlan
-    DESCRIPTION "Approved Avian Protection Plan"
+  CP WindResourceStudy
+    DESCRIPTION "Independent wind resource assessment"
+    RESPONSIBLE Borrower
+    STATUS satisfied
+
+  CP FAA_Determination
+    DESCRIPTION "FAA No Hazard Determination for all turbines"
     RESPONSIBLE Borrower
     STATUS satisfied
 
   CP TribalConsultation
-    DESCRIPTION "Completed Tribal Consultation"
+    DESCRIPTION "Completed tribal consultation process"
     RESPONSIBLE Borrower
     STATUS pending
+
+  CP HedgeAgreement
+    DESCRIPTION "Revenue hedge with investment grade counterparty"
+    RESPONSIBLE Borrower
+    STATUS satisfied
 `;
 
 const windFinancials: SimpleFinancialData = {
@@ -1173,6 +1192,41 @@ EVENT CovenantDefault
 EVENT CrossDefault
   TRIGGERS WHEN external_debt_default > 10_000_000
   CONSEQUENCE EventOfDefault
+
+// ==================== CONDITIONS PRECEDENT ====================
+
+CONDITIONS_PRECEDENT InitialClosing
+  SECTION "4.01"
+
+  CP CreditAgreementExecution
+    DESCRIPTION "Fully executed Credit Agreement"
+    RESPONSIBLE BorrowerCounsel
+    STATUS satisfied
+
+  CP CorporateDocuments
+    DESCRIPTION "Charter, bylaws, and resolutions"
+    RESPONSIBLE Borrower
+    STATUS satisfied
+
+  CP SecurityAgreement
+    DESCRIPTION "Security Agreement and UCC filings"
+    RESPONSIBLE BorrowerCounsel
+    STATUS satisfied
+
+  CP LegalOpinions
+    DESCRIPTION "Borrower counsel and local counsel opinions"
+    RESPONSIBLE BorrowerCounsel
+    STATUS satisfied
+
+  CP SolvencyCertificate
+    DESCRIPTION "CFO solvency certificate"
+    RESPONSIBLE Borrower
+    STATUS satisfied
+
+  CP FinancialStatements
+    DESCRIPTION "Audited financials and compliance certificate"
+    RESPONSIBLE Borrower
+    STATUS satisfied
 `;
 
 const corporateFinancials: SimpleFinancialData = {
@@ -1360,6 +1414,86 @@ BASKET GeneralInvestments
 BASKET PermittedAcquisitions
   CAPACITY $60_000_000
   SUBJECT TO ProFormaCompliance
+
+// ==================== CONDITIONS PRECEDENT ====================
+
+CONDITIONS_PRECEDENT InitialClosing
+  SECTION "4.01"
+
+  CP CertificateOfIncorporation
+    DESCRIPTION "Certified copy of the Certificate of Incorporation"
+    RESPONSIBLE Borrower
+    STATUS satisfied
+
+  CP Bylaws
+    DESCRIPTION "Certified copy of the Bylaws"
+    RESPONSIBLE Borrower
+    STATUS satisfied
+
+  CP BoardResolutions
+    DESCRIPTION "Board resolutions authorizing the Loan Documents"
+    RESPONSIBLE Borrower
+    STATUS satisfied
+
+  CP GoodStandingCertificate
+    DESCRIPTION "Certificate of Good Standing from Delaware"
+    RESPONSIBLE Borrower
+    STATUS pending
+
+  CP CreditAgreementExecution
+    DESCRIPTION "Fully executed Credit Agreement"
+    RESPONSIBLE BorrowerCounsel
+    STATUS pending
+
+  CP SecurityAgreement
+    DESCRIPTION "Security Agreement granting security interest"
+    RESPONSIBLE BorrowerCounsel
+    STATUS satisfied
+
+  CP PledgeAgreement
+    DESCRIPTION "Pledge Agreement covering equity interests"
+    RESPONSIBLE BorrowerCounsel
+    STATUS satisfied
+
+  CP UCC1FinancingStatement
+    DESCRIPTION "UCC-1 filed with Delaware Secretary of State"
+    RESPONSIBLE AgentCounsel
+    STATUS pending
+
+  CP BorrowerCounselOpinion
+    DESCRIPTION "Legal opinion of Davis Polk"
+    RESPONSIBLE BorrowerCounsel
+    STATUS pending
+
+  CP OfficersCertificate
+    DESCRIPTION "Certificate certifying conditions precedent"
+    RESPONSIBLE Borrower
+    STATUS pending
+
+  CP SolvencyCertificate
+    DESCRIPTION "Solvency Certificate from the CFO"
+    RESPONSIBLE Borrower
+    STATUS pending
+
+  CP InsuranceCertificate
+    DESCRIPTION "Certificate of insurance with Agent as loss payee"
+    RESPONSIBLE Borrower
+    STATUS pending
+
+  CP KYCDocumentation
+    DESCRIPTION "KYC documentation for all Lenders"
+    RESPONSIBLE Borrower
+    STATUS satisfied
+
+  CP FinancialStatements
+    DESCRIPTION "Audited financial statements for FY 2025"
+    RESPONSIBLE Borrower
+    STATUS satisfied
+
+  CP ProFormaFinancialModel
+    DESCRIPTION "Pro forma model showing projected compliance"
+    RESPONSIBLE Borrower
+    STATUS satisfied
 `;
 
 const abcFinancials: SimpleFinancialData = {

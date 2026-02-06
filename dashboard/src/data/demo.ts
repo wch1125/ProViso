@@ -394,6 +394,11 @@ export const demoData: DashboardData = {
       { name: "Available for Distribution", amount: 3_900_000, blocked: true, reason: "DSCR < 1.50x" }
     ]
   },
+  baskets: [
+    { name: "Capex", capacity: 25_000_000, used: 12_500_000, available: 12_500_000, utilization: 50 },
+    { name: "Permitted Investments", capacity: 10_000_000, used: 3_200_000, available: 6_800_000, utilization: 32 },
+    { name: "Restricted Payments", capacity: 5_000_000, used: 4_750_000, available: 250_000, utilization: 95 },
+  ],
   conditionsPrecedent: [
     {
       name: "Initial Funding",

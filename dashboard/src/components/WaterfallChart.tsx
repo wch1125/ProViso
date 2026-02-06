@@ -154,17 +154,21 @@ export function WaterfallChart({ waterfall }: WaterfallChartProps) {
         </div>
 
         {/* Warning if blocked */}
-        {blockedAmount > 0 && (
-          <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-warning/5 border border-warning/20">
-            <AlertTriangle className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-sm text-warning font-medium">Distribution Gate Active</p>
-              <p className="text-xs text-text-tertiary mt-0.5">
-                DSCR must exceed 1.50x before distributions can be released
-              </p>
+        {blockedAmount > 0 && (() => {
+          const blockedReasons = tiers.filter(t => t.blocked && t.reason).map(t => t.reason);
+          const reasonText = blockedReasons.length > 0
+            ? blockedReasons.join('; ')
+            : 'One or more distribution tiers are gated by unmet conditions';
+          return (
+            <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-warning/5 border border-warning/20">
+              <AlertTriangle className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm text-warning font-medium">Distribution Gate Active</p>
+                <p className="text-xs text-text-tertiary mt-0.5">{reasonText}</p>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </CardBody>
     </Card>
   );

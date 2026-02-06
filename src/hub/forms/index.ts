@@ -20,6 +20,8 @@ export type {
   FormOutput,
   StepDownEntry,
   TemplateContext,
+  DealTemplate,
+  DealTemplateIndustry,
 } from './types.js';
 
 // Template rendering
@@ -57,3 +59,18 @@ export {
   validateFormValues,
   getDefaultValues,
 } from './generator.js';
+
+// Deal templates
+export {
+  dealTemplates,
+  dealTemplatesById,
+  getDealTemplate,
+  getDealTemplatesByIndustry,
+  getDealTemplatesByComplexity,
+  generateFromTemplate,
+  enrichTemplateValues,
+  corporateRevolverTemplate,
+  termLoanBTemplate,
+  projectFinanceTemplate,
+  realEstateTemplate,
+} from './templates/index.js';

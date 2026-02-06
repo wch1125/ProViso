@@ -135,6 +135,9 @@ export class ProVisoInterpreter {
   // Evaluation context for temporary bindings (e.g., 'amount' in prohibition checks)
   private evaluationContext: { bindings?: Record<string, number> } = {};
 
+  // Cycle detection stack for definition evaluation
+  private definitionEvalStack: Set<string> = new Set();
+
   constructor(private ast: Program) {
     this.loadStatements();
   }
@@ -247,6 +250,11 @@ export class ProVisoInterpreter {
           this.loadFinancials(stmt.source.data as FinancialData);
         }
         break;
+      case 'Comment':
+        // Comments are informational only
+        break;
+      default:
+        throw new Error(`Unsupported statement type: ${(stmt as { type: string }).type}`);
     }
   }
 
@@ -327,7 +335,12 @@ export class ProVisoInterpreter {
           case '+': return left + right;
           case '-': return left - right;
           case '*': return left * right;
-          case '/': return right !== 0 ? left / right : Infinity;
+          case '/': {
+            if (right === 0) {
+              throw new Error(`Division by zero in expression (${left} / ${right})`);
+            }
+            return left / right;
+          }
           default:
             throw new Error(`Unknown operator: ${expr.operator}`);
         }
@@ -553,24 +566,35 @@ export class ProVisoInterpreter {
   }
 
   private evaluateDefinition(def: DefineStatement): number {
-    let value = this.evaluate(def.expression);
+    // Cycle detection
+    if (this.definitionEvalStack.has(def.name)) {
+      const chain = [...this.definitionEvalStack, def.name].join(' → ');
+      throw new Error(`Circular definition detected: ${chain}`);
+    }
 
-    // Apply modifiers
-    if (def.modifiers.excluding) {
-      for (const item of def.modifiers.excluding) {
-        const excludeValue = this.getFinancialValue(item);
-        if (excludeValue !== undefined) {
-          value -= excludeValue;
+    this.definitionEvalStack.add(def.name);
+    try {
+      let value = this.evaluate(def.expression);
+
+      // Apply modifiers
+      if (def.modifiers.excluding) {
+        for (const item of def.modifiers.excluding) {
+          const excludeValue = this.getFinancialValue(item);
+          if (excludeValue !== undefined) {
+            value -= excludeValue;
+          }
         }
       }
-    }
 
-    if (def.modifiers.cap) {
-      const cap = this.evaluate(def.modifiers.cap);
-      value = Math.min(value, cap);
-    }
+      if (def.modifiers.cap) {
+        const cap = this.evaluate(def.modifiers.cap);
+        value = Math.min(value, cap);
+      }
 
-    return value;
+      return value;
+    } finally {
+      this.definitionEvalStack.delete(def.name);
+    }
   }
 
   private evaluateFunction(name: string, args: Expression[]): number {
@@ -932,6 +956,125 @@ export class ProVisoInterpreter {
 
   // ==================== COVENANT CHECKING ====================
 
+  /**
+   * Get the effective date for step-down evaluation.
+   * Uses the evaluation period end date, or a supplied reference date.
+   */
+  private getEffectiveDate(): string | null {
+    // In multi-period mode, use the evaluation period as a date reference.
+    // Period labels like "Q3 2025" or "2025-09" need to be converted to a comparable date.
+    if (this.evaluationPeriod) {
+      return this.periodToDate(this.evaluationPeriod);
+    }
+    return null;
+  }
+
+  /**
+   * Convert a period label to a sortable date string.
+   * Handles: "Q1 2025" → "2025-03-31", "2025-09" → "2025-09-30", "2025-09-30" → "2025-09-30"
+   */
+  private periodToDate(period: string): string {
+    // Already a date: "2025-09-30"
+    if (/^\d{4}-\d{2}-\d{2}$/.test(period)) {
+      return period;
+    }
+    // Year-month: "2025-09"
+    if (/^\d{4}-\d{2}$/.test(period)) {
+      const parts = period.split('-');
+      const year = Number(parts[0]);
+      const month = Number(parts[1]);
+      const lastDay = new Date(year, month, 0).getDate();
+      return `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    }
+    // Quarter: "Q1 2025", "Q2 2025", etc.
+    const quarterMatch = period.match(/^Q(\d)\s+(\d{4})$/);
+    if (quarterMatch && quarterMatch[1] && quarterMatch[2]) {
+      const quarter = parseInt(quarterMatch[1]);
+      const year = parseInt(quarterMatch[2]);
+      const endMonth = quarter * 3;
+      const lastDay = new Date(year, endMonth, 0).getDate();
+      return `${year}-${String(endMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    }
+    // Year only: "2025"
+    if (/^\d{4}$/.test(period)) {
+      return `${period}-12-31`;
+    }
+    // Fallback: return as-is (may not compare correctly, but won't crash)
+    return period;
+  }
+
+  /**
+   * Resolve the effective threshold for a covenant considering its step-down schedule.
+   * Returns the original threshold if no step-down applies.
+   */
+  private resolveStepDown(
+    covenant: CovenantStatement,
+    originalThreshold: number
+  ): {
+    effectiveThreshold: number;
+    activeStep?: { afterDate: string; threshold: number };
+    nextStep?: { afterDate: string; threshold: number };
+  } {
+    if (!covenant.stepDown || covenant.stepDown.length === 0) {
+      return { effectiveThreshold: originalThreshold };
+    }
+
+    const effectiveDate = this.getEffectiveDate();
+
+    // Sort steps by date ascending
+    const sortedSteps = [...covenant.stepDown].sort((a, b) =>
+      a.afterDate.localeCompare(b.afterDate)
+    );
+
+    // Evaluate all step thresholds
+    const evaluatedSteps = sortedSteps.map((step) => ({
+      afterDate: step.afterDate,
+      threshold: this.evaluate(step.threshold),
+    }));
+
+    if (!effectiveDate) {
+      // No date context — use the last (tightest) step as the effective threshold
+      // This is the conservative approach: assume all steps have activated
+      const lastStep = evaluatedSteps[evaluatedSteps.length - 1] ?? { afterDate: '', threshold: originalThreshold };
+      return {
+        effectiveThreshold: lastStep.threshold,
+        activeStep: lastStep,
+      };
+    }
+
+    // Find the active step: the last step whose date has passed
+    let activeStep: { afterDate: string; threshold: number } | undefined;
+    let nextStep: { afterDate: string; threshold: number } | undefined;
+
+    for (const step of evaluatedSteps) {
+      if (effectiveDate >= step.afterDate) {
+        activeStep = step;
+      } else {
+        // First step that hasn't activated yet is the "next" step
+        if (!nextStep) {
+          nextStep = step;
+        }
+      }
+    }
+
+    // If no step-down has yet taken effect, find the first upcoming step
+    if (!activeStep) {
+      nextStep = evaluatedSteps[0];
+    } else if (!nextStep) {
+      // All steps have activated — find the next one after active
+      const activeIdx = evaluatedSteps.indexOf(activeStep);
+      if (activeIdx < evaluatedSteps.length - 1) {
+        nextStep = evaluatedSteps[activeIdx + 1];
+      }
+    }
+
+    return {
+      effectiveThreshold: activeStep ? activeStep.threshold : originalThreshold,
+      activeStep,
+      nextStep,
+    };
+  }
+
   checkCovenant(name: string): CovenantResult {
     const covenant = this.covenants.get(name);
     if (!covenant) {
@@ -943,7 +1086,7 @@ export class ProVisoInterpreter {
     }
 
     if (!isComparisonExpression(covenant.requires)) {
-      // Boolean condition
+      // Boolean condition — step-down doesn't apply
       const compliant = this.evaluateBoolean(covenant.requires);
       return {
         name,
@@ -955,7 +1098,15 @@ export class ProVisoInterpreter {
     }
 
     const actual = this.evaluate(covenant.requires.left);
-    const threshold = this.evaluate(covenant.requires.right);
+    const originalThreshold = this.evaluate(covenant.requires.right);
+
+    // Apply step-down schedule if present
+    const { effectiveThreshold, activeStep, nextStep } = this.resolveStepDown(
+      covenant,
+      originalThreshold
+    );
+
+    const threshold = effectiveThreshold;
     let compliant: boolean;
 
     switch (covenant.requires.operator) {
@@ -975,7 +1126,7 @@ export class ProVisoInterpreter {
       headroom = actual - threshold;
     }
 
-    return {
+    const result: CovenantResult = {
       name,
       compliant,
       actual,
@@ -983,6 +1134,15 @@ export class ProVisoInterpreter {
       operator: covenant.requires.operator,
       headroom,
     };
+
+    // Include step-down metadata if applicable
+    if (covenant.stepDown && covenant.stepDown.length > 0) {
+      result.originalThreshold = originalThreshold;
+      if (activeStep) result.activeStep = activeStep;
+      if (nextStep) result.nextStep = nextStep;
+    }
+
+    return result;
   }
 
   checkAllCovenants(): CovenantResult[] {

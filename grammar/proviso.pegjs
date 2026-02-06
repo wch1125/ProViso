@@ -915,13 +915,15 @@ CovenantStatement
         requires: null,
         tested: null,
         cure: null,
-        breach: null
+        breach: null,
+        stepDown: null
       };
       clauses.forEach(clause => {
         if (clause.type === 'requires') result.requires = clause.condition;
         if (clause.type === 'tested') result.tested = clause.frequency;
         if (clause.type === 'cure') result.cure = clause.mechanism;
         if (clause.type === 'breach') result.breach = clause.consequence;
+        if (clause.type === 'stepDown') result.stepDown = clause.schedule;
       });
       return result;
     }
@@ -929,6 +931,9 @@ CovenantStatement
 CovenantClause
   = "REQUIRES" __ cond:Condition _ {
       return { type: 'requires', condition: cond };
+    }
+  / "STEP_DOWN" _ entries:StepDownEntry+ {
+      return { type: 'stepDown', schedule: entries };
     }
   / "TESTED" __ freq:Frequency _ {
       return { type: 'tested', frequency: freq };
@@ -938,6 +943,11 @@ CovenantClause
     }
   / "BREACH" _ "->" _ cons:Identifier _ {
       return { type: 'breach', consequence: cons };
+    }
+
+StepDownEntry
+  = "AFTER" __ date:DateLiteral __ "TO" __ threshold:Expression _ {
+      return { afterDate: date.value, threshold: threshold };
     }
 
 Frequency

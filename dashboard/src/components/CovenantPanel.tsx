@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { CheckCircle2, XCircle, Pause, AlertTriangle, AlertCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, Pause, AlertTriangle, AlertCircle, TrendingDown } from 'lucide-react';
 import { Card, CardHeader, CardBody } from './Card';
 import { StatusBadge } from './StatusBadge';
 import { CovenantSummary } from './NaturalLanguageSummary';
@@ -285,6 +285,22 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true }: 
             style={{ left: operator === '<=' ? '100%' : '0%' }}
           />
         </div>
+
+        {/* Step-Down Schedule Indicator */}
+        {covenant.originalThreshold !== undefined && (
+          <div className="mt-2 flex items-center gap-2 text-xs text-industry-textMuted">
+            <TrendingDown className="w-3.5 h-3.5 text-gold-400" />
+            <span>
+              Step-down from {formatValue(covenant.originalThreshold)}x
+              {covenant.activeStep && (
+                <> → <span className="text-gold-400 font-medium">{formatValue(covenant.activeStep.threshold)}x</span> (since {covenant.activeStep.afterDate})</>
+              )}
+              {covenant.nextStep && (
+                <> · next: {formatValue(covenant.nextStep.threshold)}x after {covenant.nextStep.afterDate}</>
+              )}
+            </span>
+          </div>
+        )}
 
         {/* Natural Language Summary */}
         {showNarrative && (

@@ -43,7 +43,8 @@ export type FormCategory =
   | 'definitions'
   | 'conditions'
   | 'events'
-  | 'project_finance';
+  | 'project_finance'
+  | 'templates';
 
 export type FormElementType =
   | 'covenant'
@@ -56,7 +57,43 @@ export type FormElementType =
   | 'milestone'
   | 'reserve'
   | 'waterfall'
-  | 'cp';
+  | 'cp'
+  | 'template';
+
+// =============================================================================
+// DEAL TEMPLATES
+// =============================================================================
+
+/**
+ * A deal template generates a complete .proviso file from user-configurable parameters.
+ * Unlike element forms (which produce a single COVENANT or BASKET), deal templates
+ * produce an entire credit agreement with DEFINEs, COVENANTs, BASKETs, CONDITIONs, etc.
+ */
+export interface DealTemplate {
+  /** Unique template identifier */
+  id: string;
+  /** Display name shown in picker */
+  name: string;
+  /** Template description */
+  description: string;
+  /** Target industry / deal type */
+  industry: DealTemplateIndustry;
+  /** Complexity rating for UX */
+  complexity: 'starter' | 'standard' | 'advanced';
+  /** Icon name from Lucide (for UI) */
+  icon: string;
+  /** Key features of this template */
+  features: string[];
+  /** The underlying form definition that generates the code */
+  form: FormDefinition;
+}
+
+export type DealTemplateIndustry =
+  | 'corporate'
+  | 'leveraged_finance'
+  | 'project_finance'
+  | 'real_estate'
+  | 'infrastructure';
 
 // =============================================================================
 // FORM FIELDS

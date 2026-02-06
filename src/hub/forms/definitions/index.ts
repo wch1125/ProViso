@@ -1,7 +1,7 @@
 /**
  * ProViso Hub v2.0 — Form Definitions Index
  *
- * Registry of all available form definitions.
+ * Registry of all available form definitions and deal templates.
  */
 
 import { covenantSimpleForm } from './covenant-simple.js';
@@ -29,8 +29,19 @@ export {
 
 export { getMetricDisplay as getBasketMetricDisplay } from './basket-grower.js';
 
+// Export deal templates
+export {
+  dealTemplates,
+  dealTemplatesById,
+  getDealTemplate,
+  getDealTemplatesByIndustry,
+  getDealTemplatesByComplexity,
+  generateFromTemplate,
+  enrichTemplateValues,
+} from '../templates/index.js';
+
 /**
- * All available form definitions.
+ * All available form definitions (element-level).
  */
 export const formDefinitions: FormDefinition[] = [
   covenantSimpleForm,

@@ -45,6 +45,13 @@ export interface DefineModifiers {
   cap?: Expression;
 }
 
+export interface StepDownEntry {
+  /** Date after which this threshold takes effect (YYYY-MM-DD) */
+  afterDate: string;
+  /** The new threshold value */
+  threshold: Expression;
+}
+
 export interface CovenantStatement {
   type: 'Covenant';
   name: string;
@@ -52,6 +59,8 @@ export interface CovenantStatement {
   tested: Frequency | null;
   cure: CureMechanism | null;
   breach: string | null;
+  /** Step-down schedule: threshold changes over time */
+  stepDown: StepDownEntry[] | null;
 }
 
 export type Frequency = 'quarterly' | 'annually' | 'monthly';
@@ -360,6 +369,12 @@ export interface CovenantResult {
   threshold: number;
   operator: string;
   headroom?: number;
+  /** If the covenant has a step-down schedule, the original (initial) threshold */
+  originalThreshold?: number;
+  /** The active step-down entry, if applicable */
+  activeStep?: { afterDate: string; threshold: number };
+  /** The next step-down entry (upcoming tightening), if any */
+  nextStep?: { afterDate: string; threshold: number };
 }
 
 /**

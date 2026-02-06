@@ -210,9 +210,20 @@ function formatSimulation(
   // Get current state before changes
   const currentCovenants = interpreter.checkAllCovenants();
 
+  // Save original financials to restore after simulation
+  const originalFinancials: Record<string, number> = {};
+  // Capture current values for all keys we're about to change
+  for (const key of Object.keys(changes)) {
+    try {
+      // Try to get current value through evaluation
+      const currentVal = interpreter.evaluate(key);
+      originalFinancials[key] = currentVal;
+    } catch {
+      // Key might not exist yet, that's OK
+    }
+  }
+
   // Apply changes for pro forma calculation
-  // Note: This modifies the interpreter state. For a demo, this is acceptable.
-  // In production, we'd clone the interpreter or restore state.
   interpreter.loadFinancials(changes);
 
   // Get pro forma state
@@ -242,6 +253,11 @@ function formatSimulation(
       lines.push(`  NOTE: Would cure breach`);
     }
     lines.push('');
+  }
+
+  // Restore original financials so simulation doesn't permanently mutate state
+  if (Object.keys(originalFinancials).length > 0) {
+    interpreter.loadFinancials(originalFinancials);
   }
 
   return lines.join('\n');

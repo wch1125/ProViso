@@ -34,6 +34,10 @@ import {
   RegulatoryTracker,
   TechnicalProgress,
   TaxEquityPanel,
+  // Distressed covenant workflow
+  CureRightsOptimizer,
+  WaiverRequestPortal,
+  AmendmentOverlay,
 } from '../../components';
 import { useProViso, useDeal } from '../../context';
 import { CollapsibleActivityFeed } from '../../components/ActivityFeed';
@@ -41,6 +45,7 @@ import { DEFAULT_PROVISO_CODE } from '../../data/default-code';
 import { DEFAULT_FINANCIALS } from '../../data/default-financials';
 import { getScenarioById } from '../../data/demo-scenarios';
 import { downloadAsFile } from '../../utils/complianceExport';
+import { convertHistoricalToMultiPeriod, getCurrentPeriodLabel } from '../../utils/historicalDataConverter';
 
 /**
  * Loading skeleton for the dashboard
@@ -113,6 +118,7 @@ export function MonitoringDashboard() {
     dashboardData,
     code: contextCode,
     financials: contextFinancials,
+    isMultiPeriod,
     loadFromCode,
     refresh,
   } = useProViso();
@@ -129,6 +135,13 @@ export function MonitoringDashboard() {
 
   // State for export modal
   const [showExportModal, setShowExportModal] = useState(false);
+
+  // Distressed covenant workflow state
+  const [showCureOptimizer, setShowCureOptimizer] = useState(false);
+  const [showWaiverPortal, setShowWaiverPortal] = useState(false);
+  const [showAmendmentOverlay, setShowAmendmentOverlay] = useState(false);
+  // TODO: Wire setSelectedBreachedCovenant to CovenantPanel breach actions
+  const [selectedBreachedCovenant, /* setSelectedBreachedCovenant */] = useState<import('../../types').CovenantData | null>(null);
 
   // Get the current ProViso code (from scenario or default)
   const currentScenario = dealId ? getScenarioById(dealId) : undefined;
@@ -149,8 +162,17 @@ export function MonitoringDashboard() {
         const scenario = dealId ? getScenarioById(dealId) : undefined;
 
         if (scenario) {
-          // Load the scenario's code AND financials together (avoids race condition)
-          await loadFromCode(scenario.code, scenario.financials);
+          // Convert historical data to multi-period format for live compliance history
+          const multiPeriodData = scenario.historicalData?.length > 0
+            ? convertHistoricalToMultiPeriod(
+                scenario.historicalData,
+                scenario.financials,
+                getCurrentPeriodLabel(),
+              )
+            : undefined;
+
+          // Load the scenario's code, financials, AND historical data together
+          await loadFromCode(scenario.code, scenario.financials, multiPeriodData);
         } else {
           // Fall back to default code and financials
           await loadFromCode(DEFAULT_PROVISO_CODE, DEFAULT_FINANCIALS);
@@ -167,7 +189,14 @@ export function MonitoringDashboard() {
     const scenario = dealId ? getScenarioById(dealId) : undefined;
 
     if (scenario) {
-      await loadFromCode(scenario.code, scenario.financials);
+      const multiPeriodData = scenario.historicalData?.length > 0
+        ? convertHistoricalToMultiPeriod(
+            scenario.historicalData,
+            scenario.financials,
+            getCurrentPeriodLabel(),
+          )
+        : undefined;
+      await loadFromCode(scenario.code, scenario.financials, multiPeriodData);
     } else {
       await loadFromCode(DEFAULT_PROVISO_CODE, DEFAULT_FINANCIALS);
     }
@@ -266,6 +295,43 @@ export function MonitoringDashboard() {
 
   // Success state - render with live data
   const data = dashboardData;
+
+  // Identify breached covenants for distressed workflow
+  const breachedCovenants = data.covenants.filter(c => !c.compliant && !c.suspended);
+
+  const handleCureApplied = (covenantName: string, mechanism: string, amount: number) => {
+    if (dealId) {
+      logActivity({
+        type: 'covenant_alert',
+        dealId,
+        title: 'Cure applied',
+        description: `${mechanism} of $${amount.toLocaleString()} applied to ${covenantName}`,
+      });
+    }
+    refresh();
+  };
+
+  const handleWaiverSubmitted = () => {
+    if (dealId && selectedBreachedCovenant) {
+      logActivity({
+        type: 'covenant_alert',
+        dealId,
+        title: 'Waiver request submitted',
+        description: `Waiver requested for ${selectedBreachedCovenant.name}`,
+      });
+    }
+  };
+
+  const handleAmendmentGenerated = (amendmentCode: string) => {
+    if (dealId) {
+      logActivity({
+        type: 'covenant_alert',
+        dealId,
+        title: 'Amendment drafted',
+        description: `Amendment code generated (${amendmentCode.split('\n').length} lines)`,
+      });
+    }
+  };
 
   // Determine current phase from phase data
   const currentPhase = data.phase.current?.toLowerCase().includes('construction')
@@ -368,6 +434,30 @@ export function MonitoringDashboard() {
         financials={Object.keys(contextFinancials).length > 0 ? contextFinancials : currentFinancials}
       />
 
+      {/* Distressed Covenant Workflow Modals */}
+      <CureRightsOptimizer
+        isOpen={showCureOptimizer}
+        onClose={() => setShowCureOptimizer(false)}
+        covenant={selectedBreachedCovenant}
+        onCureApplied={handleCureApplied}
+      />
+      <WaiverRequestPortal
+        isOpen={showWaiverPortal}
+        onClose={() => setShowWaiverPortal(false)}
+        covenant={selectedBreachedCovenant}
+        allBreachedCovenants={breachedCovenants}
+        onSubmit={handleWaiverSubmitted}
+        dealName={data.project.name}
+        borrowerName={data.project.borrower || data.project.sponsor}
+      />
+      <AmendmentOverlay
+        isOpen={showAmendmentOverlay}
+        onClose={() => setShowAmendmentOverlay(false)}
+        currentCode={contextCode || currentCode}
+        triggerCovenant={selectedBreachedCovenant}
+        onGenerate={handleAmendmentGenerated}
+      />
+
       <DealPageContent>
         {/* Executive Summary - Full Width */}
         <ExecutiveSummary data={data} />
@@ -379,9 +469,41 @@ export function MonitoringDashboard() {
 
         {/* Main Grid - 3 Column Layout */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
-          {/* Left Column - Covenants */}
-          <div className="min-w-[280px] md:col-span-2 xl:col-span-1">
+          {/* Left Column - Covenants + Baskets */}
+          <div className="min-w-[280px] md:col-span-2 xl:col-span-1 space-y-4 lg:space-y-6">
             <CovenantPanel covenants={data.covenants} />
+            {data.baskets.length > 0 && (
+              <div className="bg-surface-0/80 backdrop-blur-sm border border-surface-2 rounded-xl overflow-hidden">
+                <div className="p-4 border-b border-surface-2">
+                  <h3 className="text-sm font-semibold text-text-primary">Basket Utilization</h3>
+                </div>
+                <div className="p-4 space-y-3">
+                  {data.baskets.map(basket => {
+                    const pct = Math.min(basket.utilization, 100);
+                    const barColor = pct >= 90 ? 'bg-danger' : pct >= 75 ? 'bg-warning' : 'bg-accent';
+                    return (
+                      <div key={basket.name}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-medium text-text-primary">{basket.name}</span>
+                          <span className="text-xs text-text-secondary">{pct.toFixed(0)}% used</span>
+                        </div>
+                        <div className="w-full h-2 bg-surface-2 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
+                        </div>
+                        <div className="flex justify-between mt-0.5">
+                          <span className="text-[10px] text-text-tertiary">
+                            ${basket.used >= 1e6 ? `${(basket.used / 1e6).toFixed(1)}M` : `${(basket.used / 1e3).toFixed(0)}K`} used
+                          </span>
+                          <span className="text-[10px] text-text-tertiary">
+                            ${basket.available >= 1e6 ? `${(basket.available / 1e6).toFixed(1)}M` : `${(basket.available / 1e3).toFixed(0)}K`} available
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Middle Column - Waterfall + Reserves */}
@@ -413,7 +535,10 @@ export function MonitoringDashboard() {
         <div className="mt-8">
           <CollapsibleCard
             title="Compliance History"
-            subtitle="Covenant trends over time (simulated historical data)"
+            subtitle={isMultiPeriod
+              ? "Covenant trends from multi-period financial data"
+              : "Covenant trends over time (simulated historical data)"
+            }
             icon={<BarChart3 className="w-5 h-5 text-industry-primary" />}
             defaultExpanded={false}
           >

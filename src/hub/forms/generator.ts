@@ -15,6 +15,7 @@ import {
   getSubjectToDisplay,
   getBasketMetricDisplay,
 } from './definitions/index.js';
+import { enrichTemplateValues } from './templates/index.js';
 
 /**
  * Generate ProViso code and Word prose from form values.
@@ -78,6 +79,14 @@ function enrichValuesForTemplates(
       enriched.metricDisplay = getBasketMetricDisplay(values.metric as string);
       if (values.hasSubjectTo && values.subjectToCondition) {
         enriched.subjectToDisplay = getSubjectToDisplay(values.subjectToCondition as string);
+      }
+      break;
+
+    default:
+      // Handle deal template enrichment for template-* forms
+      if (formDef.id.startsWith('template-')) {
+        const templateEnriched = enrichTemplateValues(formDef.id, values);
+        Object.assign(enriched, templateEnriched);
       }
       break;
   }

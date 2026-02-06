@@ -82,7 +82,7 @@ export {
   TopNav,
 } from './layout';
 
-// Post-Closing components (v2.0 Phase 6)
+// Post-Closing components (v2.0 Phase 6+)
 export {
   FinancialSubmissionForm,
   ComplianceTrendChart,
@@ -91,6 +91,9 @@ export {
   DrawRequestList,
   ScenarioSimulator,
   ConnectedScenarioSimulator,
+  CureRightsOptimizer,
+  WaiverRequestPortal,
+  AmendmentOverlay,
 } from './postclosing';
 
 // Industry components (v2.1)

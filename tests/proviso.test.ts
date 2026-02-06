@@ -5038,3 +5038,442 @@ describe('Tax Equity Integration', () => {
     expect(flipStatus.currentAllocation).toEqual({ investor: 5, sponsor: 95 });
   });
 });
+
+// ==================== STEP-DOWN COVENANT TESTS ====================
+
+describe('Step-Down Covenants', () => {
+  describe('Grammar Parsing', () => {
+    it('should parse a covenant with STEP_DOWN clause', async () => {
+      const code = `
+        DEFINE Leverage AS funded_debt / ebitda
+
+        COVENANT MaxLeverage
+          REQUIRES Leverage <= 5.00
+          STEP_DOWN
+            AFTER 2025-06-30 TO 4.50
+            AFTER 2026-06-30 TO 4.00
+            AFTER 2027-06-30 TO 3.50
+          TESTED QUARTERLY
+      `;
+      const result = await parseOrThrow(code);
+      expect(result.statements.length).toBe(2);
+      const covenant = result.statements[1] as any;
+      expect(covenant.type).toBe('Covenant');
+      expect(covenant.name).toBe('MaxLeverage');
+      expect(covenant.stepDown).not.toBeNull();
+      expect(covenant.stepDown).toHaveLength(3);
+      expect(covenant.stepDown[0].afterDate).toBe('2025-06-30');
+      expect(covenant.stepDown[1].afterDate).toBe('2026-06-30');
+      expect(covenant.stepDown[2].afterDate).toBe('2027-06-30');
+    });
+
+    it('should parse step-down with expression thresholds', async () => {
+      const code = `
+        COVENANT MinCoverage
+          REQUIRES coverage >= 2.00
+          STEP_DOWN
+            AFTER 2025-12-31 TO 2.50
+            AFTER 2026-12-31 TO 3.00
+          TESTED QUARTERLY
+      `;
+      const result = await parseOrThrow(code);
+      const covenant = result.statements[0] as any;
+      expect(covenant.stepDown).toHaveLength(2);
+    });
+
+    it('should parse covenant without step-down (backward compatibility)', async () => {
+      const code = `
+        COVENANT Simple
+          REQUIRES ratio <= 5.00
+          TESTED QUARTERLY
+      `;
+      const result = await parseOrThrow(code);
+      const covenant = result.statements[0] as any;
+      expect(covenant.stepDown).toBeNull();
+    });
+
+    it('should parse step-down with other clauses in any order', async () => {
+      const code = `
+        DEFINE Leverage AS funded_debt / ebitda
+
+        COVENANT MaxLeverage
+          REQUIRES Leverage <= 5.00
+          TESTED QUARTERLY
+          STEP_DOWN
+            AFTER 2025-06-30 TO 4.50
+          CURE EquityCure MAX_USES 3 OVER life_of_facility
+          BREACH -> UnmaturedDefault
+      `;
+      const result = await parseOrThrow(code);
+      const covenant = result.statements[1] as any;
+      expect(covenant.stepDown).toHaveLength(1);
+      expect(covenant.tested).toBe('quarterly');
+      expect(covenant.cure).not.toBeNull();
+      expect(covenant.breach).toBe('UnmaturedDefault');
+    });
+
+    it('should parse single step-down entry', async () => {
+      const code = `
+        COVENANT MaxLeverage
+          REQUIRES ratio <= 5.00
+          STEP_DOWN
+            AFTER 2026-01-01 TO 4.00
+          TESTED ANNUALLY
+      `;
+      const result = await parseOrThrow(code);
+      const covenant = result.statements[0] as any;
+      expect(covenant.stepDown).toHaveLength(1);
+      expect(covenant.stepDown[0].afterDate).toBe('2026-01-01');
+    });
+  });
+
+  describe('Interpreter - Step-Down with Multi-Period Data', () => {
+    it('should apply the correct step-down threshold based on evaluation period', async () => {
+      const code = `
+        DEFINE Leverage AS funded_debt / ebitda
+
+        COVENANT MaxLeverage
+          REQUIRES Leverage <= 5.00
+          STEP_DOWN
+            AFTER 2025-06-30 TO 4.50
+            AFTER 2026-06-30 TO 4.00
+          TESTED QUARTERLY
+      `;
+      const ast = await parseOrThrow(code);
+      const interp = new ProVisoInterpreter(ast);
+      interp.loadFinancials({
+        periods: [
+          { period: 'Q1 2025', data: { funded_debt: 400, ebitda: 100 } }, // leverage = 4.0
+          { period: 'Q3 2025', data: { funded_debt: 400, ebitda: 100 } }, // leverage = 4.0
+          { period: 'Q1 2026', data: { funded_debt: 400, ebitda: 100 } }, // leverage = 4.0
+          { period: 'Q3 2026', data: { funded_debt: 400, ebitda: 100 } }, // leverage = 4.0
+        ],
+      });
+
+      // Q1 2025: Before any step-down, threshold = 5.00
+      interp.setEvaluationPeriod('Q1 2025');
+      let result = interp.checkCovenant('MaxLeverage');
+      expect(result.threshold).toBe(5.00);
+      expect(result.compliant).toBe(true);
+      expect(result.originalThreshold).toBe(5.00);
+      expect(result.nextStep).toEqual({ afterDate: '2025-06-30', threshold: 4.50 });
+
+      // Q3 2025: First step-down active (after 2025-06-30), threshold = 4.50
+      interp.setEvaluationPeriod('Q3 2025');
+      result = interp.checkCovenant('MaxLeverage');
+      expect(result.threshold).toBe(4.50);
+      expect(result.compliant).toBe(true);
+      expect(result.activeStep).toEqual({ afterDate: '2025-06-30', threshold: 4.50 });
+      expect(result.nextStep).toEqual({ afterDate: '2026-06-30', threshold: 4.00 });
+
+      // Q1 2026: Still first step-down, threshold = 4.50
+      interp.setEvaluationPeriod('Q1 2026');
+      result = interp.checkCovenant('MaxLeverage');
+      expect(result.threshold).toBe(4.50);
+
+      // Q3 2026: Second step-down active, threshold = 4.00
+      interp.setEvaluationPeriod('Q3 2026');
+      result = interp.checkCovenant('MaxLeverage');
+      expect(result.threshold).toBe(4.00);
+      expect(result.compliant).toBe(true);
+      expect(result.activeStep).toEqual({ afterDate: '2026-06-30', threshold: 4.00 });
+      expect(result.nextStep).toBeUndefined();
+    });
+
+    it('should detect breach when step-down tightens below actual', async () => {
+      const code = `
+        DEFINE Leverage AS funded_debt / ebitda
+
+        COVENANT MaxLeverage
+          REQUIRES Leverage <= 5.00
+          STEP_DOWN
+            AFTER 2025-06-30 TO 4.50
+            AFTER 2026-06-30 TO 3.50
+          TESTED QUARTERLY
+      `;
+      const ast = await parseOrThrow(code);
+      const interp = new ProVisoInterpreter(ast);
+      interp.loadFinancials({
+        periods: [
+          { period: 'Q1 2025', data: { funded_debt: 400, ebitda: 100 } }, // 4.0x
+          { period: 'Q3 2026', data: { funded_debt: 400, ebitda: 100 } }, // 4.0x
+        ],
+      });
+
+      // Q1 2025: 4.0 <= 5.0 → compliant
+      interp.setEvaluationPeriod('Q1 2025');
+      expect(interp.checkCovenant('MaxLeverage').compliant).toBe(true);
+
+      // Q3 2026: 4.0 <= 3.5 → breach!
+      interp.setEvaluationPeriod('Q3 2026');
+      const result = interp.checkCovenant('MaxLeverage');
+      expect(result.compliant).toBe(false);
+      expect(result.actual).toBe(4.0);
+      expect(result.threshold).toBe(3.50);
+      expect(result.headroom).toBe(-0.50);
+      expect(result.originalThreshold).toBe(5.00);
+    });
+
+    it('should apply step-down to >= covenants (step-up pattern)', async () => {
+      // Coverage ratio that must INCREASE over time (step-up is step-down for >= covenants)
+      const code = `
+        DEFINE Coverage AS ebitda / interest
+
+        COVENANT MinCoverage
+          REQUIRES Coverage >= 2.00
+          STEP_DOWN
+            AFTER 2025-12-31 TO 2.50
+            AFTER 2026-12-31 TO 3.00
+          TESTED QUARTERLY
+      `;
+      const ast = await parseOrThrow(code);
+      const interp = new ProVisoInterpreter(ast);
+      interp.loadFinancials({
+        periods: [
+          { period: 'Q1 2025', data: { ebitda: 500, interest: 200 } }, // 2.5x
+          { period: 'Q1 2026', data: { ebitda: 500, interest: 200 } }, // 2.5x
+          { period: 'Q1 2027', data: { ebitda: 500, interest: 200 } }, // 2.5x
+        ],
+      });
+
+      // Q1 2025: 2.5 >= 2.0 → compliant
+      interp.setEvaluationPeriod('Q1 2025');
+      let result = interp.checkCovenant('MinCoverage');
+      expect(result.compliant).toBe(true);
+      expect(result.threshold).toBe(2.00);
+
+      // Q1 2026: 2.5 >= 2.5 → compliant (exactly at threshold)
+      interp.setEvaluationPeriod('Q1 2026');
+      result = interp.checkCovenant('MinCoverage');
+      expect(result.compliant).toBe(true);
+      expect(result.threshold).toBe(2.50);
+
+      // Q1 2027: 2.5 >= 3.0 → breach!
+      interp.setEvaluationPeriod('Q1 2027');
+      result = interp.checkCovenant('MinCoverage');
+      expect(result.compliant).toBe(false);
+      expect(result.threshold).toBe(3.00);
+      expect(result.headroom).toBe(-0.50);
+    });
+  });
+
+  describe('Interpreter - Step-Down with Simple Data', () => {
+    it('should use the last (tightest) step-down when no date context available', async () => {
+      const code = `
+        COVENANT MaxRatio
+          REQUIRES ratio <= 5.00
+          STEP_DOWN
+            AFTER 2025-06-30 TO 4.50
+            AFTER 2026-06-30 TO 4.00
+            AFTER 2027-06-30 TO 3.50
+          TESTED QUARTERLY
+      `;
+      const ast = await parseOrThrow(code);
+      const interp = new ProVisoInterpreter(ast);
+      // Simple (non-period) financial data — no date context
+      interp.loadFinancials({ ratio: 4.20 });
+
+      const result = interp.checkCovenant('MaxRatio');
+      // Should use the tightest threshold (3.50) since no date is available
+      expect(result.threshold).toBe(3.50);
+      expect(result.compliant).toBe(false); // 4.20 > 3.50
+      expect(result.originalThreshold).toBe(5.00);
+    });
+  });
+
+  describe('Interpreter - Step-Down Headroom', () => {
+    it('should calculate headroom from the stepped-down threshold', async () => {
+      const code = `
+        COVENANT MaxLeverage
+          REQUIRES ratio <= 5.00
+          STEP_DOWN
+            AFTER 2025-06-30 TO 4.00
+          TESTED QUARTERLY
+      `;
+      const ast = await parseOrThrow(code);
+      const interp = new ProVisoInterpreter(ast);
+      interp.loadFinancials({
+        periods: [
+          { period: 'Q3 2025', data: { ratio: 3.50 } },
+        ],
+      });
+      interp.setEvaluationPeriod('Q3 2025');
+
+      const result = interp.checkCovenant('MaxLeverage');
+      expect(result.threshold).toBe(4.00);
+      expect(result.headroom).toBe(0.50); // 4.00 - 3.50
+      expect(result.originalThreshold).toBe(5.00);
+    });
+  });
+
+  describe('Interpreter - Step-Down with Date Periods', () => {
+    it('should handle date-format periods (YYYY-MM-DD)', async () => {
+      const code = `
+        COVENANT MaxRatio
+          REQUIRES ratio <= 5.00
+          STEP_DOWN
+            AFTER 2025-06-30 TO 4.00
+          TESTED QUARTERLY
+      `;
+      const ast = await parseOrThrow(code);
+      const interp = new ProVisoInterpreter(ast);
+      interp.loadFinancials({
+        periods: [
+          { period: '2025-03-31', data: { ratio: 4.50 } },
+          { period: '2025-09-30', data: { ratio: 4.50 } },
+        ],
+      });
+
+      // Before step-down
+      interp.setEvaluationPeriod('2025-03-31');
+      let result = interp.checkCovenant('MaxRatio');
+      expect(result.threshold).toBe(5.00);
+      expect(result.compliant).toBe(true);
+
+      // After step-down
+      interp.setEvaluationPeriod('2025-09-30');
+      result = interp.checkCovenant('MaxRatio');
+      expect(result.threshold).toBe(4.00);
+      expect(result.compliant).toBe(false); // 4.50 > 4.00
+    });
+
+    it('should handle year-month periods (YYYY-MM)', async () => {
+      const code = `
+        COVENANT MaxRatio
+          REQUIRES ratio <= 5.00
+          STEP_DOWN
+            AFTER 2025-06-30 TO 4.00
+          TESTED MONTHLY
+      `;
+      const ast = await parseOrThrow(code);
+      const interp = new ProVisoInterpreter(ast);
+      interp.loadFinancials({
+        periods: [
+          { period: '2025-03', data: { ratio: 4.50 } },
+          { period: '2025-09', data: { ratio: 4.50 } },
+        ],
+      });
+
+      interp.setEvaluationPeriod('2025-03');
+      expect(interp.checkCovenant('MaxRatio').threshold).toBe(5.00);
+
+      interp.setEvaluationPeriod('2025-09');
+      expect(interp.checkCovenant('MaxRatio').threshold).toBe(4.00);
+    });
+  });
+
+  describe('Interpreter - checkAllCovenants with Step-Downs', () => {
+    it('should apply step-downs when checking all covenants', async () => {
+      const code = `
+        DEFINE Leverage AS funded_debt / ebitda
+        DEFINE Coverage AS ebitda / interest
+
+        COVENANT MaxLeverage
+          REQUIRES Leverage <= 5.00
+          STEP_DOWN
+            AFTER 2025-06-30 TO 4.00
+          TESTED QUARTERLY
+
+        COVENANT MinCoverage
+          REQUIRES Coverage >= 2.00
+          TESTED QUARTERLY
+      `;
+      const ast = await parseOrThrow(code);
+      const interp = new ProVisoInterpreter(ast);
+      interp.loadFinancials({
+        periods: [
+          { period: 'Q3 2025', data: { funded_debt: 400, ebitda: 100, interest: 40 } },
+        ],
+      });
+      interp.setEvaluationPeriod('Q3 2025');
+
+      const results = interp.checkAllCovenants();
+      expect(results).toHaveLength(2);
+
+      const leverage = results.find(r => r.name === 'MaxLeverage');
+      expect(leverage!.threshold).toBe(4.00); // Step-down applied
+      expect(leverage!.originalThreshold).toBe(5.00);
+
+      const coverage = results.find(r => r.name === 'MinCoverage');
+      expect(coverage!.threshold).toBe(2.00); // No step-down
+      expect(coverage!.originalThreshold).toBeUndefined();
+    });
+  });
+
+  describe('Interpreter - Step-Down Edge Cases', () => {
+    it('should handle evaluation period exactly on step-down date', async () => {
+      const code = `
+        COVENANT MaxRatio
+          REQUIRES ratio <= 5.00
+          STEP_DOWN
+            AFTER 2025-06-30 TO 4.00
+          TESTED QUARTERLY
+      `;
+      const ast = await parseOrThrow(code);
+      const interp = new ProVisoInterpreter(ast);
+      interp.loadFinancials({
+        periods: [
+          { period: '2025-06-30', data: { ratio: 4.50 } },
+        ],
+      });
+      interp.setEvaluationPeriod('2025-06-30');
+
+      // On the exact date, the step-down should be active (>=)
+      const result = interp.checkCovenant('MaxRatio');
+      expect(result.threshold).toBe(4.00);
+    });
+
+    it('should handle multiple step-downs with same threshold', async () => {
+      const code = `
+        COVENANT MaxRatio
+          REQUIRES ratio <= 5.00
+          STEP_DOWN
+            AFTER 2025-06-30 TO 4.00
+            AFTER 2026-06-30 TO 4.00
+            AFTER 2027-06-30 TO 3.00
+          TESTED QUARTERLY
+      `;
+      const ast = await parseOrThrow(code);
+      const interp = new ProVisoInterpreter(ast);
+      interp.loadFinancials({
+        periods: [
+          { period: 'Q3 2026', data: { ratio: 3.50 } },
+        ],
+      });
+      interp.setEvaluationPeriod('Q3 2026');
+
+      const result = interp.checkCovenant('MaxRatio');
+      expect(result.threshold).toBe(4.00);
+      expect(result.nextStep).toEqual({ afterDate: '2027-06-30', threshold: 3.00 });
+    });
+
+    it('should preserve step-down info in CovenantResultWithCure', async () => {
+      const code = `
+        DEFINE Leverage AS funded_debt / ebitda
+
+        COVENANT MaxLeverage
+          REQUIRES Leverage <= 5.00
+          STEP_DOWN
+            AFTER 2025-06-30 TO 3.50
+          TESTED QUARTERLY
+          CURE EquityCure MAX_USES 3 OVER life_of_facility
+      `;
+      const ast = await parseOrThrow(code);
+      const interp = new ProVisoInterpreter(ast);
+      interp.loadFinancials({
+        periods: [
+          // leverage = 4.0x, threshold stepped down to 3.50 → breach
+          { period: 'Q3 2025', data: { funded_debt: 400, ebitda: 100 } },
+        ],
+      });
+      interp.setEvaluationPeriod('Q3 2025');
+
+      // checkCovenantWithCure extends checkCovenant, so step-down info should persist
+      const result = interp.checkCovenantWithCure('MaxLeverage');
+      expect(result.compliant).toBe(false); // 4.0 > 3.5 → breached
+      expect(result.threshold).toBe(3.50);
+      expect(result.originalThreshold).toBe(5.00);
+      expect(result.cureAvailable).toBe(true); // Cure available for breached covenant
+    });
+  });
+});

@@ -1251,11 +1251,22 @@ function printCovenantResult(result: CovenantResult): void {
   const symbol = result.compliant ? '✓' : '✗';
   const actualStr = formatNumber(result.actual);
   const thresholdStr = formatNumber(result.threshold);
-  const headroomStr = result.headroom !== undefined 
-    ? ` (headroom: ${formatNumber(result.headroom)})` 
+  const headroomStr = result.headroom !== undefined
+    ? ` (headroom: ${formatNumber(result.headroom)})`
     : '';
-  
-  console.log(`  ${symbol} ${result.name.padEnd(20)} ${actualStr} ${result.operator} ${thresholdStr}${headroomStr}`);
+
+  // Show step-down info if threshold was modified from original
+  let stepStr = '';
+  if (result.originalThreshold !== undefined && result.originalThreshold !== result.threshold) {
+    stepStr = ` [stepped from ${formatNumber(result.originalThreshold)}]`;
+  }
+
+  console.log(`  ${symbol} ${result.name.padEnd(20)} ${actualStr} ${result.operator} ${thresholdStr}${headroomStr}${stepStr}`);
+
+  // Show next upcoming step-down
+  if (result.nextStep) {
+    console.log(`      ↳ Next step-down: ${result.operator} ${formatNumber(result.nextStep.threshold)} after ${result.nextStep.afterDate}`);
+  }
 }
 
 function printCovenantComparison(current: CovenantResult, proforma: CovenantResult): void {
