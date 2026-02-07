@@ -1,4 +1,4 @@
-import{j as e}from"./index-MBjjlW4L.js";function b({label:o,helpText:d,error:t,showCharCount:c=!1,maxLength:r,className:l="",id:n,disabled:x,rows:f=4,value:a,...u}){const s=n||`textarea-${Math.random().toString(36).slice(2,9)}`,i=typeof a=="string"?a.length:0;return e.jsxs("div",{className:"w-full",children:[o&&e.jsx("label",{htmlFor:s,className:"block text-sm font-medium text-text-secondary mb-1.5",children:o}),e.jsx("div",{className:"relative",children:e.jsx("textarea",{id:s,rows:f,maxLength:r,value:a,className:`
+import{j as e}from"./index-DxtHVOyo.js";function b({label:o,helpText:d,error:t,showCharCount:c=!1,maxLength:r,className:l="",id:n,disabled:x,rows:f=4,value:a,...u}){const s=n||`textarea-${Math.random().toString(36).slice(2,9)}`,i=typeof a=="string"?a.length:0;return e.jsxs("div",{className:"w-full",children:[o&&e.jsx("label",{htmlFor:s,className:"block text-sm font-medium text-text-secondary mb-1.5",children:o}),e.jsx("div",{className:"relative",children:e.jsx("textarea",{id:s,rows:f,maxLength:r,value:a,className:`
             block w-full rounded-lg
             bg-surface-2 border
             text-text-primary placeholder-text-muted

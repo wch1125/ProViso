@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="150" viewBox="0 0 720 150">
+  <text x="20" y="100"
+        font-family="'Space Grotesk', ui-sans-serif, system-ui"
+        font-size="94"
+        font-weight="500"
+        letter-spacing="-2"
+        fill="#0F172A">
+    Pro<tspan fill="#1D4ED8" font-weight="700">V</tspan>iso
+  </text>
+</svg>
