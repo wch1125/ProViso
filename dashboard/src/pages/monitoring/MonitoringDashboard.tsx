@@ -140,8 +140,7 @@ export function MonitoringDashboard() {
   const [showCureOptimizer, setShowCureOptimizer] = useState(false);
   const [showWaiverPortal, setShowWaiverPortal] = useState(false);
   const [showAmendmentOverlay, setShowAmendmentOverlay] = useState(false);
-  // TODO: Wire setSelectedBreachedCovenant to CovenantPanel breach actions
-  const [selectedBreachedCovenant, /* setSelectedBreachedCovenant */] = useState<import('../../types').CovenantData | null>(null);
+  const [selectedBreachedCovenant, setSelectedBreachedCovenant] = useState<import('../../types').CovenantData | null>(null);
 
   // Get the current ProViso code (from scenario or default)
   const currentScenario = dealId ? getScenarioById(dealId) : undefined;
@@ -441,7 +440,7 @@ export function MonitoringDashboard() {
         title="Upload Files"
         size="md"
       >
-        <FileUploader onSuccess={handleUploadSuccess} />
+        <FileUploader onSuccess={handleUploadSuccess} demoMode={!!currentScenario} />
       </Modal>
 
       {/* Export Modal */}
@@ -490,7 +489,12 @@ export function MonitoringDashboard() {
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
           {/* Left Column - Covenants + Baskets */}
           <div className="min-w-[280px] md:col-span-2 xl:col-span-1 space-y-4 lg:space-y-6">
-            <CovenantPanel covenants={data.covenants} />
+            <CovenantPanel
+              covenants={data.covenants}
+              onRequestCure={(c) => { setSelectedBreachedCovenant(c); setShowCureOptimizer(true); }}
+              onRequestWaiver={(c) => { setSelectedBreachedCovenant(c); setShowWaiverPortal(true); }}
+              onRequestAmendment={(c) => { setSelectedBreachedCovenant(c); setShowAmendmentOverlay(true); }}
+            />
             {data.baskets.length > 0 && (
               <div className="bg-surface-0/80 backdrop-blur-sm border border-surface-2 rounded-xl overflow-hidden">
                 <div className="p-4 border-b border-surface-2">

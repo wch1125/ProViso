@@ -137,6 +137,7 @@ export class ProVisoInterpreter {
 
   // Cycle detection stack for definition evaluation
   private definitionEvalStack: Set<string> = new Set();
+  private definitionEvalCache: Map<string, number> = new Map();
 
   constructor(private ast: Program) {
     this.loadStatements();
@@ -259,6 +260,7 @@ export class ProVisoInterpreter {
   }
 
   loadFinancials(data: FinancialData): void {
+    this.definitionEvalCache.clear();
     if (isMultiPeriodData(data)) {
       this.multiPeriodData = data;
       // Default to the latest period if not explicitly set
@@ -566,6 +568,10 @@ export class ProVisoInterpreter {
   }
 
   private evaluateDefinition(def: DefineStatement): number {
+    // Check memo cache first
+    const cached = this.definitionEvalCache.get(def.name);
+    if (cached !== undefined) return cached;
+
     // Cycle detection
     if (this.definitionEvalStack.has(def.name)) {
       const chain = [...this.definitionEvalStack, def.name].join(' → ');
@@ -591,6 +597,7 @@ export class ProVisoInterpreter {
         value = Math.min(value, cap);
       }
 
+      this.definitionEvalCache.set(def.name, value);
       return value;
     } finally {
       this.definitionEvalStack.delete(def.name);
@@ -1606,6 +1613,7 @@ export class ProVisoInterpreter {
       throw new Error(`Period '${period}' not found in financial data`);
     }
     this.evaluationPeriod = period;
+    this.definitionEvalCache.clear();
   }
 
   /**
@@ -1676,6 +1684,7 @@ export class ProVisoInterpreter {
 
     for (const period of sortedPeriods) {
       this.evaluationPeriod = period;
+      this.definitionEvalCache.clear();
       const periodData = this.multiPeriodData.periods.find((p) => p.period === period);
       const covenants = this.checkAllCovenants();
 
@@ -1689,6 +1698,7 @@ export class ProVisoInterpreter {
 
     // Restore the original period
     this.evaluationPeriod = savedPeriod;
+    this.definitionEvalCache.clear();
     return history;
   }
 
@@ -3706,6 +3716,7 @@ export class ProVisoInterpreter {
    * Apply an amendment to the current agreement state
    */
   applyAmendment(amendment: AmendmentStatement): void {
+    this.definitionEvalCache.clear();
     for (const directive of amendment.directives) {
       this.applyDirective(directive);
     }

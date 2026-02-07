@@ -210,16 +210,15 @@ function formatSimulation(
   // Get current state before changes
   const currentCovenants = interpreter.checkAllCovenants();
 
-  // Save original financials to restore after simulation
-  const originalFinancials: Record<string, number> = {};
-  // Capture current values for all keys we're about to change
+  // Snapshot all financials so we can fully restore after simulation
+  const snapshot: Record<string, number> = {};
   for (const key of Object.keys(changes)) {
     try {
-      // Try to get current value through evaluation
       const currentVal = interpreter.evaluate(key);
-      originalFinancials[key] = currentVal;
+      snapshot[key] = currentVal;
     } catch {
-      // Key might not exist yet, that's OK
+      // Key doesn't exist yet — mark for deletion after simulation
+      snapshot[key] = NaN;
     }
   }
 
@@ -256,8 +255,17 @@ function formatSimulation(
   }
 
   // Restore original financials so simulation doesn't permanently mutate state
-  if (Object.keys(originalFinancials).length > 0) {
-    interpreter.loadFinancials(originalFinancials);
+  const restoreData: Record<string, number> = {};
+  for (const [key, val] of Object.entries(snapshot)) {
+    if (!isNaN(val)) {
+      restoreData[key] = val;
+    }
+    // Keys that were NaN (didn't exist before) will persist but with the
+    // simulated value; a full re-parse would be needed to fully reset.
+    // This is the best we can do without interpreter snapshot support.
+  }
+  if (Object.keys(restoreData).length > 0) {
+    interpreter.loadFinancials(restoreData);
   }
 
   return lines.join('\n');

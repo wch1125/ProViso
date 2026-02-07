@@ -38,12 +38,15 @@ interface FileUploaderProps {
   onSuccess?: (fileType: FileType, fileName: string) => void;
   /** Show compact version */
   compact?: boolean;
+  /** When true, show a notice that uploads are disabled in the public demo */
+  demoMode?: boolean;
 }
 
 export function FileUploader({
   className = '',
   onSuccess,
   compact = false,
+  demoMode = false,
 }: FileUploaderProps) {
   const { loadFromCode, loadFinancials, isLoading } = useProViso();
   const [isDragging, setIsDragging] = useState(false);
@@ -186,6 +189,19 @@ export function FileUploader({
   }, []);
 
   const loading = uploadLoading || isLoading;
+
+  // Demo mode: show disabled state with explanation
+  if (demoMode) {
+    return (
+      <div className={`bg-surface-0/50 border border-surface-2 rounded-xl p-6 text-center ${className}`}>
+        <Upload className="w-10 h-10 text-text-muted mx-auto mb-3 opacity-50" />
+        <p className="text-text-secondary font-medium mb-1">File uploads disabled in demo</p>
+        <p className="text-sm text-text-muted">
+          This demo uses pre-loaded sample data. In a live deployment, you can upload your own .proviso and .json files.
+        </p>
+      </div>
+    );
+  }
 
   // Compact version - just a button
   if (compact) {

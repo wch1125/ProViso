@@ -17,6 +17,12 @@ interface CovenantPanelProps {
   showNarratives?: boolean;
   /** Show code view buttons */
   showCodeButtons?: boolean;
+  /** Callback when user clicks "Cure" on a breached covenant */
+  onRequestCure?: (covenant: CovenantData) => void;
+  /** Callback when user clicks "Waiver" on a breached covenant */
+  onRequestWaiver?: (covenant: CovenantData) => void;
+  /** Callback when user clicks "Amend" on a breached covenant */
+  onRequestAmendment?: (covenant: CovenantData) => void;
 }
 
 /**
@@ -28,7 +34,7 @@ function getCovenantStatus(covenant: CovenantData): CovenantStatus {
   return getThresholdZone(covenant.actual, covenant.required, covenant.operator) as CovenantStatus;
 }
 
-export function CovenantPanel({ covenants, showNarratives = true, showCodeButtons = true }: CovenantPanelProps) {
+export function CovenantPanel({ covenants, showNarratives = true, showCodeButtons = true, onRequestCure, onRequestWaiver, onRequestAmendment }: CovenantPanelProps) {
   const { getCalculationTree } = useProViso();
 
   // Sort covenants by risk: breach > danger > caution > safe > suspended
@@ -90,6 +96,9 @@ export function CovenantPanel({ covenants, showNarratives = true, showCodeButton
               showNarrative={showNarratives}
               showCodeButton={showCodeButtons}
               getCalculationTree={getCalculationTree}
+              onRequestCure={onRequestCure}
+              onRequestWaiver={onRequestWaiver}
+              onRequestAmendment={onRequestAmendment}
             />
           ))}
         </div>
@@ -125,9 +134,12 @@ interface CovenantRowProps {
   showNarrative?: boolean;
   showCodeButton?: boolean;
   getCalculationTree?: (name: string) => CalculationNode | null;
+  onRequestCure?: (covenant: CovenantData) => void;
+  onRequestWaiver?: (covenant: CovenantData) => void;
+  onRequestAmendment?: (covenant: CovenantData) => void;
 }
 
-function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, getCalculationTree }: CovenantRowProps) {
+function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, getCalculationTree, onRequestCure, onRequestWaiver, onRequestAmendment }: CovenantRowProps) {
   const { name, actual, required, operator, compliant, headroom, suspended } = covenant;
   const [showCode, setShowCode] = useState(false);
 
@@ -329,6 +341,36 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
               suspended={suspended}
               className="opacity-80"
             />
+          </div>
+        )}
+
+        {/* Distressed Workflow Actions - shown for breached or danger-zone covenants */}
+        {!suspended && (zone === 'breach' || zone === 'danger') && (onRequestCure || onRequestWaiver || onRequestAmendment) && (
+          <div className="mt-3 flex items-center gap-2">
+            {onRequestCure && (
+              <button
+                onClick={() => onRequestCure(covenant)}
+                className="text-xs px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+              >
+                Cure
+              </button>
+            )}
+            {onRequestWaiver && (
+              <button
+                onClick={() => onRequestWaiver(covenant)}
+                className="text-xs px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors"
+              >
+                Request Waiver
+              </button>
+            )}
+            {onRequestAmendment && (
+              <button
+                onClick={() => onRequestAmendment(covenant)}
+                className="text-xs px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors"
+              >
+                Draft Amendment
+              </button>
+            )}
           </div>
         )}
       </div>

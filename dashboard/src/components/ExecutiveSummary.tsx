@@ -172,14 +172,17 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
                   <span className="metric-value">{reserveFunding.toFixed(0)}%</span>
                 </div>
               </div>
-              <Sparkline
-                data={reserveTrendData}
-                height={28}
-                width={64}
-                color={reserveFunding >= 80 ? '#10b981' : reserveFunding >= 50 ? '#f59e0b' : '#ef4444'}
-                threshold={100}
-                thresholdColor="#10b981"
-              />
+              <div className="text-right">
+                <Sparkline
+                  data={reserveTrendData}
+                  height={28}
+                  width={64}
+                  color={reserveFunding >= 80 ? '#10b981' : reserveFunding >= 50 ? '#f59e0b' : '#ef4444'}
+                  threshold={100}
+                  thresholdColor="#10b981"
+                />
+                <span className="text-[9px] text-text-muted/50 leading-none">Simulated</span>
+              </div>
             </div>
             <p className="text-sm text-text-muted mt-3">
               ${(totalReserveBalance / 1_000_000).toFixed(1)}M of ${(totalReserveTarget / 1_000_000).toFixed(1)}M target
@@ -196,12 +199,15 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
                   <span className="metric-value">${(data.waterfall.revenue / 1_000_000).toFixed(1)}M</span>
                 </div>
               </div>
-              <Sparkline
-                data={revenueTrendData}
-                height={28}
-                width={64}
-                color={blockedDistribution > 0 ? '#f59e0b' : '#10b981'}
-              />
+              <div className="text-right">
+                <Sparkline
+                  data={revenueTrendData}
+                  height={28}
+                  width={64}
+                  color={blockedDistribution > 0 ? '#f59e0b' : '#10b981'}
+                />
+                <span className="text-[9px] text-text-muted/50 leading-none">Simulated</span>
+              </div>
             </div>
             <p className="text-sm text-text-muted mt-3">
               {blockedDistribution > 0 ? (
@@ -243,6 +249,7 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
             alertSummary={alertSummary}
             milestonesAtRisk={milestonesAtRisk}
             hasBlockedDistribution={blockedDistribution > 0}
+            blockedReasons={data.waterfall.tiers.filter(t => t.blocked && t.reason).map(t => t.reason!)}
           />
         )}
       </CardBody>
@@ -255,9 +262,10 @@ interface AlertBannerProps {
   alertSummary: ReturnType<typeof generateAlerts>;
   milestonesAtRisk: number;
   hasBlockedDistribution: boolean;
+  blockedReasons?: string[];
 }
 
-function AlertBanner({ allCompliant, alertSummary, milestonesAtRisk, hasBlockedDistribution }: AlertBannerProps) {
+function AlertBanner({ allCompliant, alertSummary, milestonesAtRisk, hasBlockedDistribution, blockedReasons }: AlertBannerProps) {
   // Determine alert severity and message
   let severity: 'critical' | 'warning' | 'caution' = 'caution';
   const messages: string[] = [];
@@ -284,7 +292,8 @@ function AlertBanner({ allCompliant, alertSummary, milestonesAtRisk, hasBlockedD
   }
 
   if (hasBlockedDistribution && messages.length < 2) {
-    messages.push('Distribution blocked - DSCR gate not met');
+    const reason = blockedReasons?.length ? blockedReasons.join('; ') : 'gate condition not met';
+    messages.push(`Distribution blocked - ${reason}`);
   }
 
   const bgColor = severity === 'critical'
