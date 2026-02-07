@@ -5,7 +5,7 @@
  * Shows on every page. Contains logo, nav links, optional breadcrumbs, and utility actions.
  */
 import { Link, useLocation } from 'react-router-dom';
-import { ExternalLink, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 export interface Breadcrumb {
   label: string;
@@ -39,20 +39,8 @@ export function TopNav({ breadcrumbs }: TopNavProps) {
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-2">
             <Link to="/" className="flex items-center gap-3 group" aria-label="ProViso home">
-              <div
-                className="
-                  w-8 h-8 rounded-lg
-                  bg-gradient-to-br from-gold-500 to-gold-600
-                  flex items-center justify-center
-                  font-serif font-semibold text-lg text-navy-900
-                  group-hover:shadow-glow-gold-sm
-                  transition-shadow duration-200
-                "
-              >
-                P
-              </div>
-              <span className="text-lg font-semibold text-text-primary">
-                Pro<span className="text-gold-500">Viso</span>
+              <span className="text-xl font-semibold text-text-primary tracking-tight">
+                Pro<span className="text-blue-700 font-bold">V</span>iso
               </span>
             </Link>
 
@@ -103,20 +91,6 @@ export function TopNav({ breadcrumbs }: TopNavProps) {
                   </Link>
                 );
               })}
-              <a
-                href="https://github.com/haslun/proviso"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="
-                  px-3 py-1.5 rounded-md text-sm font-medium
-                  text-text-secondary hover:text-text-primary
-                  transition-colors duration-200
-                  inline-flex items-center gap-1.5
-                "
-              >
-                GitHub
-                <ExternalLink className="w-3 h-3" />
-              </a>
             </div>
           )}
         </div>

@@ -51,11 +51,8 @@ export function About() {
             className="inline-flex items-center gap-3 mb-8 opacity-0 animate-fade-up"
             style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}
           >
-            <div className="w-12 h-12 bg-gold-600 rounded-xl flex items-center justify-center font-display font-semibold text-2xl text-navy-600">
-              P
-            </div>
-            <span className="font-display text-2xl font-medium text-white">
-              Pro<span className="text-gold-400">Viso</span>
+            <span className="font-display text-3xl font-medium text-white tracking-tight">
+              Pro<span className="text-blue-500 font-bold">V</span>iso
             </span>
           </Link>
 
@@ -85,14 +82,6 @@ export function About() {
               Explore the Demo
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <a
-              href="https://github.com/haslun/proviso"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-colors border border-white/20"
-            >
-              View on GitHub
-            </a>
           </div>
         </div>
       </section>

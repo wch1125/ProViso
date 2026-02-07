@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { ExternalLink } from 'lucide-react';
 
 /**
  * Landing page footer.
@@ -23,15 +22,6 @@ export function Footer() {
             >
               Demo
             </Link>
-            <a
-              href="https://github.com/haslun/proviso"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-text-secondary hover:text-gold-400 transition-colors inline-flex items-center gap-1"
-            >
-              GitHub
-              <ExternalLink className="w-3 h-3" />
-            </a>
           </div>
 
           {/* Attribution */}
@@ -41,10 +31,9 @@ export function Footer() {
               href="https://haslun.online"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gold-500 hover:text-gold-400 transition-colors inline-flex items-center gap-1"
+              className="text-gold-500 hover:text-gold-400 transition-colors"
             >
               Haslun.Online
-              <ExternalLink className="w-3 h-3" />
             </a>
           </p>
         </div>

@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { FileCode2, Building2, Clock } from 'lucide-react';
+import { Building2, Clock } from 'lucide-react';
 
 interface DashboardShellProps {
   projectName: string;
@@ -20,10 +20,7 @@ export function DashboardShell({ projectName, facility, currentPhase, children }
             {/* Logo and Title */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-accent-500 to-accent-600 rounded-lg flex items-center justify-center shadow-glow">
-                  <FileCode2 className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-semibold text-white">ProViso</span>
+                <span className="text-xl font-semibold text-white tracking-tight">Pro<span className="text-blue-500 font-bold">V</span>iso</span>
               </div>
               <div className="h-8 w-px bg-slate-700" />
               <div>

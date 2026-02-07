@@ -40,31 +40,16 @@ export function LoadingScreen({ minDisplayTime = 1600, onComplete }: LoadingScre
         ${isFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}
       `}
     >
-      {/* Animated Icon */}
-      <div
-        className="
-          w-16 h-16 mb-6
-          bg-gold-600 rounded-[14px]
-          flex items-center justify-center
-          font-display font-semibold text-4xl text-navy-600
-          animate-icon-pulse
-        "
-      >
-        P
-      </div>
-
       {/* Brand Text */}
       <div className="flex flex-col items-center">
         <div
           className="
-            font-display text-[2rem] font-medium
-            bg-gradient-to-r from-gold-600 via-gold-400 to-gold-600
-            bg-clip-text text-transparent
+            font-display text-[2.5rem] font-medium text-white
             opacity-0 animate-brand-reveal
           "
           style={{ animationDelay: '0.3s' }}
         >
-          ProViso
+          Pro<span className="text-blue-500 font-bold">V</span>iso
         </div>
 
         <div
