@@ -12,6 +12,7 @@ import {
   PenTool,
   CheckCircle2,
   RotateCcw,
+  RefreshCw,
   Download,
   Copy,
 } from 'lucide-react';
@@ -35,6 +36,7 @@ import { generateClosingChecklist, downloadAsFile, copyToClipboard } from '../..
 export function ClosingDashboard() {
   const { dealId } = useParams<{ dealId: string }>();
   const [_activeTab, setActiveTab] = useState('overview');
+  const [activeLayerFilter, setActiveLayerFilter] = useState<string | null>(null);
   const [showReadyToCloseModal, setShowReadyToCloseModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -50,6 +52,9 @@ export function ClosingDashboard() {
     stats,
     readinessPercentage,
     daysUntilClosing,
+    layerStats,
+    weightedReadinessPercentage,
+    gatingCount,
     satisfyCondition,
     waiveCondition,
     uploadDocument,
@@ -142,6 +147,17 @@ export function ClosingDashboard() {
     setShowResetModal(false);
   };
 
+  const handleRefresh = () => {
+    if (dealId) {
+      loadScenario(dealId);
+      addToast({
+        type: 'info',
+        title: 'Refreshed',
+        message: `${deal.name} data reloaded`,
+      });
+    }
+  };
+
   const handleExport = () => {
     // Transform data for export
     const conditionsForExport = conditions.map((cp) => ({
@@ -171,7 +187,7 @@ export function ClosingDashboard() {
       })),
     }));
 
-    const content = generateClosingChecklist(deal, conditionsForExport, documentsForExport, stats);
+    const content = generateClosingChecklist(deal, conditionsForExport, documentsForExport, stats, layerStats);
     setExportContent(content);
     setShowExportModal(true);
     setCopied(false);
@@ -213,6 +229,15 @@ export function ClosingDashboard() {
         <>
           <Button
             variant="ghost"
+            icon={<RefreshCw className="w-4 h-4" />}
+            size="sm"
+            onClick={handleRefresh}
+            title="Reload scenario data"
+          >
+            Refresh
+          </Button>
+          <Button
+            variant="ghost"
             icon={<RotateCcw className="w-4 h-4" />}
             size="sm"
             onClick={() => setShowResetModal(true)}
@@ -252,6 +277,11 @@ export function ClosingDashboard() {
           signatures={stats.signatures}
           daysUntilClosing={daysUntilClosing}
           targetDate={new Date(deal.targetClosingDate)}
+          layerStats={layerStats}
+          weightedReadinessPercentage={weightedReadinessPercentage}
+          gatingCount={gatingCount}
+          activeLayerFilter={activeLayerFilter}
+          onLayerClick={setActiveLayerFilter}
         />
 
         {/* Tabs for different views */}
@@ -259,7 +289,7 @@ export function ClosingDashboard() {
           <Tabs defaultTab="overview" onChange={setActiveTab}>
             <TabList>
               <TabTrigger id="overview" icon={<FileCheck className="w-4 h-4" />}>
-                Conditions ({stats.conditions.pending} pending)
+                Conditions ({gatingCount > 0 ? `${gatingCount} gating` : `${stats.conditions.pending} pending`})
               </TabTrigger>
               <TabTrigger id="documents" icon={<FileText className="w-4 h-4" />}>
                 Documents ({stats.documents.pending} pending)
@@ -276,9 +306,15 @@ export function ClosingDashboard() {
                     <h2 className="text-lg font-semibold text-text-primary">
                       Conditions Precedent
                     </h2>
-                    <Badge variant="warning">
-                      {stats.conditions.pending} remaining
-                    </Badge>
+                    {gatingCount > 0 ? (
+                      <Badge variant="danger">
+                        {gatingCount} gating
+                      </Badge>
+                    ) : (
+                      <Badge variant="warning">
+                        {stats.conditions.pending} remaining
+                      </Badge>
+                    )}
                   </div>
                 </CardHeader>
                 <CardBody>
@@ -286,6 +322,9 @@ export function ClosingDashboard() {
                     conditions={cpChecklistData}
                     onSatisfy={satisfyCondition}
                     onWaive={waiveCondition}
+                    layerStats={layerStats}
+                    activeLayerFilter={activeLayerFilter}
+                    onLayerFilterChange={setActiveLayerFilter}
                   />
                 </CardBody>
               </Card>
@@ -391,6 +430,8 @@ export function ClosingDashboard() {
         confirmLabel="Mark Ready"
         cancelLabel="Cancel"
         details={[
+          `Ready to Close: ${weightedReadinessPercentage}% (weighted)`,
+          ...(gatingCount > 0 ? [`${gatingCount} gating item${gatingCount !== 1 ? 's' : ''} still outstanding`] : []),
           `${stats.conditions.satisfied + stats.conditions.waived} of ${stats.conditions.total} conditions complete`,
           `${stats.documents.uploaded + stats.documents.executed} of ${stats.documents.total} documents received`,
           `${stats.signatures.signed} of ${stats.signatures.total} signatures collected`,
@@ -403,8 +444,8 @@ export function ClosingDashboard() {
         onClose={() => setShowResetModal(false)}
         onConfirm={handleReset}
         variant="danger"
-        title="Reset Demo Data?"
-        message="This will reset all closing data to the original demo state. Any changes you've made will be lost."
+        title={`Reset ${deal.name}?`}
+        message={`This will reset all closing data for ${deal.name} to its original demo state. Any changes you've made (satisfied conditions, uploaded documents, signatures) will be lost.`}
         confirmLabel="Reset"
         cancelLabel="Cancel"
       />

@@ -1,11 +1,14 @@
 /**
- * ReadinessMeter Component — v2.4 Design System
+ * ReadinessMeter Component — v2.5 Closing Dashboard Redesign
  *
- * Displays overall closing readiness with a progress bar and KPI stat cards.
- * Uses navy/gold palette with semantic status colors.
+ * Displays weighted closing readiness with a stacked progress bar segmented
+ * by document layer. Each segment is clickable to filter the CP checklist.
+ * KPI stat cards show conditions, documents, signatures, and days left.
  */
 
+import { useState } from 'react';
 import { FileCheck, FileText, PenTool, Calendar } from 'lucide-react';
+import type { LayerStats } from '../../utils/documentLayers';
 
 interface ReadinessMeterProps {
   readinessPercentage: number;
@@ -29,6 +32,16 @@ interface ReadinessMeterProps {
   };
   daysUntilClosing: number;
   targetDate: Date;
+  /** New: layer stats for stacked bar */
+  layerStats?: LayerStats[];
+  /** New: weighted percentage (replaces flat readinessPercentage when present) */
+  weightedReadinessPercentage?: number;
+  /** New: number of gating (overdue) items */
+  gatingCount?: number;
+  /** New: currently active layer filter */
+  activeLayerFilter?: string | null;
+  /** New: callback when a bar segment is clicked */
+  onLayerClick?: (layerId: string | null) => void;
 }
 
 export function ReadinessMeter({
@@ -38,20 +51,25 @@ export function ReadinessMeter({
   signatures,
   daysUntilClosing,
   targetDate,
+  layerStats,
+  weightedReadinessPercentage,
+  gatingCount,
+  activeLayerFilter,
+  onLayerClick,
 }: ReadinessMeterProps) {
   const conditionsDone = conditions.satisfied + conditions.waived;
   const documentsDone = documents.uploaded;
   const signaturesDone = signatures.signed;
 
-  const getProgressColor = () => {
-    if (readinessPercentage >= 90) return 'bg-success';
-    if (readinessPercentage >= 70) return 'bg-warning';
-    return 'bg-danger';
-  };
+  // Use weighted readiness when available, else fall back
+  const displayPercentage = weightedReadinessPercentage ?? readinessPercentage;
+  const hasLayers = layerStats && layerStats.length > 0;
+
+  // Tooltip state for segment hover
+  const [hoveredLayer, setHoveredLayer] = useState<string | null>(null);
 
   const getDaysColor = () => {
     if (daysUntilClosing < 0) return 'text-danger';
-    if (daysUntilClosing <= 3) return 'text-warning';
     if (daysUntilClosing <= 7) return 'text-warning';
     return 'text-text-primary';
   };
@@ -61,15 +79,86 @@ export function ReadinessMeter({
       {/* Main Progress Bar */}
       <div className="bg-surface-1 border border-border-DEFAULT rounded-lg p-6">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-display text-xl font-semibold text-text-primary">Closing Readiness</h3>
-          <span className="text-2xl font-bold text-text-primary tabular-nums">{readinessPercentage}%</span>
+          <h3 className="font-display text-xl font-semibold text-text-primary">Ready to Close</h3>
+          <span className="text-2xl font-bold text-text-primary tabular-nums">{displayPercentage}%</span>
         </div>
-        <div className="h-2 bg-surface-2 rounded-full overflow-hidden">
-          <div
-            className={`h-full ${getProgressColor()} rounded-full transition-all duration-500`}
-            style={{ width: `${readinessPercentage}%` }}
-          />
-        </div>
+
+        {/* Stacked progress bar (if layers available) or fallback to single bar */}
+        {hasLayers ? (
+          <div className="relative">
+            <div className="h-3 bg-surface-2 rounded-full overflow-hidden flex">
+              {layerStats.map((ls) => (
+                <div
+                  key={ls.layer.id}
+                  className={`relative h-full transition-opacity duration-200 ${
+                    activeLayerFilter && activeLayerFilter !== ls.layer.id ? 'opacity-40' : ''
+                  }`}
+                  style={{ width: `${ls.layer.weight}%` }}
+                  onClick={() => onLayerClick?.(activeLayerFilter === ls.layer.id ? null : ls.layer.id)}
+                  onMouseEnter={() => setHoveredLayer(ls.layer.id)}
+                  onMouseLeave={() => setHoveredLayer(null)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onLayerClick?.(activeLayerFilter === ls.layer.id ? null : ls.layer.id);
+                    }
+                  }}
+                  aria-label={`${ls.layer.name}: ${ls.completed}/${ls.total} complete`}
+                >
+                  {/* Filled portion within this segment */}
+                  <div
+                    className={`h-full ${ls.layer.color} transition-all duration-500`}
+                    style={{ width: `${ls.completionPct}%` }}
+                  />
+                  {/* Segment border (thin right divider except last) */}
+                  <div className="absolute right-0 top-0 h-full w-px bg-surface-1/60" />
+
+                  {/* Tooltip on hover */}
+                  {hoveredLayer === ls.layer.id && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-20 pointer-events-none">
+                      <div className="bg-navy-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                        <div className="font-semibold">{ls.layer.name}</div>
+                        <div className="text-white/70 mt-0.5">
+                          {ls.completed}/{ls.total} conditions ({ls.completionPct}%)
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Legend row */}
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+              {layerStats.map((ls) => (
+                <button
+                  key={ls.layer.id}
+                  className={`flex items-center gap-1.5 text-[13px] transition-opacity ${
+                    activeLayerFilter && activeLayerFilter !== ls.layer.id
+                      ? 'opacity-40'
+                      : 'text-text-tertiary'
+                  }`}
+                  onClick={() => onLayerClick?.(activeLayerFilter === ls.layer.id ? null : ls.layer.id)}
+                >
+                  <span className={`w-2 h-2 rounded-full ${ls.layer.color} flex-shrink-0`} />
+                  <span>{ls.layer.name}</span>
+                  <span className="tabular-nums">{ls.completed}/{ls.total}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* Fallback: single progress bar */
+          <div className="h-3 bg-surface-2 rounded-full overflow-hidden">
+            <div
+              className={`h-full ${displayPercentage >= 90 ? 'bg-success' : displayPercentage >= 70 ? 'bg-warning' : 'bg-danger'} rounded-full transition-all duration-500`}
+              style={{ width: `${displayPercentage}%` }}
+            />
+          </div>
+        )}
+
         <div className="mt-3 text-[13px] text-text-tertiary">
           Target: {targetDate.toLocaleDateString('en-US', {
             month: 'long',
@@ -156,6 +245,11 @@ export function ReadinessMeter({
           {daysUntilClosing <= 7 && daysUntilClosing >= 0 && (
             <div className="mt-1.5 text-xs text-warning">
               Closing soon
+            </div>
+          )}
+          {(gatingCount ?? 0) > 0 && (
+            <div className="mt-1.5 text-xs text-danger">
+              {gatingCount} gating item{gatingCount !== 1 ? 's' : ''} remain
             </div>
           )}
         </div>

@@ -5,6 +5,7 @@
  */
 
 import type { ClosingStats } from '../context/ClosingContext';
+import type { LayerStats } from './documentLayers';
 
 interface ConditionForExport {
   sectionReference: string;
@@ -122,7 +123,8 @@ export function generateClosingChecklist(
   deal: DealForExport,
   conditions: ConditionForExport[],
   documents: DocumentForExport[],
-  stats: ClosingStats
+  stats: ClosingStats,
+  layerStats?: LayerStats[]
 ): string {
   const lines: string[] = [];
   const now = new Date();
@@ -145,6 +147,18 @@ export function generateClosingChecklist(
   lines.push(`| Documents | ${stats.documents.uploaded + stats.documents.executed} | ${stats.documents.pending} | ${stats.documents.total} |`);
   lines.push(`| Signatures | ${stats.signatures.signed} | ${stats.signatures.pending + stats.signatures.requested} | ${stats.signatures.total} |`);
   lines.push('');
+
+  // Document Layer Breakdown
+  if (layerStats && layerStats.length > 0) {
+    lines.push('### Document Layer Breakdown');
+    lines.push('');
+    lines.push('| Layer | Weight | Complete | Total | % |');
+    lines.push('|-------|--------|----------|-------|---|');
+    for (const ls of layerStats) {
+      lines.push(`| ${ls.layer.name} | ${ls.layer.weight}% | ${ls.completed} | ${ls.total} | ${ls.completionPct}% |`);
+    }
+    lines.push('');
+  }
 
   // Legend
   lines.push('### Legend');

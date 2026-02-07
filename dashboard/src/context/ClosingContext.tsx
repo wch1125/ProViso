@@ -19,17 +19,18 @@ import {
   abcScenario,
   type ConditionPrecedent,
   type ClosingDocument as Document,
-  type Signature,
   type ClosingDeal,
   type ClosingParty as DealParty,
 } from '../data/demo-scenarios';
+import {
+  computeLayerStats,
+  computeWeightedReadiness,
+  type LayerStats,
+  type ConditionForPriority,
+} from '../utils/documentLayers';
 
-// Default to ABC scenario for backwards compatibility
+// Default to ABC scenario when no dealId is provided
 const defaultClosingData = abcScenario.closing;
-const defaultClosingDeal = defaultClosingData.deal;
-const defaultClosingConditions = defaultClosingData.conditions;
-const defaultClosingDocuments = defaultClosingData.documents;
-const defaultClosingParties = defaultClosingData.parties;
 
 // =============================================================================
 // TYPES
@@ -76,6 +77,9 @@ interface ClosingContextValue {
   stats: ClosingStats;
   readinessPercentage: number;
   daysUntilClosing: number;
+  layerStats: LayerStats[];
+  weightedReadinessPercentage: number;
+  gatingCount: number;
 
   // Condition Actions
   satisfyCondition: (id: string, notes?: string) => void;
@@ -98,8 +102,11 @@ interface ClosingContextValue {
   // Scenario loading
   loadScenario: (dealId: string) => void;
 
-  // Reset
+  // Reset to current scenario defaults (not always ABC)
   resetToDefaults: () => void;
+
+  // Current deal ID for scenario identification
+  currentDealId: string | undefined;
 }
 
 const ClosingContext = createContext<ClosingContextValue | null>(null);
@@ -255,53 +262,28 @@ interface ClosingProviderProps {
 export function ClosingProvider({ children, dealId: propDealId, interpreterConditions }: ClosingProviderProps) {
   const STORAGE_KEY_CONDITIONS = getStorageKey(STORAGE_BASE_CONDITIONS, propDealId);
   const STORAGE_KEY_DOCUMENTS = getStorageKey(STORAGE_BASE_DOCUMENTS, propDealId);
-  // Current deal state
-  const [deal, setDeal] = useState<ClosingDeal>(defaultClosingDeal);
-  const [parties, setParties] = useState<DealParty[]>(defaultClosingParties);
 
-  // Initialize from interpreter conditions, localStorage, or defaults
+  // Resolve initial scenario data: use the scenario matching propDealId, falling back to ABC
+  const initialScenario = propDealId ? getScenarioById(propDealId) : undefined;
+  const initialClosing = initialScenario?.closing ?? defaultClosingData;
+
+  // Current deal state — initialize to the correct scenario, not always ABC
+  const [deal, setDeal] = useState<ClosingDeal>(initialClosing.deal);
+  const [parties, setParties] = useState<DealParty[]>(initialClosing.parties);
+
+  // Initialize from interpreter conditions, or scenario defaults (skip stale localStorage)
   const [conditions, setConditions] = useState<ConditionPrecedent[]>(() => {
     // Prefer interpreter-sourced conditions when available
     if (interpreterConditions && interpreterConditions.length > 0) {
       return cloneConditions(interpreterConditions);
     }
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_CONDITIONS);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Restore Date objects
-        return parsed.map((cp: ConditionPrecedent) => ({
-          ...cp,
-          dueDate: cp.dueDate ? new Date(cp.dueDate) : null,
-          satisfiedAt: cp.satisfiedAt ? new Date(cp.satisfiedAt) : null,
-          waivedAt: cp.waivedAt ? new Date(cp.waivedAt) : null,
-        }));
-      }
-    } catch (e) {
-      console.warn('Failed to load conditions from localStorage:', e);
-    }
-    return cloneConditions(defaultClosingConditions);
+    // Use scenario defaults directly — don't load stale localStorage on initial mount
+    // localStorage is only used for persistence during the session, not across sessions
+    return cloneConditions(initialClosing.conditions);
   });
 
   const [documents, setDocuments] = useState<Document[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_DOCUMENTS);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        return parsed.map((doc: Document) => ({
-          ...doc,
-          uploadedAt: new Date(doc.uploadedAt),
-          dueDate: doc.dueDate ? new Date(doc.dueDate) : null,
-          signatures: doc.signatures.map((sig: Signature) => ({
-            ...sig,
-            signedAt: sig.signedAt ? new Date(sig.signedAt) : null,
-          })),
-        }));
-      }
-    } catch (e) {
-      console.warn('Failed to load documents from localStorage:', e);
-    }
-    return cloneDocuments(defaultClosingDocuments);
+    return cloneDocuments(initialClosing.documents);
   });
 
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -338,6 +320,19 @@ export function ClosingProvider({ children, dealId: propDealId, interpreterCondi
   const stats = calculateStats(conditions, documents);
   const readinessPercentage = calculateReadinessPercentage(stats);
   const daysUntilClosing = calculateDaysUntilClosing(deal.targetClosingDate);
+
+  // Layer-weighted readiness
+  const now = new Date();
+  const conditionsForLayers: ConditionForPriority[] = conditions.map(cp => ({
+    id: cp.id,
+    status: cp.status,
+    dueDate: cp.dueDate,
+    isOverdue: cp.status === 'pending' && cp.dueDate !== null && new Date(cp.dueDate) < now,
+    category: cp.category,
+  }));
+  const layerStats = computeLayerStats(conditionsForLayers);
+  const weightedReadinessPercentage = computeWeightedReadiness(layerStats);
+  const gatingCount = conditionsForLayers.filter(c => c.isOverdue).length;
 
   // Toast management
   const addToast = useCallback((toast: Omit<Toast, 'id'>) => {
@@ -554,20 +549,22 @@ export function ClosingProvider({ children, dealId: propDealId, interpreterCondi
     }
   }, []);
 
-  // Reset
+  // Reset to the current scenario's defaults (not always ABC)
   const resetToDefaults = useCallback(() => {
-    setDeal(defaultClosingDeal);
-    setParties(defaultClosingParties);
-    setConditions(cloneConditions(defaultClosingConditions));
-    setDocuments(cloneDocuments(defaultClosingDocuments));
+    const scenario = propDealId ? getScenarioById(propDealId) : undefined;
+    const closing = scenario?.closing ?? defaultClosingData;
+    setDeal(closing.deal);
+    setParties(closing.parties);
+    setConditions(cloneConditions(closing.conditions));
+    setDocuments(cloneDocuments(closing.documents));
     localStorage.removeItem(STORAGE_KEY_CONDITIONS);
     localStorage.removeItem(STORAGE_KEY_DOCUMENTS);
     addToast({
       type: 'info',
       title: 'Reset Complete',
-      message: 'All closing data has been reset to defaults',
+      message: `${closing.deal.name} has been reset to defaults`,
     });
-  }, [addToast]);
+  }, [addToast, propDealId]);
 
   const value: ClosingContextValue = {
     deal,
@@ -577,6 +574,9 @@ export function ClosingProvider({ children, dealId: propDealId, interpreterCondi
     stats,
     readinessPercentage,
     daysUntilClosing,
+    layerStats,
+    weightedReadinessPercentage,
+    gatingCount,
     satisfyCondition,
     waiveCondition,
     uploadDocument,
@@ -589,6 +589,7 @@ export function ClosingProvider({ children, dealId: propDealId, interpreterCondi
     removeToast,
     loadScenario,
     resetToDefaults,
+    currentDealId: propDealId,
   };
 
   return (
