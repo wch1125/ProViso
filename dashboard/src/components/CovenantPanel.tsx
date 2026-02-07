@@ -4,6 +4,8 @@ import { Card, CardHeader, CardBody } from './Card';
 import { StatusBadge } from './StatusBadge';
 import { CovenantSummary } from './NaturalLanguageSummary';
 import { SourceCodeViewer, CodeViewButton } from './SourceCodeViewer';
+import { ClickableValue, type CalculationNode } from './CalculationDrilldown';
+import { useProViso } from '../context';
 import { getThresholdZone, getZoneStyle, getDistanceToBreach, type ThresholdZone } from '../utils/thresholds';
 import { generateCovenantCode } from '../utils/codeGenerators';
 import type { CovenantData, CovenantStatus } from '../types';
@@ -27,6 +29,8 @@ function getCovenantStatus(covenant: CovenantData): CovenantStatus {
 }
 
 export function CovenantPanel({ covenants, showNarratives = true, showCodeButtons = true }: CovenantPanelProps) {
+  const { getCalculationTree } = useProViso();
+
   // Sort covenants by risk: breach > danger > caution > safe > suspended
   const sortedCovenants = useMemo(() => {
     return [...covenants].sort((a, b) => {
@@ -85,6 +89,7 @@ export function CovenantPanel({ covenants, showNarratives = true, showCodeButton
               covenant={covenant}
               showNarrative={showNarratives}
               showCodeButton={showCodeButtons}
+              getCalculationTree={getCalculationTree}
             />
           ))}
         </div>
@@ -119,9 +124,10 @@ interface CovenantRowProps {
   covenant: CovenantData;
   showNarrative?: boolean;
   showCodeButton?: boolean;
+  getCalculationTree?: (name: string) => CalculationNode | null;
 }
 
-function CovenantRow({ covenant, showNarrative = true, showCodeButton = true }: CovenantRowProps) {
+function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, getCalculationTree }: CovenantRowProps) {
   const { name, actual, required, operator, compliant, headroom, suspended } = covenant;
   const [showCode, setShowCode] = useState(false);
 
@@ -179,8 +185,11 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true }: 
     ? 'text-warning'
     : 'text-success';
 
-  // Generate code for the viewer
+  // Build calc-tree node for the actual value (clickable drilldown)
   const metricName = name.replace(/^(Max|Min)/, '');
+  const calcNode = getCalculationTree ? getCalculationTree(metricName) : null;
+
+  // Generate code for the viewer
   const covenantCode = generateCovenantCode({
     name,
     metric: metricName,
@@ -213,19 +222,24 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true }: 
           </div>
           <div className="text-right">
             <div className="flex items-baseline gap-2">
-              <span className={`text-lg font-semibold tabular-nums ${
-                suspended
-                  ? 'text-industry-textMuted'
-                  : zone === 'breach'
-                  ? 'text-danger'
-                  : zone === 'danger'
-                  ? 'text-orange-400'
-                  : zone === 'caution'
-                  ? 'text-warning'
-                  : 'text-industry-textPrimary'
-              }`}>
+              <ClickableValue
+                value={actual}
+                valueType="ratio"
+                calculationNode={calcNode as CalculationNode | null}
+                className={`text-lg font-semibold tabular-nums ${
+                  suspended
+                    ? 'text-industry-textMuted'
+                    : zone === 'breach'
+                    ? 'text-danger'
+                    : zone === 'danger'
+                    ? 'text-orange-400'
+                    : zone === 'caution'
+                    ? 'text-warning'
+                    : 'text-industry-textPrimary'
+                }`}
+              >
                 {formatValue(actual)}x
-              </span>
+              </ClickableValue>
               <span className="text-sm text-industry-textMuted">
                 {operator} {formatValue(required)}x
               </span>

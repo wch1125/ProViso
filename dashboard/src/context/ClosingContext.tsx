@@ -108,8 +108,12 @@ const ClosingContext = createContext<ClosingContextValue | null>(null);
 // STORAGE KEYS
 // =============================================================================
 
-const STORAGE_KEY_CONDITIONS = 'proviso_closing_conditions';
-const STORAGE_KEY_DOCUMENTS = 'proviso_closing_documents';
+function getStorageKey(base: string, dealId?: string): string {
+  return dealId ? `${base}:${dealId}` : base;
+}
+
+const STORAGE_BASE_CONDITIONS = 'proviso_closing_conditions';
+const STORAGE_BASE_DOCUMENTS = 'proviso_closing_documents';
 
 // =============================================================================
 // HELPERS
@@ -242,11 +246,15 @@ function cloneDocuments(documents: Document[]): Document[] {
 
 interface ClosingProviderProps {
   children: ReactNode;
+  /** Deal ID for namespacing localStorage */
+  dealId?: string;
   /** Optional interpreter-sourced conditions to use instead of demo data */
   interpreterConditions?: ConditionPrecedent[];
 }
 
-export function ClosingProvider({ children, interpreterConditions }: ClosingProviderProps) {
+export function ClosingProvider({ children, dealId: propDealId, interpreterConditions }: ClosingProviderProps) {
+  const STORAGE_KEY_CONDITIONS = getStorageKey(STORAGE_BASE_CONDITIONS, propDealId);
+  const STORAGE_KEY_DOCUMENTS = getStorageKey(STORAGE_BASE_DOCUMENTS, propDealId);
   // Current deal state
   const [deal, setDeal] = useState<ClosingDeal>(defaultClosingDeal);
   const [parties, setParties] = useState<DealParty[]>(defaultClosingParties);

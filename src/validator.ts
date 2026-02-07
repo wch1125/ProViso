@@ -14,6 +14,15 @@ import {
   ConditionStatement,
   ProhibitStatement,
   EventStatement,
+  MilestoneStatement,
+  ReserveStatement,
+  WaterfallStatement,
+  PhaseStatement,
+  TransitionStatement,
+  AmendmentStatement,
+  FlipEventStatement,
+  TaxEquityStructureStatement,
+  ConditionsPrecedentStatement,
 } from './types.js';
 
 /**
@@ -25,6 +34,14 @@ interface SymbolTable {
   baskets: Set<string>;
   conditions: Set<string>;
   events: Set<string>;
+  milestones: Set<string>;
+  reserves: Set<string>;
+  waterfalls: Set<string>;
+  phases: Set<string>;
+  transitions: Set<string>;
+  taxEquityStructures: Set<string>;
+  flipEvents: Set<string>;
+  conditionsPrecedent: Set<string>;
 }
 
 /**
@@ -67,6 +84,14 @@ function buildSymbolTable(ast: Program): SymbolTable {
     baskets: new Set(),
     conditions: new Set(),
     events: new Set(),
+    milestones: new Set(),
+    reserves: new Set(),
+    waterfalls: new Set(),
+    phases: new Set(),
+    transitions: new Set(),
+    taxEquityStructures: new Set(),
+    flipEvents: new Set(),
+    conditionsPrecedent: new Set(),
   };
 
   for (const stmt of ast.statements) {
@@ -86,6 +111,31 @@ function buildSymbolTable(ast: Program): SymbolTable {
       case 'Event':
         symbols.events.add(stmt.name);
         break;
+      case 'Milestone':
+      case 'TechnicalMilestone':
+        symbols.milestones.add(stmt.name);
+        break;
+      case 'Reserve':
+        symbols.reserves.add(stmt.name);
+        break;
+      case 'Waterfall':
+        symbols.waterfalls.add(stmt.name);
+        break;
+      case 'Phase':
+        symbols.phases.add(stmt.name);
+        break;
+      case 'Transition':
+        symbols.transitions.add(stmt.name);
+        break;
+      case 'TaxEquityStructure':
+        symbols.taxEquityStructures.add(stmt.name);
+        break;
+      case 'FlipEvent':
+        symbols.flipEvents.add(stmt.name);
+        break;
+      case 'ConditionsPrecedent':
+        symbols.conditionsPrecedent.add(stmt.name);
+        break;
     }
   }
 
@@ -101,7 +151,15 @@ function isKnownSymbol(name: string, symbols: SymbolTable): boolean {
     symbols.covenants.has(name) ||
     symbols.baskets.has(name) ||
     symbols.conditions.has(name) ||
-    symbols.events.has(name)
+    symbols.events.has(name) ||
+    symbols.milestones.has(name) ||
+    symbols.reserves.has(name) ||
+    symbols.waterfalls.has(name) ||
+    symbols.phases.has(name) ||
+    symbols.transitions.has(name) ||
+    symbols.taxEquityStructures.has(name) ||
+    symbols.flipEvents.has(name) ||
+    symbols.conditionsPrecedent.has(name)
   );
 }
 
@@ -132,6 +190,39 @@ function validateStatement(
       break;
     case 'Event':
       validateEvent(stmt, symbols, errors, warnings);
+      break;
+    case 'Milestone':
+      validateMilestone(stmt, symbols, errors, warnings);
+      break;
+    case 'Reserve':
+      validateReserve(stmt, symbols, errors, warnings);
+      break;
+    case 'Waterfall':
+      validateWaterfall(stmt, symbols, errors, warnings);
+      break;
+    case 'Phase':
+      validatePhase(stmt, symbols, errors, warnings);
+      break;
+    case 'Transition':
+      validateTransition(stmt, symbols, errors, warnings);
+      break;
+    case 'Amendment':
+      validateAmendment(stmt, symbols, errors, warnings);
+      break;
+    case 'FlipEvent':
+      validateFlipEvent(stmt, symbols, errors, warnings);
+      break;
+    case 'TaxEquityStructure':
+      validateTaxEquityStructure(stmt, symbols, errors, warnings);
+      break;
+    case 'ConditionsPrecedent':
+      validateConditionsPrecedent(stmt, symbols, errors, warnings);
+      break;
+    // Remaining types (TechnicalMilestone, RegulatoryRequirement, PerformanceGuarantee,
+    // DegradationSchedule, SeasonalAdjustment, TaxCredit, Depreciation) have
+    // self-contained data and don't reference other symbols, so no validation needed.
+    case 'Comment':
+    case 'Load':
       break;
   }
 }
@@ -287,6 +378,290 @@ function validateEvent(
 
   if (stmt.triggers) {
     validateExpression(stmt.triggers, symbols, errors, warnings, `${context} TRIGGERS WHEN`);
+  }
+}
+
+/**
+ * Validate a MILESTONE statement
+ */
+function validateMilestone(
+  stmt: MilestoneStatement,
+  symbols: SymbolTable,
+  _errors: ValidationIssue[],
+  warnings: ValidationIssue[]
+): void {
+  const context = `MILESTONE ${stmt.name}`;
+
+  if (!stmt.targetDate && !stmt.longstopDate) {
+    warnings.push({
+      severity: 'warning',
+      message: `Milestone has no TARGET or LONGSTOP date`,
+      context,
+    });
+  }
+
+  // Check REQUIRES references
+  if (stmt.requires && typeof stmt.requires === 'string') {
+    if (!symbols.conditions.has(stmt.requires) && !symbols.milestones.has(stmt.requires)) {
+      warnings.push({
+        severity: 'warning',
+        message: `REQUIRES references '${stmt.requires}' which is not a defined condition or milestone`,
+        reference: stmt.requires,
+        context,
+        expectedType: 'condition',
+      });
+    }
+  }
+
+  // Check TRIGGERS references
+  for (const trigger of stmt.triggers) {
+    if (!symbols.events.has(trigger) && !symbols.phases.has(trigger)) {
+      warnings.push({
+        severity: 'warning',
+        message: `TRIGGERS references '${trigger}' which is not a defined event or phase`,
+        reference: trigger,
+        context,
+      });
+    }
+  }
+}
+
+/**
+ * Validate a RESERVE statement
+ */
+function validateReserve(
+  stmt: ReserveStatement,
+  symbols: SymbolTable,
+  errors: ValidationIssue[],
+  warnings: ValidationIssue[]
+): void {
+  const context = `RESERVE ${stmt.name}`;
+
+  if (stmt.target) {
+    validateExpression(stmt.target, symbols, errors, warnings, `${context} TARGET`);
+  }
+  if (stmt.minimum) {
+    validateExpression(stmt.minimum, symbols, errors, warnings, `${context} MINIMUM`);
+  }
+
+  // Check FUNDED_BY references
+  for (const source of stmt.fundedBy) {
+    if (!isKnownSymbol(source, symbols)) {
+      warnings.push({
+        severity: 'warning',
+        message: `FUNDED_BY references '${source}' which is not a defined identifier`,
+        reference: source,
+        context,
+      });
+    }
+  }
+}
+
+/**
+ * Validate a WATERFALL statement
+ */
+function validateWaterfall(
+  stmt: WaterfallStatement,
+  symbols: SymbolTable,
+  errors: ValidationIssue[],
+  warnings: ValidationIssue[]
+): void {
+  const context = `WATERFALL ${stmt.name}`;
+
+  for (const tier of stmt.tiers) {
+    const tierContext = `${context} TIER ${tier.priority} "${tier.name}"`;
+
+    if (tier.payAmount) {
+      validateExpression(tier.payAmount, symbols, errors, warnings, `${tierContext} PAY`);
+    }
+    if (tier.condition) {
+      validateExpression(tier.condition, symbols, errors, warnings, `${tierContext} IF`);
+    }
+    if (tier.until) {
+      validateExpression(tier.until, symbols, errors, warnings, `${tierContext} UNTIL`);
+    }
+
+    // Check PAY TO references a reserve
+    if (tier.payTo && !symbols.reserves.has(tier.payTo)) {
+      warnings.push({
+        severity: 'warning',
+        message: `PAY TO references '${tier.payTo}' which is not a defined reserve`,
+        reference: tier.payTo,
+        context: tierContext,
+        expectedType: 'reserve',
+      });
+    }
+
+    // Check SHORTFALL references a reserve
+    if (tier.shortfall && !symbols.reserves.has(tier.shortfall)) {
+      warnings.push({
+        severity: 'warning',
+        message: `SHORTFALL references '${tier.shortfall}' which is not a defined reserve`,
+        reference: tier.shortfall,
+        context: tierContext,
+        expectedType: 'reserve',
+      });
+    }
+
+    // Circular reserve guardrail
+    if (tier.payTo && tier.shortfall && tier.payTo === tier.shortfall) {
+      errors.push({
+        severity: 'error',
+        message: `Tier both funds and draws from the same reserve '${tier.payTo}' (circular)`,
+        reference: tier.payTo,
+        context: tierContext,
+      });
+    }
+  }
+}
+
+/**
+ * Validate a PHASE statement
+ */
+function validatePhase(
+  stmt: PhaseStatement,
+  symbols: SymbolTable,
+  _errors: ValidationIssue[],
+  warnings: ValidationIssue[]
+): void {
+  const context = `PHASE ${stmt.name}`;
+
+  // Check covenant references (COVENANTS SUSPENDED / ACTIVE)
+  const covenantRefs = [...(stmt.covenantsSuspended || []), ...(stmt.covenantsActive || [])];
+  for (const covName of covenantRefs) {
+    if (!symbols.covenants.has(covName)) {
+      warnings.push({
+        severity: 'warning',
+        message: `References covenant '${covName}' which is not defined`,
+        reference: covName,
+        context,
+        expectedType: 'covenant',
+      });
+    }
+  }
+}
+
+/**
+ * Validate a TRANSITION statement
+ */
+function validateTransition(
+  stmt: TransitionStatement,
+  symbols: SymbolTable,
+  errors: ValidationIssue[],
+  warnings: ValidationIssue[]
+): void {
+  const context = `TRANSITION ${stmt.name}`;
+
+  // Validate the WHEN condition
+  if (stmt.when) {
+    if (typeof stmt.when === 'object' && 'type' in stmt.when) {
+      if (stmt.when.type === 'AllOf' || stmt.when.type === 'AnyOf') {
+        // Check that referenced conditions exist
+        for (const condRef of stmt.when.conditions) {
+          if (!symbols.conditions.has(condRef) && !symbols.milestones.has(condRef)) {
+            warnings.push({
+              severity: 'warning',
+              message: `WHEN references '${condRef}' which is not a defined condition or milestone`,
+              reference: condRef,
+              context,
+            });
+          }
+        }
+      } else {
+        validateExpression(stmt.when, symbols, errors, warnings, `${context} WHEN`);
+      }
+    }
+  }
+}
+
+/**
+ * Validate an AMENDMENT statement
+ */
+function validateAmendment(
+  stmt: AmendmentStatement,
+  _symbols: SymbolTable,
+  _errors: ValidationIssue[],
+  warnings: ValidationIssue[]
+): void {
+  const context = `AMENDMENT ${stmt.number}`;
+
+  if (!stmt.directives || stmt.directives.length === 0) {
+    warnings.push({
+      severity: 'warning',
+      message: `Amendment has no directives`,
+      context,
+    });
+  }
+}
+
+/**
+ * Validate a FLIP_EVENT statement
+ */
+function validateFlipEvent(
+  stmt: FlipEventStatement,
+  symbols: SymbolTable,
+  errors: ValidationIssue[],
+  _warnings: ValidationIssue[]
+): void {
+  const context = `FLIP_EVENT ${stmt.name}`;
+
+  // Check STRUCTURE reference
+  if (stmt.structure && !symbols.taxEquityStructures.has(stmt.structure)) {
+    errors.push({
+      severity: 'error',
+      message: `STRUCTURE references undefined tax equity structure '${stmt.structure}'`,
+      reference: stmt.structure,
+      context,
+      expectedType: 'taxEquityStructure',
+    });
+  }
+}
+
+/**
+ * Validate a TAX_EQUITY_STRUCTURE statement
+ */
+function validateTaxEquityStructure(
+  stmt: TaxEquityStructureStatement,
+  _symbols: SymbolTable,
+  _errors: ValidationIssue[],
+  warnings: ValidationIssue[]
+): void {
+  const context = `TAX_EQUITY_STRUCTURE ${stmt.name}`;
+
+  if (!stmt.structureType) {
+    warnings.push({
+      severity: 'warning',
+      message: `Tax equity structure has no STRUCTURE_TYPE`,
+      context,
+    });
+  }
+}
+
+/**
+ * Validate a CONDITIONS_PRECEDENT statement
+ */
+function validateConditionsPrecedent(
+  stmt: ConditionsPrecedentStatement,
+  symbols: SymbolTable,
+  _errors: ValidationIssue[],
+  warnings: ValidationIssue[]
+): void {
+  const context = `CONDITIONS_PRECEDENT ${stmt.name}`;
+
+  // Check SATISFIES references in CP items
+  for (const cp of stmt.conditions) {
+    if (cp.satisfies) {
+      for (const ref of cp.satisfies) {
+        if (!symbols.conditions.has(ref) && !symbols.milestones.has(ref)) {
+          warnings.push({
+            severity: 'warning',
+            message: `CP item '${cp.name}' SATISFIES '${ref}' which is not a defined condition or milestone`,
+            reference: ref,
+            context,
+          });
+        }
+      }
+    }
   }
 }
 

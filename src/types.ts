@@ -490,7 +490,7 @@ export interface ValidationIssue {
   /** Where the issue occurred */
   context?: string;
   /** What type of reference was expected */
-  expectedType?: 'define' | 'covenant' | 'basket' | 'condition' | 'event' | 'identifier';
+  expectedType?: 'define' | 'covenant' | 'basket' | 'condition' | 'event' | 'identifier' | 'milestone' | 'reserve' | 'phase' | 'taxEquityStructure';
 }
 
 export interface ValidationResult {
@@ -1227,6 +1227,8 @@ export interface FlipEventStatement {
   type: 'FlipEvent';
   /** Event name (e.g., 'TargetReturnFlip') */
   name: string;
+  /** Associated tax equity structure name (if specified) */
+  structure: string | null;
   /** Trigger type: target_return, date_certain, pf_event, or custom */
   trigger: string | null;
   /** Trigger value (IRR percentage, date, or event name) */

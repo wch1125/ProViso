@@ -627,6 +627,7 @@ FlipEventStatement
       const result = {
         type: 'FlipEvent',
         name: name,
+        structure: null,
         trigger: null,
         triggerValue: null,
         preFlipAllocation: null,
@@ -635,6 +636,7 @@ FlipEventStatement
         satisfies: []
       };
       clauses.forEach(clause => {
+        if (clause.type === 'structure') result.structure = clause.name;
         if (clause.type === 'trigger') {
           result.trigger = clause.triggerType;
           result.triggerValue = clause.value;
@@ -648,7 +650,10 @@ FlipEventStatement
     }
 
 FlipEventClause
-  = "TRIGGER" __ triggerType:FlipTriggerType _ value:FlipTriggerValue? _ {
+  = "STRUCTURE" __ name:Identifier _ {
+      return { type: 'structure', name: name };
+    }
+  / "TRIGGER" __ triggerType:FlipTriggerType _ value:FlipTriggerValue? _ {
       return { type: 'trigger', triggerType: triggerType, value: value };
     }
   / "PRE_FLIP_ALLOCATION" __ value:AllocationSpec _ {

@@ -42,6 +42,8 @@ import type { CovenantFormValues } from '../../components/editors/CovenantEditor
 import type { BasketFormValues } from '../../components/editors/BasketEditor';
 import { generateWordDocument, copyDocumentToClipboard, downloadDocument } from '../../utils/wordGenerator';
 import { computeChangeSummary } from '../../utils/versionDiff';
+import { parse } from '@proviso/parser.js';
+import { validate } from '@proviso/validator.js';
 import { useDeal, type DealVersion, type ChangeSummary } from '../../context';
 import type { Change } from '../../data/negotiation-demo';
 
@@ -163,6 +165,39 @@ export function NegotiationStudio() {
     }
     return code;
   }, [effectiveSelectedVersion?.creditLangCode, addedElements]);
+
+  // Compile-check: parse + validate the combined code on every change
+  const [compileStatus, setCompileStatus] = useState<{
+    ok: boolean;
+    errors: string[];
+  }>({ ok: true, errors: [] });
+
+  useEffect(() => {
+    if (!currentCode.trim()) {
+      setCompileStatus({ ok: true, errors: [] });
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await parse(currentCode);
+        if (cancelled) return;
+        if (!result.success || !result.ast) {
+          setCompileStatus({ ok: false, errors: [result.error?.message ?? 'Parse failed'] });
+          return;
+        }
+        const validation = validate(result.ast);
+        if (cancelled) return;
+        const errs = validation.errors.map(e => e.message);
+        setCompileStatus({ ok: errs.length === 0, errors: errs });
+      } catch (e) {
+        if (cancelled) return;
+        setCompileStatus({ ok: false, errors: [(e as Error).message] });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [currentCode]);
 
   // Generate Word document from current code
   const generatedDocument = useMemo(() => {
@@ -310,6 +345,18 @@ export function NegotiationStudio() {
           >
             View Code
           </Button>
+          {addedElements.length > 0 && (
+            <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded ${
+              compileStatus.ok
+                ? 'text-success bg-success/10'
+                : 'text-danger bg-danger/10'
+            }`} title={compileStatus.ok ? 'Code compiles' : compileStatus.errors.join('; ')}>
+              {compileStatus.ok
+                ? <><Check className="w-3.5 h-3.5" /> Valid</>
+                : <><AlertCircle className="w-3.5 h-3.5" /> {compileStatus.errors.length} error{compileStatus.errors.length !== 1 ? 's' : ''}</>
+              }
+            </span>
+          )}
           <Button
             variant="ghost"
             icon={<FileText className="w-4 h-4" />}

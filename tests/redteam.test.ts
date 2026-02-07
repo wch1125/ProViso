@@ -204,7 +204,7 @@ describe('RedTeam: cure-right correctness', () => {
 // ----------------------------
 
 describe('RedTeam: tax equity integration correctness', () => {
-  it('Triggering a flip makes *all* tax equity structures appear flipped (no association)', async () => {
+  it('Triggering a scoped flip only affects the associated structure', async () => {
     const source = `
       TAX_EQUITY_STRUCTURE TE_A
         STRUCTURE_TYPE partnership_flip
@@ -217,6 +217,7 @@ describe('RedTeam: tax equity integration correctness', () => {
         SPONSOR "Sponsor"
 
       FLIP_EVENT Flip_A
+        STRUCTURE TE_A
         TRIGGER target_return 8.0
         PRE_FLIP_ALLOCATION 99/1
         POST_FLIP_ALLOCATION 5/95
@@ -227,9 +228,9 @@ describe('RedTeam: tax equity integration correctness', () => {
 
     i.triggerFlip('Flip_A', new Date('2026-01-01'), 8.1);
 
-    // Current behavior: any triggered flip causes hasFlipped=true for every structure.
+    // With STRUCTURE clause, only TE_A should be flipped
     expect(i.getTaxEquityStructureStatus('TE_A').hasFlipped).toBe(true);
-    expect(i.getTaxEquityStructureStatus('TE_B').hasFlipped).toBe(true);
+    expect(i.getTaxEquityStructureStatus('TE_B').hasFlipped).toBe(false);
   });
 
   it('Tax credit status reports vested=true even when vesting period exists (placeholder semantics)', async () => {
@@ -253,7 +254,7 @@ describe('RedTeam: tax equity integration correctness', () => {
 // ----------------------------
 
 describe('RedTeam: waterfall & reserve invariants', () => {
-  it('A tier can both fund and draw from the same reserve (potential circular behavior)', async () => {
+  it('A tier that funds and draws from the same reserve is blocked (circular guardrail)', async () => {
     const source = `
       RESERVE DSRA
         TARGET 100
@@ -267,11 +268,11 @@ describe('RedTeam: waterfall & reserve invariants', () => {
     `;
     const i = await interp(source);
 
-    // Provide a small amount of available cash so the tier will attempt reserve draw.
-    // The current engine allows this structure; this test documents the lack of guardrails.
+    // Circular reserve guardrail: tier should be blocked
     const exec = i.executeWaterfall('W', 0);
     expect(exec.tiers.length).toBeGreaterThan(0);
-    // If guardrails were added, this should throw.
+    expect(exec.tiers[0]!.blocked).toBe(true);
+    expect(exec.tiers[0]!.blockReason).toMatch(/Circular reserve/);
   });
 });
 

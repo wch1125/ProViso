@@ -45,7 +45,7 @@ function ClosingProviderWithInterpreter({ children, dealId }: { children: ReactN
   }, [isLoaded, getConditionsPrecedentRaw, dealId]);
 
   return (
-    <ClosingProvider interpreterConditions={interpreterConditions}>
+    <ClosingProvider dealId={dealId} interpreterConditions={interpreterConditions}>
       {children}
     </ClosingProvider>
   );

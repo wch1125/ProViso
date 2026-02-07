@@ -7,7 +7,7 @@
  *
  * Now wired to the ProViso interpreter for live data.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { FileText, AlertTriangle, RefreshCw, DollarSign, X, Upload, TrendingUp, BarChart3, Activity, Download } from 'lucide-react';
 import { Button } from '../../components/base/Button';
@@ -122,7 +122,7 @@ export function MonitoringDashboard() {
     loadFromCode,
     refresh,
   } = useProViso();
-  const { logActivity, getActivitiesForDeal } = useDeal();
+  const { logActivity, getActivitiesForDeal, currentDeal, getPartiesForDeal } = useDeal();
 
   // Get activities for this deal (or all activities if no deal)
   const activities = dealId ? getActivitiesForDeal(dealId) : [];
@@ -293,8 +293,27 @@ export function MonitoringDashboard() {
     );
   }
 
-  // Success state - render with live data
-  const data = dashboardData;
+  // Success state - render with live data, enriched with deal metadata
+  const data = useMemo(() => {
+    if (!dashboardData) return dashboardData;
+
+    // Enrich project metadata from DealContext when available
+    if (currentDeal && dealId) {
+      const parties = getPartiesForDeal(dealId);
+      const borrower = parties.find(p => p.partyType === 'borrower');
+      const sponsor = parties.find(p => p.role?.toLowerCase().includes('sponsor'));
+      return {
+        ...dashboardData,
+        project: {
+          name: dashboardData.project.name || currentDeal.name,
+          facility: dashboardData.project.facility || `$${(currentDeal.facilityAmount / 1_000_000).toFixed(0)}M ${currentDeal.dealType === 'project_finance' ? 'Project Finance' : 'Corporate'} Facility`,
+          sponsor: dashboardData.project.sponsor || sponsor?.name || '',
+          borrower: dashboardData.project.borrower || borrower?.name || currentDeal.name,
+        },
+      };
+    }
+    return dashboardData;
+  }, [dashboardData, currentDeal, dealId, getPartiesForDeal]);
 
   // Identify breached covenants for distressed workflow
   const breachedCovenants = data.covenants.filter(c => !c.compliant && !c.suspended);

@@ -1967,14 +1967,15 @@ export class ProVisoInterpreter {
       throw new Error(`Unknown milestone: ${name}`);
     }
 
-    const now = asOfDate ?? new Date();
+    // Normalize to date-only comparison (UTC midnight) to avoid timezone issues
+    const now = ProVisoInterpreter.toUTCDate(asOfDate ?? new Date());
     const achievedDate = this.milestoneAchievements.get(name);
 
-    // Parse dates
-    const targetDate = milestone.targetDate ? new Date(milestone.targetDate) : null;
-    const longstopDate = milestone.longstopDate ? new Date(milestone.longstopDate) : null;
+    // Parse dates as UTC to avoid timezone drift
+    const targetDate = milestone.targetDate ? ProVisoInterpreter.parseUTCDate(milestone.targetDate) : null;
+    const longstopDate = milestone.longstopDate ? ProVisoInterpreter.parseUTCDate(milestone.longstopDate) : null;
 
-    // Calculate days
+    // Calculate days using UTC-normalized dates
     const msPerDay = 24 * 60 * 60 * 1000;
     const daysToTarget = targetDate
       ? Math.ceil((targetDate.getTime() - now.getTime()) / msPerDay)
@@ -1986,7 +1987,7 @@ export class ProVisoInterpreter {
     // Check prerequisites
     const prerequisites = this.checkMilestonePrerequisites(milestone);
 
-    // Determine status
+    // Determine status (comparing UTC-normalized dates)
     let status: MilestoneStatus;
     if (achievedDate) {
       status = 'achieved';
@@ -2125,14 +2126,15 @@ export class ProVisoInterpreter {
       throw new Error(`Unknown technical milestone: ${name}`);
     }
 
-    const now = asOfDate ?? new Date();
+    // Normalize to date-only comparison (UTC midnight) to avoid timezone issues
+    const now = ProVisoInterpreter.toUTCDate(asOfDate ?? new Date());
     const achievedDate = this.technicalMilestoneAchievements.get(name);
 
-    // Parse dates
-    const targetDate = milestone.targetDate ? new Date(milestone.targetDate) : null;
-    const longstopDate = milestone.longstopDate ? new Date(milestone.longstopDate) : null;
+    // Parse dates as UTC to avoid timezone drift
+    const targetDate = milestone.targetDate ? ProVisoInterpreter.parseUTCDate(milestone.targetDate) : null;
+    const longstopDate = milestone.longstopDate ? ProVisoInterpreter.parseUTCDate(milestone.longstopDate) : null;
 
-    // Calculate days
+    // Calculate days using UTC-normalized dates
     const msPerDay = 24 * 60 * 60 * 1000;
     const daysToTarget = targetDate
       ? Math.ceil((targetDate.getTime() - now.getTime()) / msPerDay)
@@ -2755,12 +2757,15 @@ export class ProVisoInterpreter {
     let flipEventName: string | null = null;
 
     for (const eventName of this.triggeredFlips.keys()) {
-      // Check if this flip event is associated with this structure
       const flipEvent = this.flipEvents.get(eventName);
       if (flipEvent) {
-        hasFlipped = true;
-        flipEventName = eventName;
-        break;
+        // Only match if the flip event is associated with this structure,
+        // or if no structure association exists (legacy: unscoped flip affects all)
+        if (flipEvent.structure === null || flipEvent.structure === name) {
+          hasFlipped = true;
+          flipEventName = eventName;
+          break;
+        }
       }
     }
 
@@ -3233,6 +3238,20 @@ export class ProVisoInterpreter {
    * Execute a single waterfall tier.
    */
   private executeTier(tier: WaterfallTier, available: number): WaterfallTierResult {
+    // Circular reserve guardrail: warn if a tier both funds and draws from the same reserve
+    if (tier.payTo && tier.shortfall && tier.payTo === tier.shortfall) {
+      return {
+        priority: tier.priority,
+        name: tier.name,
+        requested: 0,
+        paid: 0,
+        shortfall: 0,
+        reserveDrawn: 0,
+        blocked: true,
+        blockReason: `Circular reserve: tier both funds and draws from ${tier.payTo}`,
+      };
+    }
+
     // Check gate condition
     if (tier.condition) {
       const conditionMet = this.evaluateBoolean(tier.condition);
@@ -3832,5 +3851,22 @@ export class ProVisoInterpreter {
    */
   getEventNames(): string[] {
     return Array.from(this.events.keys());
+  }
+
+  /**
+   * Parse an ISO date string (YYYY-MM-DD) as UTC midnight.
+   * Avoids timezone drift from native `new Date(string)`.
+   */
+  static parseUTCDate(dateStr: string): Date {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(Date.UTC(year!, month! - 1, day!));
+  }
+
+  /**
+   * Normalize a Date to UTC midnight (strip time component).
+   * Used for date-only comparisons.
+   */
+  static toUTCDate(date: Date): Date {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
   }
 }
