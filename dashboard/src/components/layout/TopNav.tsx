@@ -40,7 +40,7 @@ export function TopNav({ breadcrumbs }: TopNavProps) {
           <div className="flex items-center gap-2">
             <Link to="/" className="flex items-center gap-3 group" aria-label="ProViso home">
               <span className="text-xl font-semibold text-text-primary tracking-tight">
-                Pro<span className="text-blue-700 font-bold">V</span>iso
+                Pro<span className="text-blue-500 font-bold">V</span>iso
               </span>
             </Link>
 
@@ -95,23 +95,6 @@ export function TopNav({ breadcrumbs }: TopNavProps) {
           )}
         </div>
 
-        {/* Right: Utility actions */}
-        <div className="flex items-center gap-3">
-          {/* Sign In button (decorative for demo) */}
-          <button
-            className="
-              hidden sm:inline-flex items-center
-              px-4 py-1.5
-              text-sm font-medium text-gold-500
-              border border-gold-500/50 rounded-md
-              hover:bg-gold-500/10 hover:border-gold-500
-              transition-all duration-200
-            "
-            onClick={() => {/* Demo only */}}
-          >
-            Sign In
-          </button>
-        </div>
       </div>
     </nav>
   );

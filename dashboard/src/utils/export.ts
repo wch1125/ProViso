@@ -225,16 +225,22 @@ export function generateClosingChecklist(
 /**
  * Download content as a file
  */
-export function downloadAsFile(content: string, filename: string, mimeType: string = 'text/plain'): void {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+export function downloadAsFile(content: string, filename: string, mimeType: string = 'text/plain'): boolean {
+  try {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    return true;
+  } catch (err) {
+    console.error('Failed to download file:', err);
+    return false;
+  }
 }
 
 /**

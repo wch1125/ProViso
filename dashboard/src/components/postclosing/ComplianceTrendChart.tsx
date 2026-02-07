@@ -57,7 +57,7 @@ export function ComplianceTrendChart({
     : recentTrend > 0 ? 'improving' : recentTrend < 0 ? 'worsening' : 'stable';
 
   return (
-    <div className={`bg-slate-800 rounded-lg border border-slate-700 p-6 ${className}`}>
+    <div className={`bg-surface-1 rounded-lg border border-border-DEFAULT p-6 ${className}`}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-teal-500/10 rounded-lg">
@@ -65,22 +65,22 @@ export function ComplianceTrendChart({
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white">{covenantName}</h3>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-text-tertiary">
               Threshold: {operator} {threshold.toFixed(2)}x
             </p>
           </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <div className="text-sm text-slate-400">Current</div>
-            <div className={`text-xl font-bold ${latestCompliant ? 'text-green-400' : 'text-red-400'}`}>
+            <div className="text-sm text-text-tertiary">Current</div>
+            <div className={`text-xl font-bold ${latestCompliant ? 'text-success' : 'text-danger'}`}>
               {latestValue.toFixed(2)}x
             </div>
           </div>
           {latestCompliant ? (
-            <CheckCircle className="h-8 w-8 text-green-400" />
+            <CheckCircle className="h-8 w-8 text-success" />
           ) : (
-            <XCircle className="h-8 w-8 text-red-400" />
+            <XCircle className="h-8 w-8 text-danger" />
           )}
         </div>
       </div>
@@ -89,15 +89,15 @@ export function ComplianceTrendChart({
       <div className="flex items-center gap-2 mb-4">
         <span className={`text-sm px-2 py-1 rounded ${
           trendDirection === 'improving'
-            ? 'bg-green-500/10 text-green-400'
+            ? 'bg-success/10 text-success'
             : trendDirection === 'worsening'
-            ? 'bg-red-500/10 text-red-400'
-            : 'bg-slate-700 text-slate-400'
+            ? 'bg-danger/10 text-danger'
+            : 'bg-surface-2 text-text-tertiary'
         }`}>
           {trendDirection === 'improving' ? '↑ Improving' :
            trendDirection === 'worsening' ? '↓ Worsening' : '→ Stable'}
         </span>
-        <span className="text-sm text-slate-400">
+        <span className="text-sm text-text-tertiary">
           over last period
         </span>
       </div>
@@ -175,17 +175,17 @@ export function ComplianceTrendChart({
 
       {/* Period Summary */}
       <div className="mt-4 flex items-center justify-between text-sm">
-        <div className="text-slate-400">
+        <div className="text-text-tertiary">
           {data.filter((d) => d.compliant).length} of {data.length} periods compliant
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-green-400" />
-            <span className="text-slate-400">Compliant</span>
+            <div className="w-3 h-3 rounded-full bg-success" />
+            <span className="text-text-tertiary">Compliant</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-red-400" />
-            <span className="text-slate-400">Breach</span>
+            <div className="w-3 h-3 rounded-full bg-danger" />
+            <span className="text-text-tertiary">Breach</span>
           </div>
         </div>
       </div>

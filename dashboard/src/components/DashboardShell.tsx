@@ -12,9 +12,9 @@ export function DashboardShell({ projectName, facility, currentPhase, children }
   const phaseLabel = currentPhase.charAt(0).toUpperCase() + currentPhase.slice(1);
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-surface-0">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-slate-925/80 backdrop-blur-lg border-b border-slate-800">
+      <header className="sticky top-0 z-50 bg-slate-925/80 backdrop-blur-lg border-b border-border-strong">
         <div className="max-w-[1920px] mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Logo and Title */}
@@ -22,7 +22,7 @@ export function DashboardShell({ projectName, facility, currentPhase, children }
               <div className="flex items-center gap-2">
                 <span className="text-xl font-semibold text-white tracking-tight">Pro<span className="text-blue-500 font-bold">V</span>iso</span>
               </div>
-              <div className="h-8 w-px bg-slate-700" />
+              <div className="h-8 w-px bg-surface-2" />
               <div>
                 <h1 className="text-lg font-medium text-white">{projectName}</h1>
                 <p className="text-sm text-gray-400">{facility}</p>
@@ -58,7 +58,7 @@ export function DashboardShell({ projectName, facility, currentPhase, children }
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800 py-4 mt-8">
+      <footer className="border-t border-border-strong py-4 mt-8">
         <div className="max-w-[1920px] mx-auto px-6">
           <p className="text-center text-sm text-gray-500">
             ProViso v1.0 | Credit agreements as code

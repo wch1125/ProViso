@@ -170,14 +170,14 @@ export function FinancialSubmissionForm({
   };
 
   return (
-    <div className="bg-slate-800 rounded-lg border border-slate-700 p-6">
+    <div className="bg-surface-1 rounded-lg border border-border-DEFAULT p-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 bg-gold-500/10 rounded-lg">
           <DollarSign className="h-5 w-5 text-gold-500" />
         </div>
         <div>
           <h3 className="text-lg font-semibold text-white">Financial Submission</h3>
-          <p className="text-sm text-slate-400">Submit financial data for covenant testing</p>
+          <p className="text-sm text-text-tertiary">Submit financial data for covenant testing</p>
         </div>
       </div>
 
@@ -214,9 +214,9 @@ export function FinancialSubmissionForm({
       </div>
 
       {/* Period End Date Display */}
-      <div className="flex items-center gap-2 mb-6 p-3 bg-slate-700/50 rounded-lg">
-        <Calendar className="h-4 w-4 text-slate-400" />
-        <span className="text-sm text-slate-400">Period End Date:</span>
+      <div className="flex items-center gap-2 mb-6 p-3 bg-surface-2/50 rounded-lg">
+        <Calendar className="h-4 w-4 text-text-tertiary" />
+        <span className="text-sm text-text-tertiary">Period End Date:</span>
         <span className="text-sm text-white font-medium">{getPeriodEndDate()}</span>
       </div>
 
@@ -240,10 +240,10 @@ export function FinancialSubmissionForm({
               placeholder="0"
             />
             {field.helpText && !errors[field.key] && (
-              <p className="mt-1 text-xs text-slate-500">{field.helpText}</p>
+              <p className="mt-1 text-xs text-text-muted">{field.helpText}</p>
             )}
             {errors[field.key] && (
-              <p className="mt-1 text-xs text-red-400">{errors[field.key]}</p>
+              <p className="mt-1 text-xs text-danger">{errors[field.key]}</p>
             )}
           </div>
         ))}
@@ -251,8 +251,8 @@ export function FinancialSubmissionForm({
 
       {/* Validation Errors */}
       {Object.keys(errors).length > 0 && (
-        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-          <div className="flex items-center gap-2 text-red-400">
+        <div className="mb-4 p-3 bg-danger/10 border border-danger/20 rounded-lg">
+          <div className="flex items-center gap-2 text-danger">
             <AlertCircle className="h-4 w-4" />
             <span className="text-sm">Please fix the errors above before submitting</span>
           </div>

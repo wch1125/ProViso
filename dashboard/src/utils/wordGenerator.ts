@@ -509,21 +509,33 @@ function buildFullText(sections: DocumentSection[], metadata: DocumentMetadata):
 /**
  * Copy document text to clipboard with formatting
  */
-export async function copyDocumentToClipboard(doc: GeneratedDocument): Promise<void> {
-  await navigator.clipboard.writeText(doc.fullText);
+export async function copyDocumentToClipboard(doc: GeneratedDocument): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(doc.fullText);
+    return true;
+  } catch (err) {
+    console.error('Failed to copy document to clipboard:', err);
+    return false;
+  }
 }
 
 /**
  * Download document as a text file
  */
-export function downloadDocument(doc: GeneratedDocument, filename: string = 'credit-agreement.txt'): void {
-  const blob = new Blob([doc.fullText], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+export function downloadDocument(doc: GeneratedDocument, filename: string = 'credit-agreement.txt'): boolean {
+  try {
+    const blob = new Blob([doc.fullText], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    return true;
+  } catch (err) {
+    console.error('Failed to download document:', err);
+    return false;
+  }
 }

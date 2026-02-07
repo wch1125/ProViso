@@ -256,10 +256,14 @@ export function MonitoringDashboard() {
 
   // Download current ProViso code as .proviso file
   const handleDownloadCode = () => {
-    const codeToExport = contextCode || currentCode;
-    const projectName = dashboardData?.project.name || 'agreement';
-    const sanitized = projectName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
-    downloadAsFile(codeToExport, `${sanitized}.proviso`, 'text/plain');
+    try {
+      const codeToExport = contextCode || currentCode;
+      const projectName = dashboardData?.project.name || 'agreement';
+      const sanitized = projectName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+      downloadAsFile(codeToExport, `${sanitized}.proviso`, 'text/plain');
+    } catch (err) {
+      console.error('Failed to download code:', err);
+    }
   };
 
   // Loading state - also show loading when dealId changes

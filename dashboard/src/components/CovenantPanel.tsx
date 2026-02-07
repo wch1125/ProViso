@@ -79,7 +79,7 @@ export function CovenantPanel({ covenants, showNarratives = true, showCodeButton
           <span className="flex items-center gap-2">
             <span>{activeCovenants.filter(c => c.compliant).length}/{activeCovenants.length} passing</span>
             {warningCount > 0 && (
-              <span className="text-amber-400 text-xs">
+              <span className="text-warning text-xs">
                 ({warningCount} approaching threshold)
               </span>
             )}
@@ -192,7 +192,7 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
     : zone === 'breach'
     ? 'text-danger'
     : zone === 'danger'
-    ? 'text-orange-500'
+    ? 'text-warning'
     : zone === 'caution'
     ? 'text-warning'
     : 'text-success';
@@ -228,7 +228,7 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
                 <span className="text-xs text-warning font-medium">80%+</span>
               )}
               {!suspended && zone === 'danger' && (
-                <span className="text-xs text-orange-400 font-medium animate-pulse">90%+</span>
+                <span className="text-xs text-warning font-medium animate-pulse">90%+</span>
               )}
             </div>
           </div>
@@ -244,7 +244,7 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
                     : zone === 'breach'
                     ? 'text-danger'
                     : zone === 'danger'
-                    ? 'text-orange-400'
+                    ? 'text-warning'
                     : zone === 'caution'
                     ? 'text-warning'
                     : 'text-industry-textPrimary'
@@ -262,7 +262,7 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
                   zone === 'breach'
                     ? 'text-danger'
                     : zone === 'danger'
-                    ? 'text-orange-400'
+                    ? 'text-warning'
                     : zone === 'caution'
                     ? 'text-warning'
                     : 'text-success'
@@ -288,7 +288,7 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
                 title="Caution zone (80%)"
               />
               <div
-                className="absolute top-0 bottom-0 w-px bg-orange-500/30"
+                className="absolute top-0 bottom-0 w-px bg-warning/30"
                 style={{ left: '90%' }}
                 title="Danger zone (90%)"
               />
@@ -350,7 +350,7 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
             {onRequestCure && (
               <button
                 onClick={() => onRequestCure(covenant)}
-                className="text-xs px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                className="text-xs px-2.5 py-1 rounded-md bg-success/10 text-success hover:bg-success/20 transition-colors"
               >
                 Cure
               </button>
@@ -358,7 +358,7 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
             {onRequestWaiver && (
               <button
                 onClick={() => onRequestWaiver(covenant)}
-                className="text-xs px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors"
+                className="text-xs px-2.5 py-1 rounded-md bg-warning/10 text-warning hover:bg-warning/20 transition-colors"
               >
                 Request Waiver
               </button>

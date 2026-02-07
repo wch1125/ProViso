@@ -124,15 +124,15 @@
   }
 
   .status-badge-compliant {
-    @apply bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20;
+    @apply bg-success/10 text-success ring-1 ring-success/20;
   }
 
   .status-badge-breach {
-    @apply bg-red-500/10 text-red-400 ring-1 ring-red-500/20;
+    @apply bg-danger/10 text-danger ring-1 ring-danger/20;
   }
 
   .status-badge-warning {
-    @apply bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20;
+    @apply bg-warning/10 text-warning ring-1 ring-warning/20;
   }
 
   .status-badge-suspended {
@@ -140,7 +140,7 @@
   }
 
   .status-badge-pending {
-    @apply bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20;
+    @apply bg-info/10 text-info ring-1 ring-info/20;
   }
 
   /* Metrics */

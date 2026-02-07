@@ -68,7 +68,7 @@ export function CollapsibleCard({
         onClick={handleToggle}
         className={`w-full text-left px-5 py-4 flex items-center justify-between ${
           forceExpanded && isExpanded ? 'cursor-default' : 'cursor-pointer hover:bg-industry-cardBgHover/50'
-        } transition-colors rounded-t-xl ${!isExpanded ? 'rounded-b-xl' : ''}`}
+        } transition-colors rounded-t-xl ${!isExpanded ? 'rounded-b-xl' : ''} focus:outline-none focus:ring-2 focus:ring-industry-primary focus:ring-offset-2`}
         disabled={forceExpanded && isExpanded}
         aria-expanded={isExpanded}
       >

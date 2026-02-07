@@ -45,7 +45,7 @@ export function PerformanceChart({ guarantees, degradation, title = "Performance
     switch (level) {
       case 'p50': return 'text-success';
       case 'p75': return 'text-green-400';
-      case 'p90': return 'text-yellow-400';
+      case 'p90': return 'text-warning';
       case 'p99': return 'text-warning';
       default: return 'text-danger';
     }
@@ -55,7 +55,7 @@ export function PerformanceChart({ guarantees, degradation, title = "Performance
     switch (level) {
       case 'p50': return 'bg-success/10 border-success/30';
       case 'p75': return 'bg-green-500/10 border-green-500/30';
-      case 'p90': return 'bg-yellow-500/10 border-yellow-500/30';
+      case 'p90': return 'bg-warning/10 border-warning/30';
       case 'p99': return 'bg-warning/10 border-warning/30';
       default: return 'bg-danger/10 border-danger/30';
     }

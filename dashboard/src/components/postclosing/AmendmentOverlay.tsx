@@ -326,9 +326,13 @@ export function AmendmentOverlay({
 
   // Copy amendment code
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(amendmentCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(amendmentCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
   };
 
   // Generate and close

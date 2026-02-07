@@ -95,16 +95,16 @@ export function DataTable<T>({
   };
 
   return (
-    <div className="w-full overflow-hidden rounded-lg border border-slate-700">
+    <div className="w-full overflow-hidden rounded-lg border border-border-DEFAULT">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className={`bg-slate-800 ${stickyHeader ? 'sticky top-0' : ''}`}>
+          <thead className={`bg-surface-1 ${stickyHeader ? 'sticky top-0' : ''}`}>
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
                   className={`
-                    px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider
+                    px-4 py-3 text-xs font-semibold text-text-tertiary uppercase tracking-wider
                     ${alignStyles[column.align || 'left']}
                     ${column.sortable ? 'cursor-pointer hover:text-white select-none' : ''}
                     ${column.width || ''}
@@ -125,12 +125,12 @@ export function DataTable<T>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700">
+          <tbody className="divide-y divide-border-DEFAULT">
             {loading ? (
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="px-4 py-8 text-center text-slate-400"
+                  className="px-4 py-8 text-center text-text-tertiary"
                 >
                   <div className="flex items-center justify-center gap-2">
                     <svg
@@ -161,7 +161,7 @@ export function DataTable<T>({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="px-4 py-8 text-center text-slate-400"
+                  className="px-4 py-8 text-center text-text-tertiary"
                 >
                   {emptyMessage}
                 </td>
@@ -179,7 +179,7 @@ export function DataTable<T>({
                       ${onRowClick ? 'cursor-pointer' : ''}
                       ${isSelected
                         ? 'bg-accent-500/10 hover:bg-accent-500/20'
-                        : 'hover:bg-slate-800/50'
+                        : 'hover:bg-surface-1/50'
                       }
                     `}
                     onClick={() => onRowClick?.(row)}
@@ -188,7 +188,7 @@ export function DataTable<T>({
                       <td
                         key={column.key}
                         className={`
-                          px-4 py-3 text-sm text-slate-300
+                          px-4 py-3 text-sm text-text-secondary
                           ${alignStyles[column.align || 'left']}
                           ${column.width || ''}
                         `}
@@ -206,8 +206,8 @@ export function DataTable<T>({
 
       {/* Pagination */}
       {showPagination && totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-slate-700 bg-slate-800/50">
-          <p className="text-sm text-slate-400">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-border-DEFAULT bg-surface-1/50">
+          <p className="text-sm text-text-tertiary">
             Showing {((currentPage - 1) * pageSize) + 1} to{' '}
             {Math.min(currentPage * pageSize, sortedData.length)} of{' '}
             {sortedData.length} results
@@ -219,7 +219,7 @@ export function DataTable<T>({
               onClick={() => setCurrentPage((p) => p - 1)}
               className="
                 p-1.5 rounded-lg
-                text-slate-400 hover:text-white hover:bg-slate-700
+                text-text-tertiary hover:text-white hover:bg-surface-2
                 disabled:opacity-50 disabled:cursor-not-allowed
                 transition-colors
               "
@@ -227,7 +227,7 @@ export function DataTable<T>({
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <span className="text-sm text-slate-300">
+            <span className="text-sm text-text-secondary">
               Page {currentPage} of {totalPages}
             </span>
             <button
@@ -236,7 +236,7 @@ export function DataTable<T>({
               onClick={() => setCurrentPage((p) => p + 1)}
               className="
                 p-1.5 rounded-lg
-                text-slate-400 hover:text-white hover:bg-slate-700
+                text-text-tertiary hover:text-white hover:bg-surface-2
                 disabled:opacity-50 disabled:cursor-not-allowed
                 transition-colors
               "

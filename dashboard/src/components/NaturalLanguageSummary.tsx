@@ -15,12 +15,12 @@ import { useState } from 'react';
 type StatusType = 'compliant' | 'breach' | 'cured' | 'suspended' | 'at_risk' | 'achieved' | 'pending';
 
 const statusColors: Record<StatusType, string> = {
-  compliant: 'text-emerald-400 font-semibold',
-  breach: 'text-red-400 font-semibold',
-  cured: 'text-amber-400 font-semibold',
+  compliant: 'text-success font-semibold',
+  breach: 'text-danger font-semibold',
+  cured: 'text-warning font-semibold',
   suspended: 'text-gray-400 font-semibold',
-  at_risk: 'text-amber-400 font-semibold',
-  achieved: 'text-emerald-400 font-semibold',
+  at_risk: 'text-warning font-semibold',
+  achieved: 'text-success font-semibold',
   pending: 'text-gray-400 font-semibold',
 };
 
@@ -305,11 +305,11 @@ interface SummaryWithIconProps {
 }
 
 const statusBgColors: Record<string, string> = {
-  success: 'bg-emerald-500/10 border-emerald-500/20',
-  warning: 'bg-amber-500/10 border-amber-500/20',
-  error: 'bg-red-500/10 border-red-500/20',
-  info: 'bg-blue-500/10 border-blue-500/20',
-  muted: 'bg-slate-500/10 border-slate-500/20',
+  success: 'bg-success/10 border-success/20',
+  warning: 'bg-warning/10 border-warning/20',
+  error: 'bg-danger/10 border-danger/20',
+  info: 'bg-info/10 border-info/20',
+  muted: 'bg-text-muted/10 border-text-muted/20',
 };
 
 export function SummaryWithIcon({

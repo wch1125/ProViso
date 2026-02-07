@@ -156,7 +156,7 @@ export function ActivityFeed({
         {onClear && activities.length > 0 && (
           <button
             onClick={onClear}
-            className="text-xs text-text-tertiary hover:text-text-primary transition-colors"
+            className="text-xs text-text-tertiary hover:text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-industry-primary focus:ring-offset-2"
           >
             Clear
           </button>
@@ -208,7 +208,7 @@ export function CollapsibleActivityFeed({
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-3/30 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-3/30 transition-colors focus:outline-none focus:ring-2 focus:ring-industry-primary focus:ring-offset-2"
       >
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-text-tertiary" />
@@ -280,14 +280,14 @@ export function ActivityPanel({ isOpen, onClose, activities, onClear }: Activity
             {onClear && activities.length > 0 && (
               <button
                 onClick={onClear}
-                className="text-xs text-text-tertiary hover:text-text-primary px-2 py-1 rounded hover:bg-surface-2 transition-colors"
+                className="text-xs text-text-tertiary hover:text-text-primary px-2 py-1 rounded hover:bg-surface-2 transition-colors focus:outline-none focus:ring-2 focus:ring-industry-primary focus:ring-offset-2"
               >
                 Clear all
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-1 rounded-lg text-text-tertiary hover:text-text-primary hover:bg-surface-2 transition-colors"
+              className="p-1 rounded-lg text-text-tertiary hover:text-text-primary hover:bg-surface-2 transition-colors focus:outline-none focus:ring-2 focus:ring-industry-primary focus:ring-offset-2"
             >
               <X className="w-5 h-5" />
             </button>

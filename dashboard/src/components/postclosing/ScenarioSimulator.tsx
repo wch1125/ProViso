@@ -172,16 +172,16 @@ export function ScenarioSimulator({
   }));
 
   return (
-    <div className={`bg-slate-800 rounded-lg border border-slate-700 ${className}`}>
+    <div className={`bg-surface-1 rounded-lg border border-border-DEFAULT ${className}`}>
       {/* Header */}
-      <div className="p-6 border-b border-slate-700">
+      <div className="p-6 border-b border-border-DEFAULT">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-purple-500/10 rounded-lg">
             <Calculator className="h-5 w-5 text-purple-400" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white">Scenario Simulator</h3>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-text-tertiary">
               Test "what if" scenarios on covenant compliance
             </p>
           </div>
@@ -189,8 +189,8 @@ export function ScenarioSimulator({
       </div>
 
       {/* Adjustments */}
-      <div className="p-6 border-b border-slate-700">
-        <h4 className="text-sm font-medium text-slate-400 mb-4">Adjustments</h4>
+      <div className="p-6 border-b border-border-DEFAULT">
+        <h4 className="text-sm font-medium text-text-tertiary mb-4">Adjustments</h4>
         <div className="space-y-3">
           {adjustments.map((adj, index) => (
             <div key={index} className="flex items-end gap-3">
@@ -222,7 +222,7 @@ export function ScenarioSimulator({
               {adjustments.length > 1 && (
                 <button
                   onClick={() => handleRemoveAdjustment(index)}
-                  className="p-2 text-slate-400 hover:text-red-400 transition-colors"
+                  className="p-2 text-text-tertiary hover:text-danger transition-colors"
                 >
                   ×
                 </button>
@@ -256,19 +256,19 @@ export function ScenarioSimulator({
         <div className="p-6">
           {/* Overall Status */}
           <div className={`mb-6 p-4 rounded-lg ${
-            allCompliant ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'
+            allCompliant ? 'bg-success/10 border border-success/20' : 'bg-danger/10 border border-danger/20'
           }`}>
             <div className="flex items-center gap-3">
               {allCompliant ? (
-                <CheckCircle className="h-6 w-6 text-green-400" />
+                <CheckCircle className="h-6 w-6 text-success" />
               ) : (
-                <AlertTriangle className="h-6 w-6 text-red-400" />
+                <AlertTriangle className="h-6 w-6 text-danger" />
               )}
               <div>
-                <div className={`font-semibold ${allCompliant ? 'text-green-400' : 'text-red-400'}`}>
+                <div className={`font-semibold ${allCompliant ? 'text-success' : 'text-danger'}`}>
                   {allCompliant ? 'All Covenants Pass' : 'Covenant Breach Detected'}
                 </div>
-                <div className="text-sm text-slate-400">
+                <div className="text-sm text-text-tertiary">
                   {scenarioResults.filter((c) => c.compliant).length} of {scenarioResults.length} covenants compliant under this scenario
                 </div>
               </div>
@@ -276,7 +276,7 @@ export function ScenarioSimulator({
           </div>
 
           {/* Adjusted Values */}
-          <h4 className="text-sm font-medium text-slate-400 mb-3">Adjusted Financials</h4>
+          <h4 className="text-sm font-medium text-text-tertiary mb-3">Adjusted Financials</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {fields.map((field) => {
               const baseline = baselineFinancials[field.key] ?? 0;
@@ -285,11 +285,11 @@ export function ScenarioSimulator({
               const changePercent = baseline !== 0 ? (change / baseline) * 100 : 0;
 
               return (
-                <div key={field.key} className="bg-slate-700/50 rounded-lg p-3">
-                  <div className="text-xs text-slate-400 mb-1">{field.label}</div>
+                <div key={field.key} className="bg-surface-2/50 rounded-lg p-3">
+                  <div className="text-xs text-text-tertiary mb-1">{field.label}</div>
                   <div className="text-white font-medium">{formatCurrency(adjusted)}</div>
                   {change !== 0 && (
-                    <div className={`text-xs ${change > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    <div className={`text-xs ${change > 0 ? 'text-success' : 'text-danger'}`}>
                       {change > 0 ? '+' : ''}{changePercent.toFixed(1)}%
                     </div>
                   )}
@@ -299,7 +299,7 @@ export function ScenarioSimulator({
           </div>
 
           {/* Covenant Impact */}
-          <h4 className="text-sm font-medium text-slate-400 mb-3">Covenant Impact</h4>
+          <h4 className="text-sm font-medium text-text-tertiary mb-3">Covenant Impact</h4>
           <div className="space-y-3">
             {comparison.map((c) => {
               if (!c) return null;
@@ -309,42 +309,42 @@ export function ScenarioSimulator({
                   key={c.name}
                   className={`p-4 rounded-lg border ${
                     c.scenarioCompliant
-                      ? 'bg-slate-700/30 border-slate-600'
-                      : 'bg-red-500/10 border-red-500/20'
+                      ? 'bg-surface-2/30 border-border-strong'
+                      : 'bg-danger/10 border-danger/20'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {c.impactType === 'improved' ? (
-                        <TrendingUp className="h-4 w-4 text-green-400" />
+                        <TrendingUp className="h-4 w-4 text-success" />
                       ) : c.impactType === 'worsened' ? (
-                        <TrendingDown className="h-4 w-4 text-red-400" />
+                        <TrendingDown className="h-4 w-4 text-danger" />
                       ) : (
-                        <Minus className="h-4 w-4 text-slate-400" />
+                        <Minus className="h-4 w-4 text-text-tertiary" />
                       )}
                       <div>
                         <div className="text-white font-medium">{c.name}</div>
-                        <div className="text-sm text-slate-400">
+                        <div className="text-sm text-text-tertiary">
                           Threshold: {c.threshold.toFixed(2)}x
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="flex items-center gap-3">
-                        <div className="text-slate-400">
+                        <div className="text-text-tertiary">
                           {c.baselineActual.toFixed(2)}x
                         </div>
-                        <span className="text-slate-500">→</span>
-                        <div className={c.scenarioCompliant ? 'text-green-400' : 'text-red-400'}>
+                        <span className="text-text-muted">→</span>
+                        <div className={c.scenarioCompliant ? 'text-success' : 'text-danger'}>
                           {c.scenarioActual.toFixed(2)}x
                         </div>
                       </div>
                       <div className={`text-sm ${
                         c.impactType === 'improved'
-                          ? 'text-green-400'
+                          ? 'text-success'
                           : c.impactType === 'worsened'
-                          ? 'text-red-400'
-                          : 'text-slate-400'
+                          ? 'text-danger'
+                          : 'text-text-tertiary'
                       }`}>
                         {c.change > 0 ? '+' : ''}{c.changePercent.toFixed(1)}%
                       </div>

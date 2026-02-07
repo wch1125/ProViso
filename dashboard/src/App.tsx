@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState, useEffect, useMemo, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { ProVisoProvider, ClosingProvider, DealProvider, IndustryThemeProvider, useProViso } from './context';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { LoadingScreen } from './components/landing';
 import { transformCPChecklistsToConditions, mergeLiveWithDemoConditions } from './utils/cpTransformer';
 import { getScenarioById } from './data/demo-scenarios';
@@ -8,6 +9,7 @@ import { getScenarioById } from './data/demo-scenarios';
 // Lazy-loaded page components for code splitting
 const Landing = lazy(() => import('./pages/Landing'));
 const About = lazy(() => import('./pages/About'));
+const Legal = lazy(() => import('./pages/Legal'));
 const GuidedDemo = lazy(() => import('./pages/demo/GuidedDemo'));
 const DealList = lazy(() => import('./pages/deals/DealList'));
 const NegotiationStudio = lazy(() => import('./pages/negotiation/NegotiationStudio'));
@@ -96,6 +98,7 @@ function App() {
   };
 
   return (
+    <ErrorBoundary>
     <DealProvider>
       <ProVisoProvider>
         <BrowserRouter>
@@ -116,6 +119,9 @@ function App() {
                 {/* About page - value proposition */}
                 <Route path="/about" element={<About />} />
 
+                {/* Legal page - terms and privacy */}
+                <Route path="/legal" element={<Legal />} />
+
                 {/* Interactive guided demo */}
                 <Route path="/demo" element={<GuidedDemo />} />
 
@@ -135,6 +141,7 @@ function App() {
         </BrowserRouter>
       </ProVisoProvider>
     </DealProvider>
+    </ErrorBoundary>
   );
 }
 

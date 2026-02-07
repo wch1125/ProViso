@@ -106,7 +106,7 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
                   {!allCompliant ? (
                     <XCircle className="w-6 h-6 text-danger" />
                   ) : alertSummary.dangerCount > 0 ? (
-                    <AlertCircle className="w-6 h-6 text-orange-500 animate-pulse" />
+                    <AlertCircle className="w-6 h-6 text-warning animate-pulse" />
                   ) : alertSummary.cautionCount > 0 ? (
                     <AlertTriangle className="w-6 h-6 text-warning" />
                   ) : (
@@ -116,7 +116,7 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
                     !allCompliant
                       ? 'text-danger'
                       : alertSummary.dangerCount > 0
-                      ? 'text-orange-400'
+                      ? 'text-warning'
                       : alertSummary.cautionCount > 0
                       ? 'text-warning'
                       : 'text-success'
@@ -299,13 +299,13 @@ function AlertBanner({ allCompliant, alertSummary, milestonesAtRisk, hasBlockedD
   const bgColor = severity === 'critical'
     ? 'bg-danger/5 border-danger/20'
     : severity === 'warning'
-    ? 'bg-orange-500/5 border-orange-500/20'
+    ? 'bg-warning/5 border-warning/20'
     : 'bg-warning/5 border-warning/20';
 
   const textColor = severity === 'critical'
     ? 'text-danger'
     : severity === 'warning'
-    ? 'text-orange-400'
+    ? 'text-warning'
     : 'text-warning';
 
   const Icon = severity === 'critical'

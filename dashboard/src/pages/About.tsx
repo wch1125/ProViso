@@ -76,7 +76,7 @@ export function About() {
             style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}
           >
             <Link
-              to="/"
+              to="/demo"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gold-600 hover:bg-gold-500 text-navy-900 font-medium rounded-lg transition-colors"
             >
               Explore the Demo
@@ -228,15 +228,15 @@ BASKET PermittedAcquisitions
               </p>
               <ul className="space-y-2 text-sm text-text-tertiary">
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-4 h-4 text-success" />
                   Version control with full history
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-4 h-4 text-success" />
                   Form-based covenant/basket editing
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-4 h-4 text-success" />
                   Word document generation
                 </li>
               </ul>
@@ -262,15 +262,15 @@ BASKET PermittedAcquisitions
               </p>
               <ul className="space-y-2 text-sm text-text-tertiary">
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-4 h-4 text-success" />
                   CP checklist by category
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-4 h-4 text-success" />
                   Document and signature tracking
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-4 h-4 text-success" />
                   Readiness meter and countdown
                 </li>
               </ul>
@@ -296,15 +296,15 @@ BASKET PermittedAcquisitions
               </p>
               <ul className="space-y-2 text-sm text-text-tertiary">
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-4 h-4 text-success" />
                   Real-time covenant compliance
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-4 h-4 text-success" />
                   Waterfall and reserve tracking
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-4 h-4 text-success" />
                   "What if" scenario simulator
                 </li>
               </ul>
@@ -416,7 +416,7 @@ BASKET PermittedAcquisitions
             Try the interactive demo with realistic project finance and corporate lending scenarios.
           </p>
           <Link
-            to="/"
+            to="/demo"
             className="inline-flex items-center gap-2 px-8 py-4 bg-gold-600 hover:bg-gold-500 text-navy-900 font-medium rounded-lg transition-colors text-lg"
           >
             Launch Demo

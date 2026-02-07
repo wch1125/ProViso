@@ -309,15 +309,23 @@ export function BasketEditor({
   };
 
   const handleCopyCode = async () => {
-    await navigator.clipboard.writeText(generatedCode);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
+    try {
+      await navigator.clipboard.writeText(generatedCode);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
   };
 
   const handleCopyProse = async () => {
-    await navigator.clipboard.writeText(generatedProse);
-    setCopiedProse(true);
-    setTimeout(() => setCopiedProse(false), 2000);
+    try {
+      await navigator.clipboard.writeText(generatedProse);
+      setCopiedProse(true);
+      setTimeout(() => setCopiedProse(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
   };
 
   const handleSave = () => {

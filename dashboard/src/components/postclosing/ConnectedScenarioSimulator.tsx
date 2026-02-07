@@ -106,8 +106,8 @@ export function ConnectedScenarioSimulator({
   // Don't render if not loaded or no fields
   if (!isLoaded || fields.length === 0) {
     return (
-      <div className={`bg-slate-800 rounded-lg border border-slate-700 p-6 ${className}`}>
-        <div className="text-center text-slate-400">
+      <div className={`bg-surface-1 rounded-lg border border-border-DEFAULT p-6 ${className}`}>
+        <div className="text-center text-text-tertiary">
           <p>Load financial data to use the Scenario Simulator</p>
         </div>
       </div>

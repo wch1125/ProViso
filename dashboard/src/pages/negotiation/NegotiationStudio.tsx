@@ -306,9 +306,11 @@ export function NegotiationStudio() {
 
   const handleCopyWord = async () => {
     if (generatedDocument) {
-      await copyDocumentToClipboard(generatedDocument);
-      setCopiedWord(true);
-      setTimeout(() => setCopiedWord(false), 2000);
+      const success = await copyDocumentToClipboard(generatedDocument);
+      if (success) {
+        setCopiedWord(true);
+        setTimeout(() => setCopiedWord(false), 2000);
+      }
     }
   };
 
@@ -353,8 +355,8 @@ export function NegotiationStudio() {
                 : 'text-danger bg-danger/10'
             }`} title={compileStatus.ok ? 'Code compiles' : compileStatus.errors.join('; ')}>
               {compileStatus.ok
-                ? <><Check className="w-3.5 h-3.5" /> Valid</>
-                : <><AlertCircle className="w-3.5 h-3.5" /> {compileStatus.errors.length} error{compileStatus.errors.length !== 1 ? 's' : ''}</>
+                ? <><Check className="w-4 h-4" /> Valid</>
+                : <><AlertCircle className="w-4 h-4" /> {compileStatus.errors.length} error{compileStatus.errors.length !== 1 ? 's' : ''}</>
               }
             </span>
           )}

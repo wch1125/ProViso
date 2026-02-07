@@ -193,9 +193,13 @@ export function WaiverRequestPortal({
 
   // Copy narrative to clipboard
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(narrative);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(narrative);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
   };
 
   // Submit waiver request

@@ -63,17 +63,17 @@ const getStatusBadge = (status: DrawRequest['status']) => {
 const getStatusIcon = (status: DrawRequest['status']) => {
   switch (status) {
     case 'draft':
-      return <FileText className="h-4 w-4 text-slate-400" />;
+      return <FileText className="h-4 w-4 text-text-tertiary" />;
     case 'submitted':
     case 'under_review':
-      return <Clock className="h-4 w-4 text-amber-400" />;
+      return <Clock className="h-4 w-4 text-warning" />;
     case 'approved':
     case 'funded':
-      return <CheckCircle className="h-4 w-4 text-green-400" />;
+      return <CheckCircle className="h-4 w-4 text-success" />;
     case 'rejected':
-      return <XCircle className="h-4 w-4 text-red-400" />;
+      return <XCircle className="h-4 w-4 text-danger" />;
     default:
-      return <AlertCircle className="h-4 w-4 text-slate-400" />;
+      return <AlertCircle className="h-4 w-4 text-text-tertiary" />;
   }
 };
 
@@ -90,9 +90,9 @@ export function DrawRequestList({
   ).length;
 
   return (
-    <div className={`bg-slate-800 rounded-lg border border-slate-700 ${className}`}>
+    <div className={`bg-surface-1 rounded-lg border border-border-DEFAULT ${className}`}>
       {/* Header */}
-      <div className="p-6 border-b border-slate-700">
+      <div className="p-6 border-b border-border-DEFAULT">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gold-500/10 rounded-lg">
@@ -100,32 +100,32 @@ export function DrawRequestList({
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white">Draw Requests</h3>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-text-tertiary">
                 {requests.length} request{requests.length !== 1 ? 's' : ''} total
               </p>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <div className="text-sm text-slate-400">Requested</div>
+              <div className="text-sm text-text-tertiary">Requested</div>
               <div className="text-lg font-semibold text-white">{formatCurrency(totalRequested)}</div>
             </div>
             <div>
-              <div className="text-sm text-slate-400">Funded</div>
-              <div className="text-lg font-semibold text-green-400">{formatCurrency(totalFunded)}</div>
+              <div className="text-sm text-text-tertiary">Funded</div>
+              <div className="text-lg font-semibold text-success">{formatCurrency(totalFunded)}</div>
             </div>
             <div>
-              <div className="text-sm text-slate-400">Pending</div>
-              <div className="text-lg font-semibold text-amber-400">{pendingCount}</div>
+              <div className="text-sm text-text-tertiary">Pending</div>
+              <div className="text-lg font-semibold text-warning">{pendingCount}</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Request List */}
-      <div className="divide-y divide-slate-700">
+      <div className="divide-y divide-border-DEFAULT">
         {requests.length === 0 ? (
-          <div className="p-8 text-center text-slate-400">
+          <div className="p-8 text-center text-text-tertiary">
             No draw requests yet
           </div>
         ) : (
@@ -138,7 +138,7 @@ export function DrawRequestList({
             return (
               <div
                 key={request.id}
-                className="p-4 hover:bg-slate-700/50 transition-colors cursor-pointer"
+                className="p-4 hover:bg-surface-2/50 transition-colors cursor-pointer"
                 onClick={() => onViewDetails?.(request.id)}
               >
                 <div className="flex items-center justify-between">
@@ -153,7 +153,7 @@ export function DrawRequestList({
                           {statusConfig.label}
                         </Badge>
                       </div>
-                      <div className="text-sm text-slate-400 mt-1">
+                      <div className="text-sm text-text-tertiary mt-1">
                         Requested: {formatDate(request.requestedAt)}
                         {request.approvedAt && ` • Approved: ${formatDate(request.approvedAt)}`}
                         {request.fundedAt && ` • Funded: ${formatDate(request.fundedAt)}`}
@@ -165,12 +165,12 @@ export function DrawRequestList({
                       {formatCurrency(request.requestedAmount)}
                     </div>
                     {request.fundedAmount && request.fundedAmount !== request.requestedAmount && (
-                      <div className="text-sm text-green-400">
+                      <div className="text-sm text-success">
                         Funded: {formatCurrency(request.fundedAmount)}
                       </div>
                     )}
                     {request.conditions.length > 0 && (
-                      <div className="text-sm text-slate-400 mt-1">
+                      <div className="text-sm text-text-tertiary mt-1">
                         {conditionsSatisfied}/{request.conditions.length} conditions met
                       </div>
                     )}
@@ -198,7 +198,7 @@ export function DrawRequestList({
                             e.stopPropagation();
                             onAction(request.id, 'approve');
                           }}
-                          className="px-3 py-1 text-sm bg-green-500/10 text-green-400 rounded hover:bg-green-500/20 transition-colors"
+                          className="px-3 py-1 text-sm bg-success/10 text-success rounded hover:bg-success/20 transition-colors"
                         >
                           Approve
                         </button>
@@ -207,7 +207,7 @@ export function DrawRequestList({
                             e.stopPropagation();
                             onAction(request.id, 'reject');
                           }}
-                          className="px-3 py-1 text-sm bg-red-500/10 text-red-400 rounded hover:bg-red-500/20 transition-colors"
+                          className="px-3 py-1 text-sm bg-danger/10 text-danger rounded hover:bg-danger/20 transition-colors"
                         >
                           Reject
                         </button>

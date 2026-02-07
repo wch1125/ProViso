@@ -137,7 +137,7 @@ DEFINE EBITDA AS (
   + InterestExpense
   + TaxExpense
   + DepreciationAmortization
-  + StockBasedComp        // Added per Borrower
+  + StockBasedComp
 ) EXCLUDING extraordinary_items
 
 DEFINE TotalDebt AS SeniorDebt + SubordinatedDebt
@@ -145,19 +145,19 @@ DEFINE TotalDebt AS SeniorDebt + SubordinatedDebt
 DEFINE Leverage AS TotalDebt / EBITDA
 
 COVENANT MaxLeverage
-  REQUIRES Leverage <= 5.25      // Increased from 5.00
+  REQUIRES Leverage <= 5.25
   TESTED QUARTERLY
   CURE EquityCure MAX_USES 2 OVER trailing_4_quarters MAX_AMOUNT $25_000_000
 
 COVENANT MinInterestCoverage
-  REQUIRES EBITDA / InterestExpense >= 2.25    // Decreased from 2.50
+  REQUIRES EBITDA / InterestExpense >= 2.25
   TESTED QUARTERLY
 
 BASKET GeneralInvestments
-  CAPACITY GreaterOf($35_000_000, 15% * EBITDA)   // Increased from $25M/10%
+  CAPACITY GreaterOf($35_000_000, 15% * EBITDA)
 
 BASKET PermittedAcquisitions
-  CAPACITY $75_000_000    // Increased from $50M
+  CAPACITY $75_000_000
   SUBJECT TO ProFormaCompliance
 `;
 
@@ -169,28 +169,28 @@ DEFINE EBITDA AS (
   + InterestExpense
   + TaxExpense
   + DepreciationAmortization
-  + StockBasedComp        // Accepted
+  + StockBasedComp
 ) EXCLUDING extraordinary_items
-  CAPPED AT $5_000_000   // Added cap on StockBasedComp
+  CAPPED AT $5_000_000
 
 DEFINE TotalDebt AS SeniorDebt + SubordinatedDebt
 
 DEFINE Leverage AS TotalDebt / EBITDA
 
 COVENANT MaxLeverage
-  REQUIRES Leverage <= 4.75   // Tightened from 5.00 (was step-down, now flat)
+  REQUIRES Leverage <= 4.75
   TESTED QUARTERLY
-  CURE EquityCure MAX_USES 2 OVER trailing_4_quarters MAX_AMOUNT $20_000_000  // Reduced max
+  CURE EquityCure MAX_USES 2 OVER trailing_4_quarters MAX_AMOUNT $20_000_000
 
 COVENANT MinInterestCoverage
-  REQUIRES EBITDA / InterestExpense >= 2.25    // Accepted
+  REQUIRES EBITDA / InterestExpense >= 2.25
   TESTED QUARTERLY
 
 BASKET GeneralInvestments
-  CAPACITY GreaterOf($30_000_000, 12.5% * EBITDA)   // Compromise
+  CAPACITY GreaterOf($30_000_000, 12.5% * EBITDA)
 
 BASKET PermittedAcquisitions
-  CAPACITY $60_000_000    // Compromise from $50M/$75M
+  CAPACITY $60_000_000
   SUBJECT TO ProFormaCompliance
 `;
 
