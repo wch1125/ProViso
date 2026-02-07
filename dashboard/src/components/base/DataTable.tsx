@@ -96,7 +96,10 @@ export function DataTable<T>({
 
   return (
     <div className="w-full overflow-hidden rounded-lg border border-border-DEFAULT">
+      <div className="relative">
       <div className="overflow-x-auto">
+      {/* Right-edge scroll hint gradient — mobile only */}
+      <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-surface-1 to-transparent sm:hidden z-10" />
         <table className="w-full">
           <thead className={`bg-surface-1 ${stickyHeader ? 'sticky top-0' : ''}`}>
             <tr>
@@ -203,6 +206,7 @@ export function DataTable<T>({
           </tbody>
         </table>
       </div>
+      </div>
 
       {/* Pagination */}
       {showPagination && totalPages > 1 && (
@@ -218,7 +222,7 @@ export function DataTable<T>({
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => p - 1)}
               className="
-                p-1.5 rounded-lg
+                p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg
                 text-text-tertiary hover:text-white hover:bg-surface-2
                 disabled:opacity-50 disabled:cursor-not-allowed
                 transition-colors
@@ -228,14 +232,14 @@ export function DataTable<T>({
               <ChevronLeft className="h-5 w-5" />
             </button>
             <span className="text-sm text-text-secondary">
-              Page {currentPage} of {totalPages}
+              <span className="hidden sm:inline">Page </span>{currentPage} of {totalPages}
             </span>
             <button
               type="button"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => p + 1)}
               className="
-                p-1.5 rounded-lg
+                p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg
                 text-text-tertiary hover:text-white hover:bg-surface-2
                 disabled:opacity-50 disabled:cursor-not-allowed
                 transition-colors

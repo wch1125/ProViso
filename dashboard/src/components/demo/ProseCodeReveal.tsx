@@ -28,7 +28,7 @@ export function ProseCodeReveal() {
   return (
     <div className="flex flex-col h-full">
       {/* Two-column layout */}
-      <div className="flex-1 grid grid-cols-2 gap-4 min-h-0">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 min-h-0">
         {/* Legal Prose Side */}
         <div
           className={`

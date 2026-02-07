@@ -52,7 +52,7 @@ export function Hero({ onSelectIndustry }: HeroProps) {
         relative overflow-hidden
         bg-gradient-to-br from-navy-600 via-navy-700 to-navy-800
         min-h-[80vh] flex items-center
-        px-6 py-20
+        px-4 sm:px-6 py-12 sm:py-20
       "
     >
       {/* Subtle grid pattern overlay */}
@@ -74,7 +74,7 @@ export function Hero({ onSelectIndustry }: HeroProps) {
       <div
         className="
           absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-          w-[800px] h-[800px]
+          w-[400px] h-[400px] md:w-[800px] md:h-[800px]
           bg-gold-600/10 rounded-full blur-3xl
           pointer-events-none
         "

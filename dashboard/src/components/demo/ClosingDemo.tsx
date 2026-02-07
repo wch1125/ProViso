@@ -28,7 +28,7 @@ export function ClosingDemo() {
       </div>
 
       {/* Main content: Code + Checklist */}
-      <div className="flex-1 grid grid-cols-2 gap-4 min-h-0">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 min-h-0">
         {/* ProViso Code */}
         <div className="flex flex-col rounded-xl border border-border-DEFAULT overflow-hidden">
           <div className="flex items-center gap-2 px-4 py-3 border-b border-border-DEFAULT bg-surface-3/50">

@@ -380,7 +380,7 @@ export function NegotiationStudio() {
       }
     >
       {/* Main Layout: Sidebar + Content */}
-      <div className="flex">
+      <div className="flex flex-col md:flex-row">
         {/* Left Sidebar - Versions */}
         <DealPageSidebar>
           <div className="mb-4">

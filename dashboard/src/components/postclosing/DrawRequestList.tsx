@@ -93,7 +93,7 @@ export function DrawRequestList({
     <div className={`bg-surface-1 rounded-lg border border-border-DEFAULT ${className}`}>
       {/* Header */}
       <div className="p-6 border-b border-border-DEFAULT">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gold-500/10 rounded-lg">
               <Banknote className="h-5 w-5 text-gold-500" />
@@ -105,7 +105,7 @@ export function DrawRequestList({
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
             <div>
               <div className="text-sm text-text-tertiary">Requested</div>
               <div className="text-lg font-semibold text-white">{formatCurrency(totalRequested)}</div>

@@ -347,7 +347,7 @@ export function BasketEditor({
       title={modalTitle}
       size="xl"
     >
-      <div className="grid grid-cols-2 gap-6 max-h-[70vh] overflow-y-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-h-[70vh] overflow-y-auto">
         {/* Left Column: Form */}
         <div className="space-y-4">
           {/* Basic Info */}

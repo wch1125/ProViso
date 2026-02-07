@@ -193,8 +193,8 @@ export function ScenarioSimulator({
         <h4 className="text-sm font-medium text-text-tertiary mb-4">Adjustments</h4>
         <div className="space-y-3">
           {adjustments.map((adj, index) => (
-            <div key={index} className="flex items-end gap-3">
-              <div className="flex-1">
+            <div key={index} className="flex flex-wrap items-end gap-2 sm:gap-3 sm:flex-nowrap">
+              <div className="w-full sm:flex-1 sm:w-auto">
                 <Select
                   label={index === 0 ? 'Field' : undefined}
                   options={fieldOptions}
@@ -203,7 +203,7 @@ export function ScenarioSimulator({
                   placeholder="Select field..."
                 />
               </div>
-              <div className="w-24">
+              <div className="w-[calc(50%-0.25rem)] sm:w-24">
                 <Select
                   label={index === 0 ? 'Type' : undefined}
                   options={adjustmentTypeOptions}
@@ -211,7 +211,7 @@ export function ScenarioSimulator({
                   onChange={(v) => handleAdjustmentChange(index, 'type', v)}
                 />
               </div>
-              <div className="w-32">
+              <div className="w-[calc(50%-0.25rem)] sm:w-32">
                 <Input
                   label={index === 0 ? 'Change' : undefined}
                   value={adj.value}

@@ -426,7 +426,7 @@ export function AmendmentOverlay({
             <Plus className="w-4 h-4 text-text-muted" />
             Add Directive
           </h4>
-          <div className="grid grid-cols-4 gap-3 mb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
             <Select
               value={newType}
               onChange={(e) => setNewType(e.target.value as AmendmentDirectiveType)}

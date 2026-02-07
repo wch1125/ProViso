@@ -55,7 +55,7 @@ function DashboardSkeleton() {
     <div className="space-y-6">
       {/* Executive Summary Skeleton */}
       <div className="bg-surface-0/50 border border-surface-2 rounded-xl p-5">
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => (
             <div key={i} className="space-y-2">
               <Skeleton width="60%" height="14px" />

@@ -8,7 +8,7 @@ export function Footer() {
     <footer className="bg-surface-0 border-t border-border-subtle py-12 px-6">
       <div className="max-w-5xl mx-auto flex flex-col items-center gap-4">
         {/* Nav links */}
-        <div className="flex items-center gap-6 text-sm">
+        <div className="flex items-center gap-4 sm:gap-6 text-sm">
           <Link
             to="/about"
             className="text-text-secondary hover:text-gold-400 transition-colors"
@@ -24,7 +24,7 @@ export function Footer() {
         </div>
 
         {/* Legal links */}
-        <div className="flex items-center gap-6 text-xs">
+        <div className="flex items-center gap-4 sm:gap-6 text-xs">
           <Link
             to="/legal#terms"
             className="text-text-tertiary hover:text-text-secondary transition-colors"

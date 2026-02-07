@@ -78,7 +78,7 @@ export function Modal({
         >
           {/* Header */}
           {(title || showCloseButton) && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-industry-borderDefault">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-industry-borderDefault">
               {title && (
                 <h2
                   id="modal-title"
@@ -91,7 +91,7 @@ export function Modal({
                 <button
                   type="button"
                   className="
-                    p-1 rounded-lg
+                    p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg
                     text-industry-textSecondary hover:text-industry-textPrimary
                     hover:bg-industry-cardBgHover
                     transition-colors
@@ -107,11 +107,11 @@ export function Modal({
           )}
 
           {/* Body */}
-          <div className="px-6 py-4">{children}</div>
+          <div className="px-4 sm:px-6 py-4">{children}</div>
 
           {/* Footer */}
           {footer && (
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-industry-borderDefault">
+            <div className="flex items-center justify-end gap-3 px-4 sm:px-6 py-4 border-t border-industry-borderDefault">
               {footer}
             </div>
           )}

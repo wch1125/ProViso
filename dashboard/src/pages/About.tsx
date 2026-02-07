@@ -32,7 +32,7 @@ export function About() {
       <TopNav />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-navy-600 via-navy-700 to-navy-800 py-20 px-6">
+      <section className="relative overflow-hidden bg-gradient-to-br from-navy-600 via-navy-700 to-navy-800 py-12 sm:py-20 px-4 sm:px-6">
         {/* Grid pattern */}
         <div
           className="absolute inset-0 opacity-[0.03] pointer-events-none"
@@ -87,7 +87,7 @@ export function About() {
       </section>
 
       {/* The Problem Section */}
-      <section className="py-20 px-6 bg-surface-0">
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-surface-0">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="font-display text-sm font-semibold text-gold-500 uppercase tracking-[0.15em] mb-4">
@@ -136,7 +136,7 @@ export function About() {
       </section>
 
       {/* The Solution Section */}
-      <section className="py-20 px-6 bg-surface-1">
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-surface-1">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="font-display text-sm font-semibold text-gold-500 uppercase tracking-[0.15em] mb-4">
@@ -202,7 +202,7 @@ BASKET PermittedAcquisitions
       </section>
 
       {/* Three Workflows Section */}
-      <section className="py-20 px-6 bg-surface-0">
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-surface-0">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="font-display text-sm font-semibold text-gold-500 uppercase tracking-[0.15em] mb-4">
@@ -320,7 +320,7 @@ BASKET PermittedAcquisitions
       </section>
 
       {/* Who It's For Section */}
-      <section className="py-20 px-6 bg-surface-1">
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-surface-1">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="font-display text-sm font-semibold text-gold-500 uppercase tracking-[0.15em] mb-4">
@@ -354,7 +354,7 @@ BASKET PermittedAcquisitions
       </section>
 
       {/* Industry Support Section */}
-      <section className="py-20 px-6 bg-surface-0">
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-surface-0">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="font-display text-sm font-semibold text-gold-500 uppercase tracking-[0.15em] mb-4">
@@ -407,7 +407,7 @@ BASKET PermittedAcquisitions
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6 bg-gradient-to-br from-navy-600 via-navy-700 to-navy-800">
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-to-br from-navy-600 via-navy-700 to-navy-800">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="font-display text-3xl md:text-4xl font-medium text-white mb-4">
             Ready to explore?

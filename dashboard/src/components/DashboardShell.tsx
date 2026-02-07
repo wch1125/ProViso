@@ -15,8 +15,8 @@ export function DashboardShell({ projectName, facility, currentPhase, children }
     <div className="min-h-screen bg-surface-0">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-slate-925/80 backdrop-blur-lg border-b border-border-strong">
-        <div className="max-w-[1920px] mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             {/* Logo and Title */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
@@ -30,7 +30,7 @@ export function DashboardShell({ projectName, facility, currentPhase, children }
             </div>
 
             {/* Status Indicators */}
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3 sm:gap-6 flex-wrap">
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-300">

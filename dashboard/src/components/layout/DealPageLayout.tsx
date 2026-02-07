@@ -95,14 +95,14 @@ export function DealPageLayout({
       <TopNav breadcrumbs={breadcrumbs} />
 
       {/* Deal Context Header */}
-      <header className="bg-surface-1 border-b border-border-strong sticky top-16 z-20">
-        <div className="max-w-screen-2xl mx-auto px-8">
+      <header className="bg-surface-1 border-b border-border-strong sm:sticky sm:top-16 z-20">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-8">
           {/* Deal info row */}
-          <div className="flex items-center justify-between h-[72px]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between min-h-[72px] py-3 gap-2">
             <div className="flex items-center gap-4">
               <div>
-                <div className="flex items-center gap-3">
-                  <h1 className="font-display text-2xl font-semibold text-text-primary">
+                <div className="flex items-center flex-wrap gap-2 sm:gap-3">
+                  <h1 className="font-display text-lg sm:text-2xl font-semibold text-text-primary">
                     {dealName}
                   </h1>
                   <Badge variant={status.variant} dot>
@@ -117,7 +117,7 @@ export function DealPageLayout({
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               {actions}
               <Button
                 variant="ghost"
@@ -133,8 +133,8 @@ export function DealPageLayout({
       </header>
 
       {/* Sub-Navigation Tabs */}
-      <div className="bg-surface-0 border-b border-border-DEFAULT sticky top-[128px] z-10">
-        <div className="max-w-screen-2xl mx-auto px-8">
+      <div className="bg-surface-0 border-b border-border-DEFAULT sticky top-16 sm:top-[128px] z-10">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-8">
           <DealNavigation dealId={dealId} currentView={currentView} />
         </div>
       </div>
@@ -212,15 +212,13 @@ export function DealPageContent({
  */
 export function DealPageSidebar({
   children,
-  width = '256px',
 }: {
   children: React.ReactNode;
   width?: string;
 }) {
   return (
     <aside
-      className="min-h-[calc(100vh-184px)] bg-surface-1 border-r border-border-DEFAULT p-4"
-      style={{ width }}
+      className="hidden md:block md:w-64 shrink-0 min-h-[calc(100vh-184px)] bg-surface-1 border-r border-border-DEFAULT p-4"
     >
       {children}
     </aside>
@@ -238,7 +236,7 @@ export function DealPageWithSidebar({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row">
       <DealPageSidebar>{sidebar}</DealPageSidebar>
       <div className="flex-1">
         <DealPageContent>{children}</DealPageContent>
