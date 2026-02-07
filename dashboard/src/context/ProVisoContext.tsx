@@ -10,6 +10,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   useMemo,
   type ReactNode,
 } from 'react';
@@ -415,9 +416,14 @@ export function ProVisoProvider({
       // Get suspended covenants list
       const suspendedNames = new Set(interpreter.getSuspendedCovenants());
 
-      // Transform covenants
-      const covenantResults = interpreter.checkAllCovenants();
-      setCovenants(covenantResults.map(c => transformCovenant(c, suspendedNames.has(c.name))));
+      // Transform covenants (isolated try/catch so a single bad covenant doesn't kill the dashboard)
+      try {
+        const covenantResults = interpreter.checkAllCovenants();
+        setCovenants(covenantResults.map(c => transformCovenant(c, suspendedNames.has(c.name))));
+      } catch (covErr) {
+        console.warn('Error checking covenants:', covErr);
+        setCovenants([]);
+      }
 
       // Transform baskets
       setBasketStatuses(interpreter.getAllBasketStatuses());
@@ -684,7 +690,7 @@ export function ProVisoProvider({
   }, [interpreter]);
 
   // Refresh when interpreter changes
-  useMemo(() => {
+  useEffect(() => {
     if (interpreter) {
       refresh();
     }
@@ -725,7 +731,7 @@ export function ProVisoProvider({
   }, [isLoaded, projectName, currentPhase, financials, covenants, basketStatuses, milestones, reserves, waterfall, conditionsPrecedent, industry]);
 
   // Load initial code if provided
-  useMemo(() => {
+  useEffect(() => {
     if (initialCode && !isLoaded && !isLoading) {
       loadFromCode(initialCode);
     }

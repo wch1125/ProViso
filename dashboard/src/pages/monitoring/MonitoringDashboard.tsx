@@ -150,6 +150,28 @@ export function MonitoringDashboard() {
   // Track the currently loaded dealId to detect changes
   const [loadedDealId, setLoadedDealId] = useState<string | null>(null);
 
+  // Enrich dashboard data with deal metadata (must be called unconditionally — Rules of Hooks)
+  const data = useMemo(() => {
+    if (!dashboardData) return null;
+
+    // Enrich project metadata from DealContext when available
+    if (currentDeal && dealId) {
+      const parties = getPartiesForDeal(dealId);
+      const borrower = parties.find(p => p.partyType === 'borrower');
+      const sponsor = parties.find(p => p.role?.toLowerCase().includes('sponsor'));
+      return {
+        ...dashboardData,
+        project: {
+          name: dashboardData.project.name || currentDeal.name,
+          facility: dashboardData.project.facility || `$${(currentDeal.facilityAmount / 1_000_000).toFixed(0)}M ${currentDeal.dealType === 'project_finance' ? 'Project Finance' : 'Corporate'} Facility`,
+          sponsor: dashboardData.project.sponsor || sponsor?.name || '',
+          borrower: dashboardData.project.borrower || borrower?.name || currentDeal.name,
+        },
+      };
+    }
+    return dashboardData;
+  }, [dashboardData, currentDeal, dealId, getPartiesForDeal]);
+
   // Initialize on mount OR when dealId changes
   useEffect(() => {
     async function initialize() {
@@ -273,7 +295,7 @@ export function MonitoringDashboard() {
   }
 
   // No data state (shouldn't happen if loading worked)
-  if (!dashboardData) {
+  if (!dashboardData || !data) {
     return (
       <DealPageLayout
         dealId={dealId || 'unknown'}
@@ -291,28 +313,6 @@ export function MonitoringDashboard() {
       </DealPageLayout>
     );
   }
-
-  // Success state - render with live data, enriched with deal metadata
-  const data = useMemo(() => {
-    if (!dashboardData) return dashboardData;
-
-    // Enrich project metadata from DealContext when available
-    if (currentDeal && dealId) {
-      const parties = getPartiesForDeal(dealId);
-      const borrower = parties.find(p => p.partyType === 'borrower');
-      const sponsor = parties.find(p => p.role?.toLowerCase().includes('sponsor'));
-      return {
-        ...dashboardData,
-        project: {
-          name: dashboardData.project.name || currentDeal.name,
-          facility: dashboardData.project.facility || `$${(currentDeal.facilityAmount / 1_000_000).toFixed(0)}M ${currentDeal.dealType === 'project_finance' ? 'Project Finance' : 'Corporate'} Facility`,
-          sponsor: dashboardData.project.sponsor || sponsor?.name || '',
-          borrower: dashboardData.project.borrower || borrower?.name || currentDeal.name,
-        },
-      };
-    }
-    return dashboardData;
-  }, [dashboardData, currentDeal, dealId, getPartiesForDeal]);
 
   // Identify breached covenants for distressed workflow
   const breachedCovenants = data.covenants.filter(c => !c.compliant && !c.suspended);
