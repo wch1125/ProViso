@@ -1,4 +1,4 @@
-import{j as e}from"./index-DxtHVOyo.js";import{u as r,L as o}from"./vendor-react-C-GM1j7h.js";import{m as l,E as i}from"./vendor-icons-SDImLkab.js";const d=[{to:"/about",label:"About ProViso"},{to:"/deals",label:"Demo"}];function h({breadcrumbs:s}){const a=r();return e.jsx("nav",{className:`
+import{j as e}from"./index-BQHo3lY-.js";import{u as r,L as o}from"./vendor-react-C-GM1j7h.js";import{m as l,E as i}from"./vendor-icons-SDImLkab.js";const d=[{to:"/about",label:"About ProViso"},{to:"/deals",label:"Demo"}];function h({breadcrumbs:s}){const a=r();return e.jsx("nav",{className:`
         sticky top-0 z-30
         h-16
         bg-navy-900/95 backdrop-blur-md
