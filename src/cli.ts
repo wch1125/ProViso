@@ -14,7 +14,7 @@ const program = new Command();
 program
   .name('proviso')
   .description('Domain-Specific Language for Credit Agreements')
-  .version('0.1.0');
+  .version('2.6.0');
 
 // ==================== PARSE COMMAND ====================
 

@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0A1628"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#D4AF37"/>
+      <stop offset="100%" stop-color="#B8860B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.03" stroke="#94A3B8" stroke-width="1">
+    <line x1="0" y1="0" x2="1200" y2="630"/>
+    <line x1="400" y1="0" x2="400" y2="630"/>
+    <line x1="800" y1="0" x2="800" y2="630"/>
+    <line x1="0" y1="210" x2="1200" y2="210"/>
+    <line x1="0" y1="420" x2="1200" y2="420"/>
+  </g>
+
+  <!-- Gold accent line at top -->
+  <rect x="0" y="0" width="1200" height="4" fill="url(#gold)"/>
+
+  <!-- Wordmark -->
+  <text x="100" y="290"
+        font-family="'Space Grotesk', 'Inter', -apple-system, system-ui, sans-serif"
+        font-size="120"
+        font-weight="500"
+        letter-spacing="-3"
+        fill="#F8FAFC">
+    Pro<tspan fill="#1D4ED8" font-weight="700">V</tspan>iso
+  </text>
+
+  <!-- Tagline -->
+  <text x="104" y="360"
+        font-family="'Crimson Pro', 'Georgia', serif"
+        font-size="36"
+        font-weight="400"
+        font-style="italic"
+        fill="#D4AF37">
+    Credit Agreements as Code
+  </text>
+
+  <!-- Description -->
+  <text x="104" y="420"
+        font-family="'Inter', -apple-system, system-ui, sans-serif"
+        font-size="22"
+        font-weight="400"
+        fill="#94A3B8">
+    Read like legal documents. Run like programs.
+  </text>
+
+  <!-- Three feature pills -->
+  <g transform="translate(104, 460)">
+    <!-- Pill 1 -->
+    <rect x="0" y="0" width="220" height="40" rx="20" fill="#1E293B" stroke="#334155" stroke-width="1"/>
+    <text x="110" y="26" text-anchor="middle"
+          font-family="'Inter', sans-serif" font-size="15" font-weight="500" fill="#CBD5E1">
+      Instant Compliance
+    </text>
+
+    <!-- Pill 2 -->
+    <rect x="236" y="0" width="200" height="40" rx="20" fill="#1E293B" stroke="#334155" stroke-width="1"/>
+    <text x="336" y="26" text-anchor="middle"
+          font-family="'Inter', sans-serif" font-size="15" font-weight="500" fill="#CBD5E1">
+      Basket Tracking
+    </text>
+
+    <!-- Pill 3 -->
+    <rect x="452" y="0" width="240" height="40" rx="20" fill="#1E293B" stroke="#334155" stroke-width="1"/>
+    <text x="572" y="26" text-anchor="middle"
+          font-family="'Inter', sans-serif" font-size="15" font-weight="500" fill="#CBD5E1">
+      Pro Forma Simulation
+    </text>
+  </g>
+
+  <!-- Domain -->
+  <text x="104" y="570"
+        font-family="'JetBrains Mono', 'Fira Code', monospace"
+        font-size="18"
+        font-weight="400"
+        fill="#64748B">
+    proviso-demo.haslun.online
+  </text>
+
+  <!-- Bottom gold accent -->
+  <rect x="0" y="626" width="1200" height="4" fill="url(#gold)"/>
+</svg>

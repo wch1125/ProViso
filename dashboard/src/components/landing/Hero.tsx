@@ -136,8 +136,9 @@ export function Hero({ onSelectIndustry }: HeroProps) {
           "
           style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}
         >
-          Instant compliance checking, basket tracking, and pro forma simulation
-          for project finance. Transform weeks of legal memos into milliseconds of certainty.
+          Transform weeks of legal analysis into milliseconds of certainty.
+          Compliance checking, basket tracking, and pro forma simulation — powered
+          by your actual credit agreement.
         </p>
 
         {/* Action Buttons */}
@@ -159,7 +160,7 @@ export function Hero({ onSelectIndustry }: HeroProps) {
             "
           >
             <Play className="w-4 h-4" />
-            Try Interactive Demo
+            Explore a Live Deal
           </button>
           <Link
             to="/about"
