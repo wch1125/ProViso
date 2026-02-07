@@ -1,0 +1,1 @@
+function o(a,t){typeof window<"u"&&window.plausible&&window.plausible(a,t?{props:t}:void 0)}function e(a){o("Demo Started",{industry:a})}function n(a){o("Export Downloaded",{format:a})}function i(){o("Scenario Simulated")}function d(a){o("File Uploaded",{type:a})}export{i as a,d as b,n as c,e as t};

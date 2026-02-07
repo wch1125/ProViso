@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.generated.js
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Test coverage
+coverage/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+Thumbs.db
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Claude Code workflow system (logs, prompts, local settings)
+.claude/
+
+# Version archives (local backups)
+archive-v*.zip
+
+# Claude-specific build instructions (not end-user docs)
+V*_BUILD_INSTRUCTIONS.md
+V*_COMPLETION_INSTRUCTIONS.md
+
+# Reference code from other projects
+reference/
+
+# Dashboard build output (built in CI)
+dashboard/dist/
