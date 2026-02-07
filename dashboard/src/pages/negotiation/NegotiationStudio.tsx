@@ -213,6 +213,36 @@ export function NegotiationStudio() {
     }
   }, [currentCode, deal, effectiveSelectedVersion?.versionNumber]);
 
+  // Trigger diff computation when compare versions change while modal is open
+  // (must be before any conditional returns — Rules of Hooks)
+  useEffect(() => {
+    if (!showCompareModal || !effectiveCompareFromVersion || !effectiveCompareToVersion) return;
+    if (effectiveCompareFromVersion === effectiveCompareToVersion) {
+      setCompareSummary(null);
+      return;
+    }
+
+    let cancelled = false;
+    setDiffLoading(true);
+    setDiffError(null);
+
+    loadChangeSummary(effectiveCompareFromVersion, effectiveCompareToVersion)
+      .then(summary => {
+        if (!cancelled) {
+          setCompareSummary(summary);
+          setDiffLoading(false);
+        }
+      })
+      .catch(e => {
+        if (!cancelled) {
+          setDiffError((e as Error).message);
+          setDiffLoading(false);
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, [showCompareModal, effectiveCompareFromVersion, effectiveCompareToVersion, loadChangeSummary]);
+
   // Handle deal not found - AFTER all hooks
   if (!deal) {
     return (
@@ -243,35 +273,6 @@ export function NegotiationStudio() {
     setDiffError(null);
     setShowCompareModal(true);
   };
-
-  // Trigger diff computation when compare versions change while modal is open
-  useEffect(() => {
-    if (!showCompareModal || !effectiveCompareFromVersion || !effectiveCompareToVersion) return;
-    if (effectiveCompareFromVersion === effectiveCompareToVersion) {
-      setCompareSummary(null);
-      return;
-    }
-
-    let cancelled = false;
-    setDiffLoading(true);
-    setDiffError(null);
-
-    loadChangeSummary(effectiveCompareFromVersion, effectiveCompareToVersion)
-      .then(summary => {
-        if (!cancelled) {
-          setCompareSummary(summary);
-          setDiffLoading(false);
-        }
-      })
-      .catch(e => {
-        if (!cancelled) {
-          setDiffError((e as Error).message);
-          setDiffLoading(false);
-        }
-      });
-
-    return () => { cancelled = true; };
-  }, [showCompareModal, effectiveCompareFromVersion, effectiveCompareToVersion, loadChangeSummary]);
 
   const handleSendToCounterparty = () => {
     setShowSendConfirmation(false);
