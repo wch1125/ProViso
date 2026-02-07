@@ -102,7 +102,7 @@ npm run format           # Prettier formatting
 
 ## Current Status
 
-**Version:** 2.1.0
+**Version:** 2.6.0
 
 **Working:**
 - Core parser for all MVP constructs

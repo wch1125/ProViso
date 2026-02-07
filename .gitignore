@@ -41,6 +41,7 @@ Thumbs.db
 
 # Version archives (local backups)
 archive-v*.zip
+*.zip
 
 # Claude-specific build instructions (not end-user docs)
 V*_BUILD_INSTRUCTIONS.md
