@@ -1,15 +1,13 @@
 /**
  * DealPageLayout - Unified layout for all deal-specific pages
  *
- * v2.4 Design System: Two-tier header below TopNav.
- * Tier 1: Deal context header (72px) — deal name, status badge, actions
- * Tier 2: Sub-navigation tabs (56px) — Negotiate | Closing | Monitor
+ * v2.6 Design System: Single consolidated header below TopNav.
+ * Deal name + badges + nav tabs + page actions in one bar.
  */
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FileText, CheckCircle, BarChart3, HardHat, Zap, RotateCcw } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { FileText, CheckCircle, BarChart3, HardHat, Zap } from 'lucide-react';
 import { Badge } from '../base/Badge';
-import { Button } from '../base/Button';
 import { TopNav } from './TopNav';
 import type { Breadcrumb } from './TopNav';
 
@@ -68,14 +66,8 @@ export function DealPageLayout({
   children,
 }: DealPageLayoutProps) {
   const location = useLocation();
-  const navigate = useNavigate();
   const currentView = getCurrentView(location.pathname);
   const status = statusConfig[dealStatus];
-
-  const handleResetDemo = () => {
-    localStorage.clear();
-    navigate('/');
-  };
 
   // Build breadcrumbs: Deals > Deal Name > Current Tab
   const viewLabels: Record<string, string> = {
@@ -94,50 +86,35 @@ export function DealPageLayout({
       {/* Global navigation with breadcrumbs */}
       <TopNav breadcrumbs={breadcrumbs} />
 
-      {/* Deal Context Header */}
+      {/* Unified Deal Header: identity + tabs + actions in one bar */}
       <header className="bg-surface-1 border-b border-border-strong sm:sticky sm:top-16 z-20">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-8">
-          {/* Deal info row */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between min-h-[72px] py-3 gap-2">
-            <div className="flex items-center gap-4">
-              <div>
-                <div className="flex items-center flex-wrap gap-2 sm:gap-3">
-                  <h1 className="font-display text-lg sm:text-2xl font-semibold text-text-primary">
-                    {dealName}
-                  </h1>
-                  <Badge variant={status.variant} dot>
-                    {status.label}
-                  </Badge>
-                  {currentPhase && <PhaseBadge phase={currentPhase} />}
-                </div>
-                {subtitle && (
-                  <p className="text-[13px] text-text-tertiary mt-0.5">
-                    {subtitle}
-                  </p>
-                )}
+          {/* Top row: deal identity left, actions right */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-3 pb-1 gap-2">
+            <div className="flex items-center gap-3 min-w-0">
+              <h1 className="font-display text-lg sm:text-xl font-semibold text-text-primary truncate">
+                {dealName}
+              </h1>
+              <Badge variant={status.variant} dot>
+                {status.label}
+              </Badge>
+              {currentPhase && <PhaseBadge phase={currentPhase} />}
+              {subtitle && (
+                <span className="hidden lg:inline text-[13px] text-text-tertiary">
+                  {subtitle}
+                </span>
+              )}
+            </div>
+            {actions && (
+              <div className="flex items-center gap-2 flex-wrap shrink-0">
+                {actions}
               </div>
-            </div>
-            <div className="flex items-center gap-3 flex-wrap">
-              {actions}
-              <Button
-                variant="ghost"
-                size="sm"
-                icon={<RotateCcw className="w-4 h-4" />}
-                onClick={handleResetDemo}
-              >
-                Reset Demo
-              </Button>
-            </div>
+            )}
           </div>
-        </div>
-      </header>
-
-      {/* Sub-Navigation Tabs */}
-      <div className="bg-surface-0 border-b border-border-DEFAULT sticky top-16 sm:top-[128px] z-10">
-        <div className="max-w-screen-2xl mx-auto px-4 sm:px-8">
+          {/* Bottom row: nav tabs */}
           <DealNavigation dealId={dealId} currentView={currentView} />
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
       <main>
@@ -154,7 +131,7 @@ interface DealNavigationProps {
 
 function DealNavigation({ dealId, currentView }: DealNavigationProps) {
   return (
-    <nav className="flex h-14" aria-label="Deal sections">
+    <nav className="flex h-11" aria-label="Deal sections">
       {navItems.map((item) => {
         const isActive = currentView === item.id;
         const Icon = item.icon;
@@ -165,16 +142,16 @@ function DealNavigation({ dealId, currentView }: DealNavigationProps) {
             to={`/deals/${dealId}/${item.id}`}
             className={`
               flex items-center gap-2 px-4 h-full
-              text-[15px] font-medium border-b-[3px]
+              text-sm font-medium border-b-[3px]
               transition-all duration-200
               ${isActive
-                ? 'border-gold-500 text-gold-500 bg-gold-500/10'
+                ? 'border-gold-500 text-gold-500'
                 : 'border-transparent text-text-tertiary hover:text-text-secondary hover:bg-surface-2/50'
               }
             `}
             aria-current={isActive ? 'page' : undefined}
           >
-            <Icon className="w-[18px] h-[18px]" />
+            <Icon className="w-4 h-4" />
             {item.label}
           </Link>
         );
@@ -218,7 +195,7 @@ export function DealPageSidebar({
 }) {
   return (
     <aside
-      className="hidden md:block md:w-64 shrink-0 min-h-[calc(100vh-184px)] bg-surface-1 border-r border-border-DEFAULT p-4"
+      className="hidden md:block md:w-64 shrink-0 min-h-[calc(100vh-152px)] bg-surface-1 border-r border-border-DEFAULT p-4"
     >
       {children}
     </aside>

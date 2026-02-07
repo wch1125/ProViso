@@ -10,7 +10,7 @@
  * - Real-time code and prose generation
  */
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Send,
   FileText,
@@ -25,6 +25,7 @@ import {
   Download,
   Loader2,
   AlertCircle,
+  RotateCcw,
 } from 'lucide-react';
 import { Card, CardHeader, CardBody } from '../../components/Card';
 import { Badge } from '../../components/base/Badge';
@@ -64,6 +65,7 @@ interface AddedElement {
 
 export function NegotiationStudio() {
   const { dealId } = useParams<{ dealId: string }>();
+  const navigate = useNavigate();
   const { getDeal, getVersionsForDeal, getCurrentVersion: getDealCurrentVersion, logActivity, loadScenario, getCachedChangeSummary, cacheChangeSummary } = useDeal();
 
   // Load scenario data when dealId changes
@@ -83,6 +85,7 @@ export function NegotiationStudio() {
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [showWordModal, setShowWordModal] = useState(false);
   const [showSendConfirmation, setShowSendConfirmation] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const [selectedVersion, setSelectedVersion] = useState<DealVersion | null>(null);
   const [compareFromVersion, setCompareFromVersion] = useState<string>('');
   const [compareToVersion, setCompareToVersion] = useState<string>('');
@@ -102,6 +105,12 @@ export function NegotiationStudio() {
 
   // "Changes in This Version" summary (current vs parent)
   const [currentVersionSummary, setCurrentVersionSummary] = useState<ChangeSummary | null>(null);
+
+  const handleResetDemo = () => {
+    localStorage.clear();
+    setShowResetModal(false);
+    navigate('/');
+  };
 
   // Initialize version state when deal becomes available
   const effectiveSelectedVersion = selectedVersion || currentVersion || null;
@@ -375,6 +384,14 @@ export function NegotiationStudio() {
             onClick={() => setShowSendConfirmation(true)}
           >
             Send to Counterparty
+          </Button>
+          <Button
+            variant="ghost"
+            icon={<RotateCcw className="w-4 h-4" />}
+            size="sm"
+            onClick={() => setShowResetModal(true)}
+          >
+            Reset Demo
           </Button>
         </>
       }
@@ -762,6 +779,18 @@ export function NegotiationStudio() {
           `Version: v${effectiveSelectedVersion?.versionNumber} - ${effectiveSelectedVersion?.versionLabel}`,
           `Changes: ${(currentVersionSummary?.totalChanges || 0) + addedElements.length} modifications`,
         ]}
+      />
+
+      {/* Reset Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        onConfirm={handleResetDemo}
+        variant="danger"
+        title="Reset Demo?"
+        message="This will reset all demo data and return to the home page. Any changes you've made will be lost."
+        confirmLabel="Reset"
+        cancelLabel="Cancel"
       />
 
       {/* Covenant Editor */}

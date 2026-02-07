@@ -18,6 +18,17 @@ export type CPCategory =
   | 'financial'
   | 'insurance'
   | 'kyc_aml'
+  | 'permits'
+  | 'technical'
+  | 'tax_equity'
+  | 'offtake'
+  | 'real_estate'
+  | 'project_documents'
+  | 'construction'
+  | 'accounts'
+  | 'post_closing'
+  | 'due_diligence'
+  | 'consents'
   | 'other';
 
 export type ConditionStatus = 'pending' | 'satisfied' | 'waived';

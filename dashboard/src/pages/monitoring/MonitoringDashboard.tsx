@@ -8,13 +8,14 @@
  * Now wired to the ProViso interpreter for live data.
  */
 import { useEffect, useState, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
-import { FileText, AlertTriangle, RefreshCw, DollarSign, X, Upload, TrendingUp, BarChart3, Activity, Download } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { FileText, AlertTriangle, RefreshCw, DollarSign, X, Upload, TrendingUp, BarChart3, Activity, Download, RotateCcw } from 'lucide-react';
 import { Button } from '../../components/base/Button';
 import { Skeleton, SkeletonCard, SkeletonChart } from '../../components/base/Skeleton';
 import { EmptyState } from '../../components/base/EmptyState';
 import { CollapsibleCard } from '../../components/base/CollapsibleCard';
 import { DealPageLayout, DealPageContent } from '../../components/layout';
+import { ConfirmationModal } from '../../components/base/ConfirmationModal';
 import {
   ExecutiveSummary,
   PhaseTimeline,
@@ -111,6 +112,7 @@ function ErrorDisplay({ error, onRetry }: { error: string; onRetry: () => void }
 
 export function MonitoringDashboard() {
   const { dealId } = useParams<{ dealId: string }>();
+  const navigate = useNavigate();
   const {
     isLoaded,
     isLoading,
@@ -141,6 +143,15 @@ export function MonitoringDashboard() {
   const [showWaiverPortal, setShowWaiverPortal] = useState(false);
   const [showAmendmentOverlay, setShowAmendmentOverlay] = useState(false);
   const [selectedBreachedCovenant, setSelectedBreachedCovenant] = useState<import('../../types').CovenantData | null>(null);
+
+  // Reset demo state
+  const [showResetModal, setShowResetModal] = useState(false);
+
+  const handleResetDemo = () => {
+    localStorage.clear();
+    setShowResetModal(false);
+    navigate('/');
+  };
 
   // Get the current ProViso code (from scenario or default)
   const currentScenario = dealId ? getScenarioById(dealId) : undefined;
@@ -409,6 +420,14 @@ export function MonitoringDashboard() {
           >
             Export Report
           </Button>
+          <Button
+            variant="ghost"
+            icon={<RotateCcw className="w-4 h-4" />}
+            size="sm"
+            onClick={() => setShowResetModal(true)}
+          >
+            Reset Demo
+          </Button>
         </>
       }
     >
@@ -624,6 +643,18 @@ export function MonitoringDashboard() {
           </div>
         )}
       </DealPageContent>
+
+      {/* Reset Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        onConfirm={handleResetDemo}
+        variant="danger"
+        title="Reset Demo?"
+        message="This will reset all demo data and return to the home page. Any changes you've made will be lost."
+        confirmLabel="Reset"
+        cancelLabel="Cancel"
+      />
     </DealPageLayout>
   );
 }

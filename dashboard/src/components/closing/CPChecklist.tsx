@@ -43,6 +43,17 @@ const categoryLabels: Record<string, string> = {
   financial: 'Financial',
   insurance: 'Insurance',
   kyc_aml: 'KYC/AML',
+  permits: 'Permits & Approvals',
+  technical: 'Technical / Engineering',
+  tax_equity: 'Tax Equity',
+  offtake: 'Offtake & Revenue',
+  real_estate: 'Real Estate & Title',
+  project_documents: 'Project Documents',
+  construction: 'Construction',
+  accounts: 'Accounts & Funds Flow',
+  post_closing: 'Post-Closing',
+  due_diligence: 'Due Diligence',
+  consents: 'Third-Party Consents',
   other: 'Other',
 };
 
