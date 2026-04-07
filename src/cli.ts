@@ -433,7 +433,10 @@ program
       
       console.log('\nQUERY RESULT');
       console.log('─'.repeat(50));
-      console.log(`Action: ${action}${amount !== undefined ? ` ($${amount.toLocaleString()})` : ''}`);
+      const amountDisplay = options.amount
+        ? ` ($${parseFloat(options.amount).toLocaleString()})`
+        : ' (no amount specified — checking structural permission only)';
+      console.log(`Action: ${action}${amountDisplay}`);
       console.log(`Result: ${result.permitted ? '✓ PERMITTED' : '✗ PROHIBITED'}`);
       console.log('');
       console.log('Reasoning:');
@@ -494,9 +497,10 @@ program
           if (amendment.description) {
             console.log(`    Description: ${amendment.description}`);
           }
-          console.log(`    Directives: ${amendment.directives.length}`);
+          const directives = amendment.directives.filter(Boolean);
+          console.log(`    Directives: ${directives.length}`);
 
-          for (const directive of amendment.directives) {
+          for (const directive of directives) {
             switch (directive.directive) {
               case 'add': {
                 const stmt = directive.statement as Statement & { name?: string; target?: string };

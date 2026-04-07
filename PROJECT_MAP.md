@@ -2,7 +2,7 @@
 
 Quick-reference guide to the repository structure. For detailed documentation, see `docs/GETTING_STARTED.md`.
 
-**Version:** 2.6.0 | **Tests:** 679 | **Live Demo:** [proviso-demo.haslun.online](https://proviso-demo.haslun.online)
+**Version:** 2.6.0 | **Tests:** 679 | **Live Demo:** [proviso.finance](https://proviso.finance)
 
 ---
 
@@ -156,7 +156,7 @@ npm run dev -- status examples/corporate_revolver.proviso -d examples/q3_2024_fi
 | v2.0 | Deal Hub: forms, versioning, Word generation, closing, post-closing |
 | v2.1 | Industry constructs: solar, wind, data center, tax equity |
 | v2.2 | "Living Deal": monitoring, negotiation, closing, lifecycle |
-| v2.3 | Public demo deployment at proviso-demo.haslun.online |
+| v2.3 | Public demo deployment (now at proviso.finance) |
 | v2.4 | Design system token migration |
 | v2.5 | Demo polish: live CP, auto-diff, compliance history, export, nav |
 | v2.6 | Step-down covenants, red-team hardening (3 phases, 23 fixes) |

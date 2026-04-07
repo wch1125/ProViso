@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
-  // Use root base path (works with custom domain proviso-demo.haslun.online)
+  // Use root base path (works with custom domain proviso.finance)
   base: '/',
   plugins: [react()],
   resolve: {

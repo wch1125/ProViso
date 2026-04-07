@@ -1439,10 +1439,8 @@ export class ProVisoInterpreter {
       };
     }
 
-    // Set evaluation context if amount is provided
-    if (amount !== undefined) {
-      this.evaluationContext = { bindings: { amount } };
-    }
+    // Always bind 'amount', default to 0 if not provided
+    this.evaluationContext = { bindings: { amount: amount ?? 0 } };
 
     try {
       // Action is prohibited by default
@@ -3717,7 +3715,7 @@ export class ProVisoInterpreter {
    */
   applyAmendment(amendment: AmendmentStatement): void {
     this.definitionEvalCache.clear();
-    for (const directive of amendment.directives) {
+    for (const directive of amendment.directives.filter(Boolean)) {
       this.applyDirective(directive);
     }
     this.appliedAmendments.push(amendment);

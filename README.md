@@ -4,7 +4,7 @@
 
 ProViso is an executable DSL that allows credit agreements to be expressed as code. The source files read like legal documents but run like programs—answering compliance questions, tracking basket utilization, and simulating proposed transactions.
 
-**Version 2.6** | **679 Tests Passing** | **Live Demo: [proviso-demo.haslun.online](https://proviso-demo.haslun.online)**
+**Version 2.6** | **679 Tests Passing** | **Live Demo: [proviso.finance](https://proviso.finance)**
 
 ---
 

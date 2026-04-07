@@ -1157,6 +1157,10 @@ AmendmentDirective
   / AddsDirective
   / DeletesDirective
   / ModifiesDirective
+  / InlineComment
+
+InlineComment
+  = "//" [^\n]* _ { return null; }
 
 ReplacesDirective
   = "REPLACES" __ type:StatementType __ name:Identifier __ "WITH" _ stmt:InnerStatement {

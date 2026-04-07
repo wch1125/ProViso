@@ -483,7 +483,7 @@ export function generateComplianceReport(data: DashboardData): string {
       This certificate was automatically generated from ProViso compliance data.
     </div>
     <div class="branding">
-      ProViso | proviso-demo.haslun.online
+      ProViso | proviso.finance
     </div>
   </div>
 </body>

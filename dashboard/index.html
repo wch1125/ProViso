@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="ProViso - Credit Agreements as Code. Instant compliance checking, basket tracking, and pro forma simulation for project finance." />
+  <meta name="description" content="ProViso - Credit Agreements as Code. A domain-specific language that turns credit agreements into executable logic. Instant compliance checking, basket tracking, and pro forma simulation." />
   <meta name="theme-color" content="#0A1628" />
 
   <!-- Open Graph -->
   <meta property="og:title" content="ProViso | Credit Agreements as Code" />
   <meta property="og:description" content="Read like legal documents. Run like programs. Instant compliance, basket tracking, and pro forma simulation." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://proviso-demo.haslun.online" />
-  <meta property="og:image" content="https://proviso-demo.haslun.online/og-image.png" />
+  <meta property="og:url" content="https://proviso.finance" />
+  <meta property="og:image" content="https://proviso.finance/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
 
@@ -19,7 +19,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="ProViso | Credit Agreements as Code" />
   <meta name="twitter:description" content="Read like legal documents. Run like programs." />
-  <meta name="twitter:image" content="https://proviso-demo.haslun.online/og-image.png" />
+  <meta name="twitter:image" content="https://proviso.finance/og-image.png" />
 
   <!-- Preconnect to font servers -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -34,13 +34,12 @@
   <title>ProViso | Credit Agreements as Code</title>
 
   <!-- Plausible Analytics (privacy-friendly, no cookies) -->
-  <!-- Note: Script may fail to load locally or with ad blockers - this is expected -->
-  <script defer data-domain="proviso-demo.haslun.online" src="https://plausible.io/js/script.js" onerror=""></script>
+  <script defer data-domain="proviso.finance" src="https://plausible.io/js/script.js" onerror=""></script>
 
   <!-- Theme initialization (prevent flash) -->
   <script>
     (function() {
-      const saved = localStorage.getItem('proviso-theme');
+      var saved = localStorage.getItem('proviso-theme');
       if (saved === 'light') {
         document.documentElement.classList.remove('dark');
       }
@@ -48,21 +47,537 @@
   </script>
 
   <style>
-    /* Critical CSS for loading screen - prevents FOUC */
-    html, body, #root {
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-    }
+    /* ── Reset & Base ─────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100vh; }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      background: #0A1628;
+      color: #E8EBF0;
+      line-height: 1.6;
     }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Typography ───────────────────────────────────── */
+    .font-display { font-family: 'Crimson Pro', Georgia, serif; }
+    .font-mono    { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
+
+    /* ── Colors ───────────────────────────────────────── */
+    .text-gold   { color: #D4AF37; }
+    .text-blue   { color: #3B82F6; }
+    .text-muted  { color: rgba(255,255,255,0.55); }
+    .text-faint  { color: rgba(255,255,255,0.35); }
+    .bg-page     { background: #0A1628; }
+    .bg-card     { background: #152238; }
+    .border-subtle { border-color: rgba(255,255,255,0.08); }
+
+    /* ── Hero ─────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #1A2744 0%, #152238 40%, #111827 100%);
+      padding: 5rem 1.5rem 4rem;
+      text-align: center;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 52rem; margin: 0 auto; }
+
+    .hero h1 {
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-size: clamp(2.25rem, 5vw, 3.75rem);
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+    .hero .tagline {
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-size: 1.2rem;
+      font-style: italic;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 0.75rem;
+    }
+    .hero .description {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.5);
+      max-width: 38rem;
+      margin: 0 auto 2.5rem;
+      line-height: 1.7;
+    }
+
+    /* ── CTA Button ───────────────────────────────────── */
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.7rem 1.5rem;
+      background: #BF9B30;
+      color: #0A1628;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .cta:hover { background: #D4AF37; }
+
+    /* ── Section ──────────────────────────────────────── */
+    section { padding: 4rem 1.5rem; }
+    .section-title {
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: #D4AF37;
+      text-align: center;
+      margin-bottom: 0.75rem;
+    }
+    .section-subtitle {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.55);
+      text-align: center;
+      max-width: 36rem;
+      margin: 0 auto 3rem;
+    }
+
+    /* ── Problem / Solution ───────────────────────────── */
+    .problem-solution {
+      max-width: 56rem;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    @media (max-width: 640px) {
+      .problem-solution { grid-template-columns: 1fr; }
+    }
+    .ps-card {
+      background: #152238;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 0.75rem;
+      padding: 2rem;
+    }
+    .ps-card h3 {
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .ps-card ul {
+      list-style: none;
+      padding: 0;
+    }
+    .ps-card li {
+      padding: 0.35rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.95rem;
+    }
+    .ps-card li::before {
+      position: absolute;
+      left: 0;
+      font-size: 0.85rem;
+    }
+    .ps-card.problem li::before { content: '\2717'; color: #EF4444; }
+    .ps-card.solution li::before { content: '\2713'; color: #22C55E; }
+
+    /* ── Code Demo ────────────────────────────────────── */
+    .demo-section { max-width: 56rem; margin: 0 auto; }
+    .code-block {
+      background: #0D1A2D;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 0.75rem;
+      overflow: hidden;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .code-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+    }
+    .code-filename {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.4);
+      margin-left: 0.5rem;
+    }
+    .code-body {
+      padding: 1.5rem;
+      overflow-x: auto;
+    }
+    .code-body pre {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.7);
+      white-space: pre;
+      margin: 0;
+    }
+    .code-body .kw   { color: #D4AF37; }   /* keywords */
+    .code-body .id   { color: #93C5FD; }   /* identifiers */
+    .code-body .num  { color: #86EFAC; }   /* numbers */
+    .code-body .cmt  { color: rgba(255,255,255,0.3); font-style: italic; }
+    .code-body .op   { color: rgba(255,255,255,0.5); }
+
+    .demo-caption {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+    }
+
+    /* ── Feature Grid ─────────────────────────────────── */
+    .feature-grid {
+      max-width: 60rem;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    @media (max-width: 768px) { .feature-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 480px) { .feature-grid { grid-template-columns: 1fr; } }
+
+    .feature-card {
+      background: #152238;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 0.75rem;
+      padding: 1.75rem;
+    }
+    .feature-icon {
+      width: 2.25rem; height: 2.25rem;
+      background: rgba(212,175,55,0.12);
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+    .feature-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .feature-card p {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+
+    /* ── Demo Cards ───────────────────────────────────── */
+    .demo-grid {
+      max-width: 56rem;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+    }
+    @media (max-width: 640px) { .demo-grid { grid-template-columns: 1fr; } }
+
+    .demo-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 0.75rem;
+      padding: 1.25rem 1.5rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .demo-card:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(212,175,55,0.35);
+    }
+    .demo-card-icon {
+      flex-shrink: 0;
+      width: 2.25rem; height: 2.25rem;
+      background: rgba(212,175,55,0.12);
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+    .demo-card h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .demo-card p {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
+    }
+
+    /* ── Footer ───────────────────────────────────────── */
+    footer {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 3rem 1.5rem;
+      text-align: center;
+    }
+    footer .contact {
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+    footer .contact a {
+      color: #D4AF37;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    footer .contact a:hover { color: #E8C147; }
+    footer .legal-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 1rem;
+    }
+    footer .legal-links a:hover { color: rgba(255,255,255,0.5); }
+    footer .copyright {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.25);
+    }
+    footer .copyright a { color: #BF9B30; }
+
+    /* ── Divider ──────────────────────────────────────── */
+    .divider {
+      max-width: 56rem;
+      margin: 0 auto;
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ── Hide static content once React hydrates ──────── */
+    #root:not(:empty) ~ #static-landing { display: none; }
   </style>
 </head>
-<body class="bg-surface-0 text-text-primary antialiased">
+<body>
+  <!-- React app mounts here. Once hydrated, static-landing hides automatically. -->
   <div id="root"></div>
+
+  <!-- ================================================================
+       STATIC LANDING — visible to crawlers and before JS loads.
+       Hidden once React renders into #root.
+       ================================================================ -->
+  <div id="static-landing">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-content">
+        <p class="font-display" style="font-size:1.75rem; font-weight:500; letter-spacing:-0.01em; margin-bottom:2rem;">
+          Pro<span class="text-blue" style="font-weight:700;">V</span>iso
+        </p>
+        <h1>Credit Agreements as <span class="text-gold">Code</span></h1>
+        <p class="tagline">Read like legal documents. Run like programs.</p>
+        <p class="description">
+          ProViso is a domain-specific language that turns credit agreements into
+          executable logic. Compliance checking, basket tracking, and pro forma
+          simulation &mdash; powered by your actual credit agreement, in milliseconds.
+        </p>
+        <a class="cta" href="#demo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          See How It Works
+        </a>
+      </div>
+    </div>
+
+    <!-- PROBLEM / SOLUTION -->
+    <section class="bg-page">
+      <p class="section-title">The Problem</p>
+      <p class="section-subtitle">Credit agreement compliance today is manual, slow, and error-prone</p>
+      <div class="problem-solution">
+        <div class="ps-card problem">
+          <h3>Without ProViso</h3>
+          <ul>
+            <li>Weeks to answer "can we pay this dividend?"</li>
+            <li>Spreadsheet models that drift from the agreement</li>
+            <li>Basket capacity tracked in emails and side letters</li>
+            <li>Pro forma analysis requires outside counsel</li>
+            <li>Covenant breaches discovered after the fact</li>
+          </ul>
+        </div>
+        <div class="ps-card solution">
+          <h3>With ProViso</h3>
+          <ul>
+            <li>Definitive answers in milliseconds</li>
+            <li>Source of truth <em>is</em> the agreement</li>
+            <li>Automatic basket tracking with full audit trail</li>
+            <li>"What if" simulation before you commit</li>
+            <li>Continuous monitoring catches issues early</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- CODE DEMO -->
+    <section id="demo" class="bg-page">
+      <p class="section-title">The Language</p>
+      <p class="section-subtitle">Syntax that lawyers can read and machines can execute</p>
+      <div class="demo-section">
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-dot"></span>
+            <span class="code-dot"></span>
+            <span class="code-dot"></span>
+            <span class="code-filename">corporate_revolver.proviso</span>
+          </div>
+          <div class="code-body">
+<pre><span class="cmt">// Consolidated EBITDA - Section 1.01</span>
+<span class="kw">DEFINE</span> <span class="id">EBITDA</span> <span class="kw">AS</span>
+  net_income + interest_expense + tax_expense + depreciation + amortization
+  <span class="kw">EXCLUDING</span> extraordinary_items
+
+<span class="cmt">// Leverage Ratio - Section 1.01</span>
+<span class="kw">DEFINE</span> <span class="id">Leverage</span> <span class="kw">AS</span>
+  TotalDebt / EBITDA
+
+<span class="cmt">// Maximum Leverage Ratio - Section 7.11(a)</span>
+<span class="kw">COVENANT</span> <span class="id">MaxLeverage</span>
+  <span class="kw">REQUIRES</span> Leverage <span class="op">&lt;=</span> <span class="num">4.50</span>
+  <span class="kw">TESTED</span> <span class="kw">QUARTERLY</span>
+  <span class="kw">CURE</span> EquityCure <span class="kw">MAX_USES</span> <span class="num">3</span> <span class="kw">OVER</span> life_of_facility
+  <span class="kw">BREACH</span> <span class="op">-&gt;</span> UnmaturedDefault
+
+<span class="cmt">// General Investment Basket - Section 7.02(g)</span>
+<span class="kw">BASKET</span> <span class="id">GeneralInvestments</span>
+  <span class="kw">CAPACITY</span> <span class="num">$25_000_000</span>
+
+<span class="cmt">// Restricted Payments - Section 7.06</span>
+<span class="kw">PROHIBIT</span> <span class="id">Dividends</span>
+  <span class="kw">EXCEPT WHEN</span>
+    amount <span class="op">&lt;=</span> <span class="kw">AVAILABLE</span>(RestrictedPayments)
+    <span class="kw">AND</span> <span class="kw">COMPLIANT</span>(MaxLeverage)</pre>
+          </div>
+        </div>
+        <p class="demo-caption">
+          Real syntax from a sample corporate credit agreement.
+          Section references map directly to the loan document.
+        </p>
+      </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- FEATURES -->
+    <section class="bg-page">
+      <p class="section-title">What It Does</p>
+      <p class="section-subtitle">Everything you need to make credit agreements executable</p>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">&#x2713;</div>
+          <h3>Instant Compliance</h3>
+          <p>Check covenant compliance in milliseconds. Get definitive answers with citations to specific provisions.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F4CA;</div>
+          <h3>Basket Tracking</h3>
+          <p>Automatic utilization tracking with full audit trail. Know exactly how much capacity remains for investments, dividends, and debt.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F4C4;</div>
+          <h3>Plain English</h3>
+          <p>Source files read like the credit agreement itself. Lawyers can review and understand the logic without learning to code.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x26A1;</div>
+          <h3>Pro Forma Simulation</h3>
+          <p>"What if" analysis for proposed transactions. See instantly whether an acquisition or dividend would trip a covenant.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F6E1;</div>
+          <h3>Cure Rights</h3>
+          <p>Built-in mechanics for covenant breaches. Track cure availability, equity contributions, and grace periods automatically.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F3D7;</div>
+          <h3>Project Finance</h3>
+          <p>Phases, milestones, waterfalls, and reserves. Full support for construction loans with draw conditions and CP checklists.</p>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- DEMO SCENARIOS — links require JS, so static fallback points to #demo -->
+    <section class="bg-page">
+      <p class="section-title">Demo Scenarios</p>
+      <p class="section-subtitle">Interactive demos available once the app loads</p>
+      <div class="demo-grid">
+        <div class="demo-card" style="cursor:default;">
+          <div class="demo-card-icon">&#x1F4BC;</div>
+          <div>
+            <h4>ABC Acquisition</h4>
+            <p>$150M leveraged buyout facility</p>
+          </div>
+        </div>
+        <div class="demo-card" style="cursor:default;">
+          <div class="demo-card-icon">&#x2600;</div>
+          <div>
+            <h4>Solar Utility</h4>
+            <p>200MW utility-scale solar with ITC tax equity</p>
+          </div>
+        </div>
+        <div class="demo-card" style="cursor:default;">
+          <div class="demo-card-icon">&#x1F32C;</div>
+          <div>
+            <h4>Wind Onshore</h4>
+            <p>150MW wind farm with PTC credits</p>
+          </div>
+        </div>
+        <div class="demo-card" style="cursor:default;">
+          <div class="demo-card-icon">&#x1F3E2;</div>
+          <div>
+            <h4>Corporate Revolver</h4>
+            <p>$150M revolving credit facility</p>
+          </div>
+        </div>
+      </div>
+      <p style="text-align:center; margin-top:1.25rem; font-size:0.85rem; color:rgba(255,255,255,0.35);">
+        Interactive demos load automatically &mdash; <a href="#demo" style="color:#BF9B30;">see the language in action</a> above.
+      </p>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="contact">
+        Questions or feedback? Reach us at
+        <a href="mailto:contact@haslun.online">contact@haslun.online</a>
+      </div>
+      <div class="legal-links">
+        <a href="/legal#terms">Terms of Use</a>
+        <a href="/legal#privacy">Privacy Policy</a>
+      </div>
+      <p class="copyright">
+        &copy; 2026 <a href="https://haslun.online">Haslun.Online</a>. All rights reserved.
+      </p>
+    </footer>
+
+  </div><!-- /static-landing -->
+
   <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>
