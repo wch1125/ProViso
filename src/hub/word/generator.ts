@@ -98,6 +98,7 @@ export class WordGenerator {
 
     return {
       sectionReference: `${sectionRef}${subsection}`,
+      sectionPrefix: sectionRef,
       title: this.getStatementName(statement),
       content,
       elementType: statement.type,
@@ -194,6 +195,24 @@ export class WordGenerator {
   // ===========================================================================
 
   /**
+   * Build a subsection label for a zero-based index: (a), (b), ... (z), (aa),
+   * (ab), ...
+   *
+   * `String.fromCharCode(97 + i)` produced '{', '|', '}' past 26 elements, and
+   * several call sites suppressed the label for i === 0, which made lettering
+   * start at (b) and skip (a) entirely.
+   */
+  private subsectionLabel(index: number): string {
+    let n = index;
+    let label = '';
+    do {
+      label = String.fromCharCode(97 + (n % 26)) + label;
+      n = Math.floor(n / 26) - 1;
+    } while (n >= 0);
+    return `(${label})`;
+  }
+
+  /**
    * Organize statements into articles.
    */
   private organizeIntoArticles(ast: Program): GeneratedArticle[] {
@@ -205,10 +224,10 @@ export class WordGenerator {
       articles.push({
         articleNumber: 1,
         title: 'Definitions',
-        sections: definitions.map((s) =>
+        sections: definitions.map((s, i) =>
           this.generateSection(s, {
             sectionPrefix: '1.01',
-            subsectionLabel: '',
+            subsectionLabel: this.subsectionLabel(i),
           })
         ),
       });
@@ -223,7 +242,7 @@ export class WordGenerator {
         sections: cps.map((s, i) =>
           this.generateSection(s, {
             sectionPrefix: '4.01',
-            subsectionLabel: i > 0 ? `(${String.fromCharCode(97 + i)})` : '',
+            subsectionLabel: this.subsectionLabel(i),
           })
         ),
       });
@@ -238,7 +257,7 @@ export class WordGenerator {
         sections: phases.map((s, i) =>
           this.generateSection(s, {
             sectionPrefix: '5.01',
-            subsectionLabel: `(${String.fromCharCode(97 + i)})`,
+            subsectionLabel: this.subsectionLabel(i),
           })
         ),
       });
@@ -253,7 +272,7 @@ export class WordGenerator {
         sections: milestones.map((s, i) =>
           this.generateSection(s, {
             sectionPrefix: '6.01',
-            subsectionLabel: `(${String.fromCharCode(97 + i)})`,
+            subsectionLabel: this.subsectionLabel(i),
           })
         ),
       });
@@ -273,7 +292,7 @@ export class WordGenerator {
         covenantSections.push(
           this.generateSection(s, {
             sectionPrefix: '7.11',
-            subsectionLabel: `(${String.fromCharCode(97 + i)})`,
+            subsectionLabel: this.subsectionLabel(i),
           })
         );
       });
@@ -283,7 +302,7 @@ export class WordGenerator {
         covenantSections.push(
           this.generateSection(s, {
             sectionPrefix: '7.02',
-            subsectionLabel: `(${String.fromCharCode(97 + i)})`,
+            subsectionLabel: this.subsectionLabel(i),
           })
         );
       });
@@ -304,7 +323,7 @@ export class WordGenerator {
         sections: reserves.map((s, i) =>
           this.generateSection(s, {
             sectionPrefix: '9.01',
-            subsectionLabel: `(${String.fromCharCode(97 + i)})`,
+            subsectionLabel: this.subsectionLabel(i),
           })
         ),
       });
@@ -319,7 +338,7 @@ export class WordGenerator {
         sections: waterfalls.map((s, i) =>
           this.generateSection(s, {
             sectionPrefix: '10.01',
-            subsectionLabel: i > 0 ? `(${String.fromCharCode(97 + i)})` : '',
+            subsectionLabel: this.subsectionLabel(i),
           })
         ),
       });
@@ -404,7 +423,13 @@ export class WordGenerator {
       lines.push('');
 
       for (const section of article.sections) {
-        lines.push(section.content);
+        // Prefix the article-level section number. Each element group restarts
+        // its subsection lettering at (a), so a bare "(a)" is ambiguous across
+        // groups — the first covenant and the first basket both produced "(a)"
+        // and collided when the document was re-parsed for drift detection.
+        // Section content already opens with its own subsection label, so
+        // "7.11" + "(a) MaxLeverage." composes into "7.11(a) MaxLeverage."
+        lines.push(`${section.sectionPrefix}${section.content}`);
         lines.push('');
       }
 

@@ -837,6 +837,57 @@ describe('DriftDetector', () => {
       expect(report).toBeDefined();
       expect(report.stats).toBeDefined();
     });
+
+    describe('section key uniqueness', () => {
+      // Each element group restarts its subsection lettering at (a), so the
+      // first covenant and the first basket both rendered as "(a)". Keying on
+      // that bare label made the later element overwrite the earlier one, and
+      // an edit to the covenant then reported hasDrift: false.
+      const code = `
+        DEFINE EBITDA AS ebitda
+        COVENANT MaxLeverage
+          REQUIRES Leverage <= 4.0x
+          TESTED QUARTERLY
+        BASKET GeneralInvestments CAPACITY $25_000_000
+      `;
+
+      it('emits a fully-qualified section marker for every element', async () => {
+        const doc = await generateWordDocument(code, { dealName: 'Test' });
+        const markers = doc.fullText
+          .split('\n')
+          .filter((l) => /^\d+\.\d+\([a-z]+\)/.test(l))
+          .map((l) => l.match(/^\d+\.\d+\([a-z]+\)/)![0]);
+
+        expect(markers).toContain('1.01(a)');
+        expect(markers).toContain('7.11(a)');
+        expect(markers).toContain('7.02(a)');
+        // No duplicates: every element is addressable on its own.
+        expect(new Set(markers).size).toBe(markers.length);
+      });
+
+      it('gives definitions a section token so they are not skipped', async () => {
+        const doc = await generateWordDocument(code, { dealName: 'Test' });
+
+        expect(doc.fullText).toMatch(/1\.01\(a\)\s+"EBITDA" means/);
+      });
+
+      it('detects an edit to the covenant even though a basket shares its letter', async () => {
+        const doc = await generateWordDocument(code, { dealName: 'Test' });
+        const editedWord = doc.fullText.replace('4.00 to 1.00', '4.75 to 1.00');
+
+        expect(editedWord).not.toBe(doc.fullText); // guard: the edit applied
+
+        const report = await detectDrift(editedWord, code);
+        expect(report.hasDrift).toBe(true);
+      });
+
+      it('reports no drift when the document is unedited', async () => {
+        const doc = await generateWordDocument(code, { dealName: 'Test' });
+
+        const report = await detectDrift(doc.fullText, code);
+        expect(report.hasDrift).toBe(false);
+      });
+    });
   });
 });
 

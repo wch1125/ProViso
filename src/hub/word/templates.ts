@@ -37,7 +37,10 @@ export interface WordTemplateContext {
 }
 
 export interface GeneratedSection {
+  /** Full reference, e.g. "7.11(a)". */
   sectionReference: string;
+  /** Article-level prefix alone, e.g. "7.11". */
+  sectionPrefix: string;
   title: string;
   content: string;
   elementType: string;
@@ -259,11 +262,16 @@ export function renderBasketToWord(
 
 export function renderDefinitionToWord(
   definition: DefineStatement,
-  _context?: WordTemplateContext
+  context?: WordTemplateContext
 ): string {
   const exprStr = expressionToString(definition.expression) || '';
 
-  let prose = `"${definition.name}" means `;
+  // Definitions previously carried no section token at all, so the drift and
+  // round-trip parsers — which key on a leading (a) or 7.11 marker — skipped
+  // them entirely and edits to a definition in Word were invisible.
+  const subsection = context?.subsectionLabel ? `${context.subsectionLabel} ` : '';
+
+  let prose = `${subsection}"${definition.name}" means `;
   prose += exprStr;
 
   // Add modifiers
