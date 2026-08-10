@@ -40,6 +40,7 @@ import type {
   PhaseStatement,
   MilestoneStatement,
   ReserveStatement,
+  Expression,
 } from '../src/types.js';
 
 // =============================================================================
@@ -175,6 +176,71 @@ describe('Word Template Rendering', () => {
 
       expect(result).toContain('EquityCure');
       expect(result).toContain('provided');
+    });
+
+    describe('threshold units', () => {
+      // Regression: `" to 1.00"` was appended unconditionally, so a liquidity
+      // covenant rendered as "$50,000,000 to 1.00" and a ratio covenant got
+      // double notation ("3.5x to 1.00") because formatRatio was never called.
+      function covenantWithThreshold(
+        right: Expression,
+        operator: '<=' | '>=' = '<='
+      ): CovenantStatement {
+        return {
+          type: 'Covenant',
+          name: 'TestCovenant',
+          requires: {
+            type: 'Comparison',
+            left: 'Metric',
+            operator,
+            right,
+          },
+          tested: 'quarterly',
+          cure: null,
+          breach: null,
+        };
+      }
+
+      it('renders a ratio threshold in "x to 1.00" notation exactly once', () => {
+        const result = renderCovenantToWord(covenantWithThreshold({ type: 'Ratio', value: 3.5 }));
+
+        expect(result).toContain('3.50 to 1.00');
+        expect(result).not.toContain('3.5x');
+        // "to 1.00" must appear once, not appended on top of an existing form.
+        expect(result.match(/to 1\.00/g)).toHaveLength(1);
+      });
+
+      it('renders a currency threshold without ratio notation', () => {
+        const result = renderCovenantToWord(
+          covenantWithThreshold({ type: 'Currency', value: 50_000_000 }, '>=')
+        );
+
+        expect(result).toContain('$50.0 million');
+        expect(result).not.toContain('to 1.00');
+      });
+
+      it('renders a percentage threshold without ratio notation', () => {
+        const result = renderCovenantToWord(
+          covenantWithThreshold({ type: 'Percentage', value: 15 }, '>=')
+        );
+
+        expect(result).toContain('15%');
+        expect(result).not.toContain('to 1.00');
+      });
+
+      it('falls back to the parsed expression for a computed threshold', () => {
+        const result = renderCovenantToWord(
+          covenantWithThreshold({
+            type: 'BinaryExpression',
+            operator: '*',
+            left: { type: 'Number', value: 2 },
+            right: 'EBITDA',
+          })
+        );
+
+        expect(result).toContain('TestCovenant');
+        expect(result).not.toContain('undefined');
+      });
     });
   });
 

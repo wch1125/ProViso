@@ -15,7 +15,9 @@ import type {
   ReserveStatement,
   WaterfallStatement,
   ConditionsPrecedentStatement,
+  Expression,
 } from '../../types.js';
+import { isComparisonExpression } from '../../types.js';
 import { expressionToString } from '../versioning/differ.js';
 
 // =============================================================================
@@ -126,6 +128,35 @@ export function getMetricDisplayName(metric: string): string {
 // COVENANT TEMPLATE
 // =============================================================================
 
+/**
+ * Render a covenant's threshold in its own units.
+ *
+ * Ratios get the conventional "3.50 to 1.00" notation; currency, percentage
+ * and bare numeric thresholds are emitted as-is. Driven off the AST node type
+ * rather than the stringified prose, because "to 1.00" was previously appended
+ * to every covenant regardless of type — rendering a liquidity covenant as
+ * "$50,000,000 to 1.00" and a leverage covenant as "3.5x to 1.00".
+ *
+ * Falls back to the string parsed out of the prose when the threshold is a
+ * computed expression rather than a literal.
+ */
+function formatCovenantThreshold(requires: Expression | null, fallback: string): string {
+  if (requires && isComparisonExpression(requires)) {
+    const right = requires.right;
+    if (right && typeof right === 'object' && 'type' in right) {
+      switch (right.type) {
+        case 'Ratio':
+          return formatRatio(right.value);
+        case 'Currency':
+          return formatCurrency(right.value);
+        case 'Percentage':
+          return formatPercentage(right.value);
+      }
+    }
+  }
+  return fallback;
+}
+
 export function renderCovenantToWord(
   covenant: CovenantStatement,
   context?: WordTemplateContext
@@ -154,11 +185,12 @@ export function renderCovenantToWord(
   const metricDisplay = getMetricDisplayName(metricPart);
   const operatorDisplay = formatOperator(operator);
   const frequencyDisplay = formatFrequency(covenant.tested || 'quarterly');
+  const thresholdDisplay = formatCovenantThreshold(covenant.requires, thresholdPart);
 
   let prose = `${subsection} ${covenant.name}. `;
   prose += `The Borrower shall not permit the ${metricDisplay} `;
   prose += `as of the last day of any ${frequencyDisplay} `;
-  prose += `to ${operatorDisplay} ${thresholdPart} to 1.00`;
+  prose += `to ${operatorDisplay} ${thresholdDisplay}`;
 
   // Add cure rights if present
   if (covenant.cure) {
