@@ -3771,11 +3771,35 @@ describe('Technical Milestones', () => {
     const ast = await parseOrThrow(source);
     const interpreter = new ProVisoInterpreter(ast);
 
-    const status = interpreter.getTechnicalMilestoneStatus('PanelInstall');
+    // Pin the evaluation date before TARGET so the expected status stays 'pending'
+    // regardless of when the suite runs (matches getMilestoneStatus tests above).
+    const status = interpreter.getTechnicalMilestoneStatus('PanelInstall', new Date('2026-01-15'));
     expect(status.targetValue).toBe(1000);
     expect(status.currentValue).toBe(750);
     expect(status.completionPercent).toBe(75);
     expect(status.status).toBe('pending');
+  });
+
+  it('should report status relative to the evaluation date, not the wall clock', async () => {
+    const source = `
+      TECHNICAL_MILESTONE PanelInstall
+        TARGET 2026-06-30
+        LONGSTOP 2026-09-30
+        MEASUREMENT "Panels"
+        TARGET_VALUE 1000
+        CURRENT_VALUE 750
+    `;
+    const ast = await parseOrThrow(source);
+    const interpreter = new ProVisoInterpreter(ast);
+
+    const before = interpreter.getTechnicalMilestoneStatus('PanelInstall', new Date('2026-01-15'));
+    expect(before.status).toBe('pending');
+
+    const pastTarget = interpreter.getTechnicalMilestoneStatus('PanelInstall', new Date('2026-08-10'));
+    expect(pastTarget.status).toBe('at_risk');
+
+    const pastLongstop = interpreter.getTechnicalMilestoneStatus('PanelInstall', new Date('2026-11-01'));
+    expect(pastLongstop.status).toBe('breached');
   });
 
   it('should auto-achieve when target is met', async () => {
