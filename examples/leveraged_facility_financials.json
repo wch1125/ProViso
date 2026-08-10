@@ -10,6 +10,9 @@
     "unrestricted_cash": 62000000,
     "capital_leases": 18000000,
     "other_debt": 0,
+    "operating_cash_flow": 132000000,
+    "capex": 28000000,
+    "cash_taxes": 16000000,
     "total_assets": 1450000000
   }
 }

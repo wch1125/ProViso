@@ -96,6 +96,24 @@ COVENANT MinFixedChargeCoverage
   REQUIRES FixedChargeCoverage >= 1.15x
   TESTED QUARTERLY
 
+// ==================== MANDATORY PREPAYMENT ====================
+// Excess cash flow is an ordered deduction stack, not a fixed formula.
+// The sweep percentage steps down as the credit de-levers.
+
+EXCESS_CASH_FLOW AnnualECF
+  STARTING_FROM operating_cash_flow
+  LESS capex
+  LESS cash_taxes
+  LESS DebtService
+
+SWEEP ECFSweep
+  OF AnnualECF
+  APPLIED_TO TermLoanB, TermLoanA
+  BASED_ON NetLeverage
+  WHEN >= 4.50x SWEEP 75%
+  WHEN >= 3.50x SWEEP 50%
+  OTHERWISE SWEEP 25%
+
 // ==================== NEGATIVE COVENANTS ====================
 
 // General Investments - Section 7.02(a)

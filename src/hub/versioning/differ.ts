@@ -23,6 +23,8 @@ import type {
   FacilityStatement,
   TrancheStatement,
   PricingGridStatement,
+  SweepStatement,
+  ExcessCashFlowStatement,
   Expression,
 } from '../../types.js';
 import type { ElementType, ChangeType } from '../types.js';
@@ -64,6 +66,10 @@ export interface CompiledState {
   facilities: Map<string, FacilityStatement>;
   /** PRICING_GRID statements by name */
   pricingGrids: Map<string, PricingGridStatement>;
+  /** SWEEP statements by name */
+  sweeps: Map<string, SweepStatement>;
+  /** EXCESS_CASH_FLOW statements by name */
+  excessCashFlows: Map<string, ExcessCashFlowStatement>;
   /** Raw source code */
   sourceCode: string;
   /** Parse errors if any */
@@ -150,6 +156,8 @@ export async function compileToState(code: string): Promise<CompiledState> {
     conditionsPrecedent: new Map(),
     facilities: new Map(),
     pricingGrids: new Map(),
+    sweeps: new Map(),
+    excessCashFlows: new Map(),
     sourceCode: code,
     parseError: null,
   };
@@ -204,6 +212,12 @@ export async function compileToState(code: string): Promise<CompiledState> {
       case 'PricingGrid':
         state.pricingGrids.set(stmt.name, stmt);
         break;
+      case 'Sweep':
+        state.sweeps.set(stmt.name, stmt);
+        break;
+      case 'ExcessCashFlow':
+        state.excessCashFlows.set(stmt.name, stmt);
+        break;
       // Skip: Comment, Load, Amendment (amendments are applied separately)
     }
   }
@@ -247,6 +261,8 @@ export function diffStates(fromState: CompiledState, toState: CompiledState): Di
   diffMaps(fromState.conditionsPrecedent, toState.conditionsPrecedent, 'cp', diffs);
   diffMaps(fromState.facilities, toState.facilities, 'facility', diffs);
   diffMaps(fromState.pricingGrids, toState.pricingGrids, 'facility', diffs);
+  diffMaps(fromState.sweeps, toState.sweeps, 'facility', diffs);
+  diffMaps(fromState.excessCashFlows, toState.excessCashFlows, 'facility', diffs);
 
   // Compute stats
   const stats = computeStats(diffs);
@@ -346,6 +362,12 @@ function diffElements(fromElement: Statement, toElement: Statement): FieldChange
       break;
     case 'PricingGrid':
       diffPricingGrids(fromElement, toElement as PricingGridStatement, changes);
+      break;
+    case 'Sweep':
+      diffSweeps(fromElement, toElement as SweepStatement, changes);
+      break;
+    case 'ExcessCashFlow':
+      diffExcessCashFlows(fromElement, toElement as ExcessCashFlowStatement, changes);
       break;
     case 'Waterfall':
       diffWaterfalls(fromElement, toElement as WaterfallStatement, changes);
@@ -568,6 +590,62 @@ function diffMilestones(from: MilestoneStatement, to: MilestoneStatement, change
 
   // REQUIRES may be a bare identifier or a nested ALL_OF/ANY_OF condition.
   compareStructured('requires', from.requires, to.requires, changes);
+}
+
+/**
+ * Compare two sweeps.
+ *
+ * The percentage schedule and the tranches a prepayment lands on are both
+ * negotiated terms; a sweep stepping from 75% to 50% must not read as
+ * "no change".
+ */
+function diffSweeps(from: SweepStatement, to: SweepStatement, changes: FieldChange[]): void {
+  compareScalars('source', from.source, to.source, changes);
+  compareScalars('basedOn', from.basedOn, to.basedOn, changes);
+  compareLists('appliedTo', from.appliedTo, to.appliedTo, changes);
+
+  const describe = (level: SweepStatement['levels'][number]): string => {
+    const threshold = level.threshold === null
+      ? 'otherwise'
+      : `${level.operator ?? ''} ${expressionToString(level.threshold) ?? ''}`.trim();
+    return `${threshold} -> ${expressionToString(level.percentage) ?? ''}`;
+  };
+
+  const most = Math.max(from.levels.length, to.levels.length);
+  for (let i = 0; i < most; i++) {
+    const a = from.levels[i];
+    const b = to.levels[i];
+    compareScalars(`level.${i + 1}`, a ? describe(a) : null, b ? describe(b) : null, changes);
+  }
+}
+
+/**
+ * Compare two ECF stacks. The deduction list is the whole definition, so it
+ * is compared item by item and in order.
+ */
+function diffExcessCashFlows(
+  from: ExcessCashFlowStatement,
+  to: ExcessCashFlowStatement,
+  changes: FieldChange[]
+): void {
+  compareScalars(
+    'startingFrom',
+    expressionToString(from.startingFrom),
+    expressionToString(to.startingFrom),
+    changes
+  );
+
+  const most = Math.max(from.deductions.length, to.deductions.length);
+  for (let i = 0; i < most; i++) {
+    const a = from.deductions[i];
+    const b = to.deductions[i];
+    compareScalars(
+      `deduction.${i + 1}`,
+      a ? `${a.label}: ${expressionToString(a.amount) ?? ''}` : null,
+      b ? `${b.label}: ${expressionToString(b.amount) ?? ''}` : null,
+      changes
+    );
+  }
 }
 
 /**

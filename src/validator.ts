@@ -18,6 +18,8 @@ import {
   TechnicalMilestoneStatement,
   FacilityStatement,
   PricingGridStatement,
+  SweepStatement,
+  ExcessCashFlowStatement,
   ReserveStatement,
   WaterfallStatement,
   PhaseStatement,
@@ -49,6 +51,8 @@ interface SymbolTable {
   facilities: Set<string>;
   tranches: Set<string>;
   pricingGrids: Set<string>;
+  excessCashFlows: Set<string>;
+  sweeps: Set<string>;
 }
 
 /**
@@ -267,6 +271,104 @@ function collectIdentifiers(expr: Expression, into: Set<string>): void {
 }
 
 /**
+ * Validate a SWEEP statement.
+ *
+ * A sweep that names a source or tranche which does not exist silently sweeps
+ * nothing — the worst failure mode for a cash construct, because the deal
+ * appears to de-lever on paper and does not.
+ */
+function validateSweep(
+  stmt: SweepStatement,
+  symbols: SymbolTable,
+  errors: ValidationIssue[],
+  warnings: ValidationIssue[]
+): void {
+  const context = `SWEEP ${stmt.name}`;
+
+  if (!stmt.source) {
+    errors.push({ severity: 'error', message: 'Sweep declares no OF source', context });
+  } else if (!symbols.excessCashFlows.has(stmt.source) && !symbols.defines.has(stmt.source)) {
+    warnings.push({
+      severity: 'warning',
+      message:
+        `OF references '${stmt.source}', which is not an EXCESS_CASH_FLOW or a DEFINE — ` +
+        `the sweep will have nothing to apply`,
+      reference: stmt.source,
+      context,
+    });
+  }
+
+  if (stmt.appliedTo.length === 0) {
+    errors.push({
+      severity: 'error',
+      message: 'Sweep declares no APPLIED_TO tranches — it would compute an amount and repay nothing',
+      context,
+    });
+  }
+  for (const tranche of stmt.appliedTo) {
+    if (!symbols.tranches.has(tranche)) {
+      errors.push({
+        severity: 'error',
+        message: `APPLIED_TO references '${tranche}', which is not a declared TRANCHE`,
+        reference: tranche,
+        context,
+      });
+    }
+  }
+
+  if (stmt.basedOn && !symbols.defines.has(stmt.basedOn)) {
+    const derived = new Set<string>(ProVisoInterpreter.DERIVED_FACILITY_METRICS);
+    if (!derived.has(stmt.basedOn)) {
+      warnings.push({
+        severity: 'warning',
+        message:
+          `BASED_ON references '${stmt.basedOn}', which is not a DEFINE or a ` +
+          `facility-derived metric — every level will be skipped`,
+        reference: stmt.basedOn,
+        context,
+      });
+    }
+  }
+
+  const otherwiseIndex = stmt.levels.findIndex((l) => l.threshold === null);
+  if (otherwiseIndex !== -1 && otherwiseIndex !== stmt.levels.length - 1) {
+    errors.push({
+      severity: 'error',
+      message: 'OTHERWISE must be the last level — levels after it are unreachable',
+      context,
+    });
+  }
+  if (otherwiseIndex === -1) {
+    warnings.push({
+      severity: 'warning',
+      message:
+        'Sweep has no OTHERWISE level — below every threshold the sweep percentage falls to zero',
+      context,
+    });
+  }
+}
+
+/**
+ * Validate an EXCESS_CASH_FLOW statement.
+ */
+function validateExcessCashFlow(
+  stmt: ExcessCashFlowStatement,
+  _symbols: SymbolTable,
+  _errors: ValidationIssue[],
+  warnings: ValidationIssue[]
+): void {
+  if (stmt.deductions.length === 0) {
+    warnings.push({
+      severity: 'warning',
+      message:
+        'ECF has no deductions — it equals its starting figure, which is rarely what an ' +
+        'agreement means by excess cash flow',
+      context: `EXCESS_CASH_FLOW ${stmt.name}`,
+    });
+  }
+}
+
+/**
  * Validate a FACILITY statement.
  */
 function validateFacility(
@@ -370,6 +472,8 @@ function buildSymbolTable(ast: Program): SymbolTable {
     facilities: new Set(),
     tranches: new Set(),
     pricingGrids: new Set(),
+    excessCashFlows: new Set(),
+    sweeps: new Set(),
   };
 
   for (const stmt of ast.statements) {
@@ -421,6 +525,12 @@ function buildSymbolTable(ast: Program): SymbolTable {
       case 'PricingGrid':
         symbols.pricingGrids.add(stmt.name);
         break;
+      case 'ExcessCashFlow':
+        symbols.excessCashFlows.add(stmt.name);
+        break;
+      case 'Sweep':
+        symbols.sweeps.add(stmt.name);
+        break;
     }
   }
 
@@ -447,7 +557,9 @@ function isKnownSymbol(name: string, symbols: SymbolTable): boolean {
     symbols.conditionsPrecedent.has(name) ||
     symbols.facilities.has(name) ||
     symbols.tranches.has(name) ||
-    symbols.pricingGrids.has(name)
+    symbols.pricingGrids.has(name) ||
+    symbols.excessCashFlows.has(name) ||
+    symbols.sweeps.has(name)
   );
 }
 
@@ -515,6 +627,12 @@ function validateStatement(
       break;
     case 'PricingGrid':
       validatePricingGrid(stmt, symbols, errors, warnings, ast);
+      break;
+    case 'Sweep':
+      validateSweep(stmt, symbols, errors, warnings);
+      break;
+    case 'ExcessCashFlow':
+      validateExcessCashFlow(stmt, symbols, errors, warnings);
       break;
     // Remaining types (RegulatoryRequirement, PerformanceGuarantee,
     // DegradationSchedule, SeasonalAdjustment, TaxCredit, Depreciation) have

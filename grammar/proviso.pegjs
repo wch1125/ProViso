@@ -29,6 +29,8 @@ Program
 
 Statement
   = AmendmentStatement
+  / ExcessCashFlowStatement
+  / SweepStatement
   / PricingGridStatement
   / FacilityStatement
   / PhaseStatement
@@ -733,6 +735,69 @@ MilestoneRequires
     }
 
 // ==================== RESERVE ====================
+
+// ==================== EXCESS CASH FLOW ====================
+
+// ECF is an ordered deduction stack, not a fixed formula — every deal defines
+// it differently, so the deductions are declared rather than hardcoded.
+ExcessCashFlowStatement
+  = "EXCESS_CASH_FLOW" __ name:Identifier _ "STARTING_FROM" __ base:Expression _ deductions:EcfDeduction* {
+      return {
+        type: 'ExcessCashFlow',
+        name: name,
+        startingFrom: base,
+        deductions: deductions
+      };
+    }
+
+EcfDeduction
+  = "LESS" __ label:Identifier _ {
+      return { label: label, amount: label };
+    }
+  / "LESS" __ "(" _ label:StringLiteral _ ")" __ amount:Expression _ {
+      return { label: label, amount: amount };
+    }
+
+// ==================== SWEEP ====================
+
+// A mandatory prepayment. The sweep percentage steps with a named ratio, the
+// same shape as a pricing grid, because that is how they are drafted.
+SweepStatement
+  = "SWEEP" __ name:Identifier _ clauses:SweepClause+ levels:SweepLevel+ {
+      const result = {
+        type: 'Sweep',
+        name: name,
+        source: null,
+        appliedTo: [],
+        basedOn: null,
+        levels: levels
+      };
+      clauses.forEach(clause => {
+        if (clause.type === 'source') result.source = clause.value;
+        if (clause.type === 'appliedTo') result.appliedTo = clause.value;
+        if (clause.type === 'basedOn') result.basedOn = clause.value;
+      });
+      return result;
+    }
+
+SweepClause
+  = "OF" __ value:Identifier _ {
+      return { type: 'source', value: value };
+    }
+  / "APPLIED_TO" __ value:IdentifierList _ {
+      return { type: 'appliedTo', value: value };
+    }
+  / "BASED_ON" __ value:Identifier _ {
+      return { type: 'basedOn', value: value };
+    }
+
+SweepLevel
+  = "WHEN" __ op:ComparisonOperator _ threshold:Expression __ "SWEEP" __ pct:Expression _ {
+      return { threshold: threshold, operator: op, percentage: pct };
+    }
+  / "OTHERWISE" __ "SWEEP" __ pct:Expression _ {
+      return { threshold: null, operator: null, percentage: pct };
+    }
 
 // ==================== PRICING GRID ====================
 

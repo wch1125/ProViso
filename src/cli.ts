@@ -984,6 +984,103 @@ program
     }
   });
 
+// ==================== SETTLE COMMAND ====================
+
+program
+  .command('settle <file>')
+  .description('Run periods through the settlement order, rolling debt forward')
+  .option('-d, --data <file>', 'Financial data JSON file')
+  .option('-p, --periods <n>', 'Number of periods to settle', '4')
+  .option('-s, --start <label>', 'Label for the first period', '1')
+  .option('--json', 'Output as JSON')
+  .action(async (file: string, options: { data?: string; periods?: string; start?: string; json?: boolean }) => {
+    try {
+      const interpreter = await loadInterpreter(file, options.data);
+
+      if (!interpreter.hasFacilities()) {
+        console.error('Error: settle requires a FACILITY — there is no debt to roll forward');
+        process.exit(1);
+      }
+
+      const count = parseNumericOption(options.periods ?? '4', '--periods');
+      if (count < 1 || count > 40) {
+        console.error('Error: --periods must be between 1 and 40');
+        process.exit(1);
+      }
+
+      // Period labels are sequential from --start when it is numeric, so a
+      // calendar year reads naturally; otherwise they are simply numbered.
+      const startNumber = Number(options.start);
+      const labelFor = (index: number): string =>
+        Number.isFinite(startNumber)
+          ? String(startNumber + index)
+          : `${options.start ?? 'Period'} +${index}`;
+
+      const settlements = interpreter.settlePeriods(
+        Array.from({ length: count }, (_, i) => ({ period: labelFor(i) }))
+      );
+
+      if (options.json) {
+        console.log(JSON.stringify(settlements, null, 2));
+        return;
+      }
+
+      console.log('\nPERIOD SETTLEMENT');
+      console.log('─'.repeat(96));
+      console.log(
+        '  Period  Opening Debt   Leverage  Margin   Interest    ECF      Sweep    Repaid   Closing Debt'
+      );
+      console.log('  ' + '─'.repeat(92));
+
+      for (const s of settlements) {
+        const money = (v: number): string => formatMoney(v).padStart(9);
+        const leverage = s.openingLeverage === null ? '     —' : `${s.openingLeverage.toFixed(2)}x`.padStart(6);
+        const margin = s.applicableMargin === null ? '    —' : `${s.applicableMargin.toFixed(2)}%`.padStart(5);
+        const sweepPct = s.sweeps[0] ? `${s.sweeps[0].percentage.toFixed(0)}%`.padStart(5) : '    —';
+        const ecf = s.ecf ? money(s.ecf.result) : '        —';
+
+        console.log(
+          `  ${s.period.padEnd(7)} ${money(s.openingDebt)}     ${leverage}   ${margin}  ` +
+            `${money(s.interest)} ${ecf}   ${sweepPct}  ${money(s.principalRepaid)}    ${money(s.closingDebt)}`
+        );
+      }
+
+      const first = settlements[0];
+      const last = settlements[settlements.length - 1];
+      if (first && last) {
+        console.log('  ' + '─'.repeat(92));
+        console.log(
+          `  Over ${settlements.length} period(s): debt ${formatMoney(first.openingDebt)} → ` +
+            `${formatMoney(last.closingDebt)}` +
+            (first.openingLeverage !== null && last.closingLeverage !== null
+              ? `, leverage ${first.openingLeverage.toFixed(2)}x → ${last.closingLeverage.toFixed(2)}x`
+              : '')
+        );
+      }
+
+      // The first period's ECF breakdown, so the deduction stack is auditable
+      // rather than a single number.
+      if (first?.ecf) {
+        console.log(`\nEXCESS CASH FLOW — ${first.ecf.name} (period ${first.period})`);
+        console.log('─'.repeat(96));
+        console.log(`  Starting from            ${formatMoney(first.ecf.startingValue)}`);
+        for (const d of first.ecf.deductions) {
+          console.log(`  Less ${d.label.padEnd(22)}(${formatMoney(d.amount)})`);
+        }
+        console.log(`  ${''.padEnd(25)}${'─'.repeat(12)}`);
+        console.log(`  Excess cash flow         ${formatMoney(first.ecf.result)}`);
+      }
+      console.log('');
+
+    } catch (err) {
+      const msg = (err as Error).message;
+      if (msg !== 'Parse failed') {
+        console.error(`Error: ${msg}`);
+      }
+      process.exit(1);
+    }
+  });
+
 // ==================== RESERVES COMMAND ====================
 
 program

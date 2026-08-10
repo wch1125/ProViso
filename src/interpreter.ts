@@ -54,6 +54,12 @@ import {
   FacilityStatus,
   PricingGridStatement,
   PricingGridStatus,
+  ExcessCashFlowStatement,
+  SweepStatement,
+  EcfBreakdown,
+  SweepResult,
+  PeriodSettlement,
+  PeriodSettlementInput,
   CPStatus,
   CPChecklistResult,
   CPItemResult,
@@ -119,6 +125,17 @@ export class ProVisoInterpreter {
   private cpStatuses: Map<string, Map<string, CPStatus>> = new Map(); // checklist -> (cp -> status)
   private facilities: Map<string, FacilityStatement> = new Map();
   private pricingGrids: Map<string, PricingGridStatement> = new Map();
+  private excessCashFlows: Map<string, ExcessCashFlowStatement> = new Map();
+  private sweeps: Map<string, SweepStatement> = new Map();
+  /**
+   * Live drawn balances, keyed `facility::tranche`.
+   *
+   * Empty until a period is settled, at which point balances are seeded from
+   * the AST and thereafter roll forward — amortization and sweeps reduce them.
+   * Keeping this separate from the AST means a file that never settles a
+   * period behaves exactly as before.
+   */
+  private trancheBalances: Map<string, number> = new Map();
 
   // Simple financial data (flat record) - used when not in multi-period mode
   private simpleFinancialData: SimpleFinancialData = {};
@@ -268,6 +285,12 @@ export class ProVisoInterpreter {
         break;
       case 'PricingGrid':
         this.pricingGrids.set(stmt.name, stmt);
+        break;
+      case 'ExcessCashFlow':
+        this.excessCashFlows.set(stmt.name, stmt);
+        break;
+      case 'Sweep':
+        this.sweeps.set(stmt.name, stmt);
         break;
       case 'Amendment':
         // Amendments are processed separately via applyAmendment
@@ -3472,14 +3495,22 @@ export class ProVisoInterpreter {
     tranche: TrancheStatement,
     benchmarkRate: number,
     commitmentFeeRate: number,
-    lcFeeRate: number
+    lcFeeRate: number,
+    facilityName: string
   ): TrancheStatus {
     const commitment = this.evaluateOptional(tranche.commitment);
     // A tranche with no explicit DRAWN is assumed fully drawn if it is a term
     // loan, and undrawn if it is a revolver — the conventional default.
-    const drawn = tranche.drawn !== null
+    const drafted = tranche.drawn !== null
       ? this.evaluate(tranche.drawn)
       : tranche.trancheType === 'revolving_credit' ? 0 : commitment;
+
+    // Once periods have been settled the live balance supersedes the drafted
+    // one, so amortization and sweeps are reflected everywhere debt is read.
+    const live = this.trancheBalances.get(
+      ProVisoInterpreter.balanceKey(facilityName, tranche.name)
+    );
+    const drawn = live ?? drafted;
 
     // A PRICING reference supplies the margin from a grid; an explicit MARGIN
     // wins if both are present, since a hardcoded rate is the more specific
@@ -3541,7 +3572,7 @@ export class ProVisoInterpreter {
     const commitmentFeeRate = this.evaluateOptional(facility.commitmentFee);
     const lcFeeRate = this.evaluateOptional(facility.lcFee);
     const tranches = facility.tranches.map((t) =>
-      this.evaluateTranche(t, benchmarkRate, commitmentFeeRate, lcFeeRate)
+      this.evaluateTranche(t, benchmarkRate, commitmentFeeRate, lcFeeRate, facility.name)
     );
 
     const sum = (pick: (t: TrancheStatus) => number): number =>
@@ -3676,6 +3707,327 @@ export class ProVisoInterpreter {
       default:
         return undefined;
     }
+  }
+
+  // ==================== EXCESS CASH FLOW ====================
+
+  hasExcessCashFlows(): boolean {
+    return this.excessCashFlows.size > 0;
+  }
+
+  hasSweeps(): boolean {
+    return this.sweeps.size > 0;
+  }
+
+  getSweepNames(): string[] {
+    return Array.from(this.sweeps.keys());
+  }
+
+  /**
+   * Compute an ECF stack, returning the line-by-line breakdown.
+   *
+   * Floored at zero: a period that generates no excess cash sweeps nothing.
+   * A negative residual is a cash shortfall, not a negative prepayment.
+   */
+  getExcessCashFlow(name: string): EcfBreakdown {
+    const ecf = this.excessCashFlows.get(name);
+    if (!ecf) {
+      throw new Error(`Unknown excess cash flow: ${name}`);
+    }
+
+    const startingValue = this.evaluate(ecf.startingFrom);
+    const deductions = ecf.deductions.map((d) => ({
+      label: d.label,
+      // A deduction naming an absent input contributes nothing rather than
+      // aborting the settlement — an unstated permitted item is simply zero.
+      amount: this.tryEvaluate(d.amount) ?? 0,
+    }));
+
+    const deducted = deductions.reduce((sum, d) => sum + d.amount, 0);
+    return {
+      name,
+      startingValue,
+      deductions,
+      result: Math.max(0, startingValue - deducted),
+    };
+  }
+
+  /** Evaluate an expression, returning undefined instead of throwing. */
+  private tryEvaluate(expr: Expression): number | undefined {
+    try {
+      return this.evaluate(expr);
+    } catch {
+      return undefined;
+    }
+  }
+
+  // ==================== TRANCHE BALANCES (ROLL-FORWARD) ====================
+
+  /** Key for a tranche's live balance. */
+  private static balanceKey(facility: string, tranche: string): string {
+    return `${facility}::${tranche}`;
+  }
+
+  /**
+   * Seed live balances from the AST if they have not been already.
+   *
+   * Called at the start of the first settlement. Until then the map is empty
+   * and `evaluateTranche` reads the AST directly, so nothing changes for files
+   * that never settle.
+   */
+  private ensureTrancheBalances(): void {
+    if (this.trancheBalances.size > 0) return;
+
+    for (const [facilityName, facility] of this.facilities) {
+      for (const tranche of facility.tranches) {
+        const commitment = this.evaluateOptional(tranche.commitment);
+        const drawn = tranche.drawn !== null
+          ? this.evaluate(tranche.drawn)
+          : tranche.trancheType === 'revolving_credit' ? 0 : commitment;
+        this.trancheBalances.set(
+          ProVisoInterpreter.balanceKey(facilityName, tranche.name),
+          drawn
+        );
+      }
+    }
+  }
+
+  /** Discard rolled-forward balances and return to the values as drafted. */
+  resetTrancheBalances(): void {
+    this.trancheBalances.clear();
+    this.definitionEvalCache.clear();
+  }
+
+  /** Current drawn balance of a tranche, live if settled, else as drafted. */
+  getTrancheBalance(facility: string, tranche: string): number {
+    const key = ProVisoInterpreter.balanceKey(facility, tranche);
+    const live = this.trancheBalances.get(key);
+    if (live !== undefined) return live;
+    return this.getFacilityStatus(facility).tranches.find((t) => t.name === tranche)?.drawn ?? 0;
+  }
+
+  // ==================== PERIOD SETTLEMENT ====================
+
+  /**
+   * Run one period through the settlement order and roll balances forward.
+   *
+   * The sequence is fixed so cash is deterministic: accrue interest and fees
+   * on the opening balance, take in operating cash, pay scheduled
+   * amortization, determine ECF, then apply mandatory sweeps. Each step's
+   * effect is recorded rather than collapsed into a single number.
+   *
+   * Pricing is read from the *opening* leverage, so within a period the grid
+   * cannot be moved by the very repayment it helps fund. The de-levering
+   * feedback resolves across periods, never inside one.
+   */
+  settlePeriod(input: PeriodSettlementInput): PeriodSettlement {
+    if (this.facilities.size === 0) {
+      throw new Error('Cannot settle a period: no FACILITY is declared');
+    }
+
+    this.ensureTrancheBalances();
+
+    if (input.financials) {
+      this.loadFinancials(input.financials);
+    }
+
+    // --- Open: balances and the leverage the period is priced off ---
+    const openingDebt = this.sumTrancheBalances();
+    const openingLeverage = this.currentLeverage();
+    const openingFacilities = this.getAllFacilityStatuses();
+
+    const applicableMargin = this.pricingGrids.size > 0
+      ? this.getAllPricingGridStatuses()[0]?.margin ?? null
+      : null;
+
+    // --- Accrue interest and fees on the opening balance ---
+    const interest = openingFacilities.reduce((sum, f) => sum + f.annualInterest, 0);
+    const fees = openingFacilities.reduce((sum, f) => sum + f.fees, 0);
+
+    // --- Scheduled amortization ---
+    const scheduledAmortization = this.applyScheduledAmortization();
+
+    // --- Excess cash flow, then the sweeps that consume it ---
+    let ecf: EcfBreakdown | null = null;
+    const sweepResults: SweepResult[] = [];
+
+    for (const [name, sweep] of this.sweeps) {
+      const result = this.applySweep(name, sweep);
+      if (sweep.source && this.excessCashFlows.has(sweep.source) && !ecf) {
+        ecf = this.getExcessCashFlow(sweep.source);
+      }
+      sweepResults.push(result);
+    }
+
+    // If an ECF is declared but no sweep consumed it, still report it — the
+    // figure is meaningful on its own and a deal may compute it for reporting.
+    if (!ecf && this.excessCashFlows.size > 0) {
+      const first = this.excessCashFlows.keys().next().value;
+      if (first) ecf = this.getExcessCashFlow(first);
+    }
+
+    const swept = sweepResults.reduce((sum, s) => sum + s.applied, 0);
+    const closingDebt = this.sumTrancheBalances();
+
+    return {
+      period: input.period,
+      openingDebt,
+      openingLeverage,
+      applicableMargin,
+      interest,
+      fees,
+      scheduledAmortization,
+      ecf,
+      sweeps: sweepResults,
+      principalRepaid: scheduledAmortization + swept,
+      closingDebt,
+      closingLeverage: this.currentLeverage(),
+    };
+  }
+
+  /** Settle a sequence of periods, carrying balances forward between them. */
+  settlePeriods(inputs: PeriodSettlementInput[]): PeriodSettlement[] {
+    return inputs.map((input) => this.settlePeriod(input));
+  }
+
+  /** Total drawn across every tranche, from live balances. */
+  private sumTrancheBalances(): number {
+    let total = 0;
+    for (const balance of this.trancheBalances.values()) total += balance;
+    return total;
+  }
+
+  /**
+   * Leverage as the settlement engine sees it.
+   *
+   * Prefers a user-declared NetLeverage or TotalLeverage so the number shown
+   * matches the covenant the deal is actually tested on; falls back to the
+   * derived net figure over EBITDA.
+   */
+  private currentLeverage(): number | null {
+    for (const name of ['NetLeverage', 'TotalLeverage', 'Leverage']) {
+      if (this.definitions.has(name)) {
+        const value = this.tryEvaluate(name);
+        if (value !== undefined && Number.isFinite(value)) return value;
+      }
+    }
+    const debt = this.resolveFacilityMetric('NetDebt');
+    const ebitda = this.tryEvaluate('EBITDA') ?? this.getFinancialValue('ebitda');
+    if (debt === undefined || ebitda === undefined || !ebitda) return null;
+    return debt / ebitda;
+  }
+
+  /**
+   * Pay scheduled principal on every term tranche, reducing live balances.
+   * Never pays more than the outstanding balance.
+   */
+  private applyScheduledAmortization(): number {
+    let total = 0;
+
+    for (const [facilityName, facility] of this.facilities) {
+      for (const tranche of facility.tranches) {
+        if (tranche.trancheType === 'revolving_credit') continue;
+
+        const key = ProVisoInterpreter.balanceKey(facilityName, tranche.name);
+        const balance = this.trancheBalances.get(key) ?? 0;
+        if (balance <= 0) continue;
+
+        const commitment = this.evaluateOptional(tranche.commitment);
+        const scheduled = commitment * this.evaluateOptional(tranche.amortization);
+        const paid = Math.min(scheduled, balance);
+
+        if (paid > 0) {
+          this.trancheBalances.set(key, balance - paid);
+          total += paid;
+        }
+      }
+    }
+
+    if (total > 0) this.definitionEvalCache.clear();
+    return total;
+  }
+
+  /**
+   * Apply one sweep: resolve its stepped percentage, take that share of the
+   * source, and pay it against the named tranches in order.
+   */
+  private applySweep(name: string, sweep: SweepStatement): SweepResult {
+    const basisValue = sweep.basedOn ? this.tryEvaluate(sweep.basedOn) ?? null : null;
+    const { percentage, levelDescription } = this.resolveSweepLevel(sweep, basisValue);
+
+    const sourceAmount = sweep.source
+      ? this.excessCashFlows.has(sweep.source)
+        ? this.getExcessCashFlow(sweep.source).result
+        : this.tryEvaluate(sweep.source) ?? 0
+      : 0;
+
+    let remaining = Math.max(0, sourceAmount * (percentage / 100));
+    const applications: SweepResult['applications'] = [];
+
+    // Applied in the order the tranches are named — the debt-stack application
+    // order is a drafted term, not an engine assumption.
+    for (const trancheName of sweep.appliedTo) {
+      if (remaining <= 0) break;
+
+      const located = this.locateTranche(trancheName);
+      if (!located) continue;
+
+      const balance = this.trancheBalances.get(located.key) ?? 0;
+      const paid = Math.min(remaining, balance);
+      if (paid <= 0) continue;
+
+      this.trancheBalances.set(located.key, balance - paid);
+      remaining -= paid;
+      applications.push({
+        tranche: trancheName,
+        amount: paid,
+        balanceAfter: balance - paid,
+      });
+    }
+
+    const applied = applications.reduce((sum, a) => sum + a.amount, 0);
+    if (applied > 0) this.definitionEvalCache.clear();
+
+    return {
+      name,
+      sourceAmount,
+      basisValue,
+      percentage,
+      levelDescription,
+      applied,
+      applications,
+    };
+  }
+
+  /** Find a tranche's balance key by name across all facilities. */
+  private locateTranche(trancheName: string): { key: string } | null {
+    for (const [facilityName, facility] of this.facilities) {
+      if (facility.tranches.some((t) => t.name === trancheName)) {
+        return { key: ProVisoInterpreter.balanceKey(facilityName, trancheName) };
+      }
+    }
+    return null;
+  }
+
+  /** Resolve which sweep level applies, mirroring pricing-grid semantics. */
+  private resolveSweepLevel(
+    sweep: SweepStatement,
+    basisValue: number | null
+  ): { percentage: number; levelDescription: string } {
+    for (const level of sweep.levels) {
+      const percentage = this.evaluate(level.percentage) * 100;
+
+      if (level.threshold === null || level.operator === null) {
+        return { percentage, levelDescription: 'otherwise' };
+      }
+      if (basisValue === null) continue;
+
+      const threshold = this.evaluate(level.threshold);
+      if (this.compareValues(basisValue, level.operator, threshold)) {
+        return { percentage, levelDescription: `${level.operator} ${threshold}` };
+      }
+    }
+    return { percentage: 0, levelDescription: 'no level matched' };
   }
 
   // ==================== WATERFALL SYSTEM ====================

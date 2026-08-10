@@ -33,7 +33,45 @@ export type Statement =
   | WaterfallStatement
   | ConditionsPrecedentStatement
   | FacilityStatement
-  | PricingGridStatement;
+  | PricingGridStatement
+  | ExcessCashFlowStatement
+  | SweepStatement;
+
+// ==================== PERIOD SETTLEMENT ====================
+
+/** Inputs for settling one period. */
+export interface PeriodSettlementInput {
+  /** Label for the period being settled, e.g. "2026". */
+  period: string;
+  /** Operating cash and any other financials for this period. */
+  financials?: SimpleFinancialData;
+}
+
+/**
+ * The result of running one period through the settlement order.
+ *
+ * Steps run in a fixed sequence — accrue, amortize, determine ECF, sweep —
+ * and each records what it did, so the whole period is auditable rather than
+ * a single opening and closing number.
+ */
+export interface PeriodSettlement {
+  period: string;
+  /** Debt at the start of the period, before amortization and sweeps. */
+  openingDebt: number;
+  /** Leverage as the period opened — what the pricing grid was read against. */
+  openingLeverage: number | null;
+  /** Applicable margin in effect for the period, per grid. */
+  applicableMargin: number | null;
+  interest: number;
+  fees: number;
+  scheduledAmortization: number;
+  ecf: EcfBreakdown | null;
+  sweeps: SweepResult[];
+  /** Total principal repaid: scheduled amortization plus sweeps. */
+  principalRepaid: number;
+  closingDebt: number;
+  closingLeverage: number | null;
+}
 
 export interface DefineStatement {
   type: 'Define';
@@ -1287,6 +1325,80 @@ export interface FlipEventResult {
   currentAllocation: AllocationSpec | null;
   /** Buyout price if applicable */
   buyoutPrice: number | null;
+}
+
+// ==================== EXCESS CASH FLOW & SWEEP TYPES ====================
+
+/** One deduction in an ECF stack. */
+export interface EcfDeduction {
+  /** Human-readable label, used in the settlement breakdown. */
+  label: string;
+  amount: Expression;
+}
+
+/**
+ * Excess cash flow, expressed as an ordered deduction stack.
+ *
+ * Deliberately not a fixed formula: every agreement defines ECF differently,
+ * so the deductions are declared. This is the second consumer of the
+ * adjustment-stack idea (after DEFINE modifiers) and should fold into the
+ * shared adjustment engine when that exists.
+ */
+export interface ExcessCashFlowStatement {
+  type: 'ExcessCashFlow';
+  name: string;
+  startingFrom: Expression;
+  deductions: EcfDeduction[];
+}
+
+/** One level of a stepped sweep percentage. */
+export interface SweepLevel {
+  threshold: Expression | null;
+  operator: string | null;
+  percentage: Expression;
+}
+
+/**
+ * A mandatory prepayment sweep.
+ *
+ * The percentage steps with a named ratio, the same shape as a pricing grid,
+ * because that is how sweeps are drafted — and it produces the self-damping
+ * feedback that makes de-levering interesting: less leverage, less sweep.
+ */
+export interface SweepStatement {
+  type: 'Sweep';
+  name: string;
+  /** Name of the ExcessCashFlow (or other metric) being swept. */
+  source: string | null;
+  /** Tranches the prepayment is applied against, in order. */
+  appliedTo: string[];
+  /** Ratio the sweep percentage is stepped by. */
+  basedOn: string | null;
+  levels: SweepLevel[];
+}
+
+/** Line-by-line breakdown of an ECF computation. */
+export interface EcfBreakdown {
+  name: string;
+  startingValue: number;
+  deductions: Array<{ label: string; amount: number }>;
+  /** Floored at zero — a negative residual sweeps nothing. */
+  result: number;
+}
+
+/** What a sweep did in one period. */
+export interface SweepResult {
+  name: string;
+  /** ECF (or other source) available before the percentage is applied. */
+  sourceAmount: number;
+  basisValue: number | null;
+  /** Sweep percentage in percentage points. */
+  percentage: number;
+  levelDescription: string;
+  /** Total principal actually applied. */
+  applied: number;
+  /** Per-tranche application, in the order tranches were named. */
+  applications: Array<{ tranche: string; amount: number; balanceAfter: number }>;
 }
 
 // ==================== PRICING GRID TYPES ====================
