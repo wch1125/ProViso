@@ -263,6 +263,59 @@ describe('Interpreter', () => {
     });
   });
 
+  describe('Boolean Operator Precedence', () => {
+    // AND must bind tighter than OR, per conventional boolean precedence.
+    // Previously both folded into one left-associative list, so
+    // `A OR B AND C` evaluated as `(A OR B) AND C`.
+    async function evalCondition(
+      expr: string,
+      data: Record<string, number>
+    ): Promise<boolean> {
+      const ast = await parseOrThrow(`
+        DEFINE A AS a
+        DEFINE B AS b
+        DEFINE C AS c
+        CONDITION test AS ${expr}
+      `);
+      const local = new ProVisoInterpreter(ast);
+      local.loadFinancials(data);
+      return local.evaluateBoolean('test');
+    }
+
+    it('should bind AND tighter than OR', async () => {
+      // A OR (B AND C) => true. Wrong parse gives (A OR B) AND C => false.
+      const result = await evalCondition('A > 1 OR B > 1 AND C > 1', { a: 5, b: 0, c: 0 });
+      expect(result).toBe(true);
+    });
+
+    it('should bind AND tighter than OR with the AND on the left', async () => {
+      // (A AND B) OR C => true. Wrong parse gives A AND (B OR C) => false.
+      const result = await evalCondition('A > 1 AND B > 1 OR C > 1', { a: 0, b: 0, c: 5 });
+      expect(result).toBe(true);
+    });
+
+    it('should let explicit parentheses override precedence', async () => {
+      const result = await evalCondition('(A > 1 OR B > 1) AND C > 1', { a: 5, b: 0, c: 0 });
+      expect(result).toBe(false);
+    });
+
+    it('should produce an OR at the root of a mixed expression', async () => {
+      const ast = await parseOrThrow(`CONDITION test AS a > 1 OR b > 1 AND c > 1`);
+      const cond = ast.statements[0] as { expression: { operator: string } };
+      expect(cond.expression.operator).toBe('OR');
+    });
+
+    it('should keep chained ANDs left-associative', async () => {
+      const result = await evalCondition('A > 1 AND B > 1 AND C > 1', { a: 5, b: 5, c: 0 });
+      expect(result).toBe(false);
+    });
+
+    it('should keep chained ORs left-associative', async () => {
+      const result = await evalCondition('A > 1 OR B > 1 OR C > 1', { a: 0, b: 0, c: 5 });
+      expect(result).toBe(true);
+    });
+  });
+
   describe('Prohibition Checking', () => {
     it('should permit investment within basket', () => {
       const result = interpreter.checkProhibition('Investments', 10000000);

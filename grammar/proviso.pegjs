@@ -1290,8 +1290,16 @@ ArgumentList
 Condition
   = BooleanExpression
 
+// Two precedence tiers so AND binds tighter than OR, matching conventional
+// boolean precedence: `A OR B AND C` is `A OR (B AND C)`, not `(A OR B) AND C`.
+// Each tier stays left-associative within itself.
 BooleanExpression
-  = head:BooleanTerm tail:(_ ("AND" / "OR") _ BooleanTerm)* {
+  = head:AndExpression tail:(_ "OR" _ AndExpression)* {
+      return buildBinaryExpr(head, tail);
+    }
+
+AndExpression
+  = head:BooleanTerm tail:(_ "AND" _ BooleanTerm)* {
       return buildBinaryExpr(head, tail);
     }
 
