@@ -15,6 +15,7 @@ import {
   ProhibitStatement,
   EventStatement,
   MilestoneStatement,
+  TechnicalMilestoneStatement,
   ReserveStatement,
   WaterfallStatement,
   PhaseStatement,
@@ -62,6 +63,10 @@ export function validate(ast: Program): ValidationResult {
   // Build symbol table from all statements
   const symbols = buildSymbolTable(ast);
 
+  // Duplicate names silently shadow each other at load time — the interpreter
+  // keys its maps by name, so the second definition wins with no diagnostic.
+  detectDuplicateNames(ast, errors);
+
   // Validate each statement
   for (const stmt of ast.statements) {
     validateStatement(stmt, symbols, errors, warnings);
@@ -72,6 +77,41 @@ export function validate(ast: Program): ValidationResult {
     errors,
     warnings,
   };
+}
+
+/**
+ * Report an error for any two statements of the same kind sharing a name.
+ *
+ * The interpreter stores statements in name-keyed maps, so a duplicate
+ * silently shadows the earlier one — two covenants named `leverage` both
+ * parsed and validate() returned valid: true while only the second was ever
+ * evaluated. Names are compared within a kind, so a DEFINE and a COVENANT may
+ * still share a name as they occupy different namespaces.
+ */
+function detectDuplicateNames(ast: Program, errors: ValidationIssue[]): void {
+  const seen = new Map<string, Set<string>>();
+
+  for (const stmt of ast.statements) {
+    if (!('name' in stmt) || typeof stmt.name !== 'string') continue;
+
+    const kind = stmt.type;
+    let namesForKind = seen.get(kind);
+    if (!namesForKind) {
+      namesForKind = new Set();
+      seen.set(kind, namesForKind);
+    }
+
+    if (namesForKind.has(stmt.name)) {
+      errors.push({
+        severity: 'error',
+        message: `Duplicate ${kind} name '${stmt.name}' — the later definition silently replaces the earlier one`,
+        reference: stmt.name,
+        context: `${kind.toUpperCase()} ${stmt.name}`,
+      });
+    } else {
+      namesForKind.add(stmt.name);
+    }
+  }
 }
 
 /**
@@ -218,7 +258,10 @@ function validateStatement(
     case 'ConditionsPrecedent':
       validateConditionsPrecedent(stmt, symbols, errors, warnings);
       break;
-    // Remaining types (TechnicalMilestone, RegulatoryRequirement, PerformanceGuarantee,
+    case 'TechnicalMilestone':
+      validateTechnicalMilestone(stmt, symbols, errors, warnings);
+      break;
+    // Remaining types (RegulatoryRequirement, PerformanceGuarantee,
     // DegradationSchedule, SeasonalAdjustment, TaxCredit, Depreciation) have
     // self-contained data and don't reference other symbols, so no validation needed.
     case 'Comment':
@@ -400,6 +443,20 @@ function validateMilestone(
     });
   }
 
+  validateMilestoneReferences(stmt, context, symbols, warnings);
+}
+
+/**
+ * Validate the REQUIRES and TRIGGERS references shared by MILESTONE and
+ * TECHNICAL_MILESTONE. Both carry cross-references, so neither is
+ * "self-contained".
+ */
+function validateMilestoneReferences(
+  stmt: { requires: unknown; triggers: string[] },
+  context: string,
+  symbols: SymbolTable,
+  warnings: ValidationIssue[]
+): void {
   // Check REQUIRES references
   if (stmt.requires && typeof stmt.requires === 'string') {
     if (!symbols.conditions.has(stmt.requires) && !symbols.milestones.has(stmt.requires)) {
@@ -413,17 +470,39 @@ function validateMilestone(
     }
   }
 
-  // Check TRIGGERS references
+  // Check TRIGGERS references. A milestone firing a phase TRANSITION is the
+  // standard project-finance pattern, so transitions count alongside events
+  // and phases.
   for (const trigger of stmt.triggers) {
-    if (!symbols.events.has(trigger) && !symbols.phases.has(trigger)) {
+    if (
+      !symbols.events.has(trigger) &&
+      !symbols.phases.has(trigger) &&
+      !symbols.transitions.has(trigger)
+    ) {
       warnings.push({
         severity: 'warning',
-        message: `TRIGGERS references '${trigger}' which is not a defined event or phase`,
+        message: `TRIGGERS references '${trigger}' which is not a defined event, phase or transition`,
         reference: trigger,
         context,
       });
     }
   }
+}
+
+/**
+ * Validate a TECHNICAL_MILESTONE statement.
+ *
+ * Previously skipped on the assumption that industry constructs are
+ * self-contained; its TRIGGERS and REQUIRES identifiers went unchecked while
+ * the plain MILESTONE sibling was validated.
+ */
+function validateTechnicalMilestone(
+  stmt: TechnicalMilestoneStatement,
+  symbols: SymbolTable,
+  _errors: ValidationIssue[],
+  warnings: ValidationIssue[]
+): void {
+  validateMilestoneReferences(stmt, `TECHNICAL_MILESTONE ${stmt.name}`, symbols, warnings);
 }
 
 /**
@@ -526,8 +605,13 @@ function validatePhase(
 ): void {
   const context = `PHASE ${stmt.name}`;
 
-  // Check covenant references (COVENANTS SUSPENDED / ACTIVE)
-  const covenantRefs = [...(stmt.covenantsSuspended || []), ...(stmt.covenantsActive || [])];
+  // Check covenant references (COVENANTS SUSPENDED / ACTIVE / REQUIRED).
+  // REQUIRED was previously omitted, so a typo there went unreported.
+  const covenantRefs = [
+    ...(stmt.covenantsSuspended || []),
+    ...(stmt.covenantsActive || []),
+    ...(stmt.requiredCovenants || []),
+  ];
   for (const covName of covenantRefs) {
     if (!symbols.covenants.has(covName)) {
       warnings.push({

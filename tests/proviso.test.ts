@@ -817,6 +817,125 @@ describe('Semantic Validation', () => {
     expect(result.errors.length).toBe(0);
   });
 
+  describe('Duplicate name detection', () => {
+    // The interpreter keys statements by name, so a duplicate silently
+    // shadows the earlier one. validate() previously returned valid: true.
+    it('should error on two covenants sharing a name', async () => {
+      const source = `
+        COVENANT leverage REQUIRES a <= 4.0x TESTED QUARTERLY
+        COVENANT leverage REQUIRES a <= 5.0x TESTED QUARTERLY
+      `;
+      const result = validate(await parseOrThrow(source));
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => /duplicate/i.test(e.message))).toBe(true);
+    });
+
+    it('should error on two definitions sharing a name', async () => {
+      const source = `
+        DEFINE EBITDA AS net_income
+        DEFINE EBITDA AS net_income + depreciation
+      `;
+      const result = validate(await parseOrThrow(source));
+
+      expect(result.valid).toBe(false);
+    });
+
+    it('should allow the same name across different statement kinds', async () => {
+      // Different namespaces — a DEFINE and a BASKET may coexist.
+      const source = `
+        DEFINE Investments AS net_income
+        BASKET Investments CAPACITY $25_000_000
+      `;
+      const result = validate(await parseOrThrow(source));
+
+      expect(result.errors.some(e => /duplicate/i.test(e.message))).toBe(false);
+    });
+
+    it('should not flag distinct names', async () => {
+      const source = `
+        COVENANT leverage REQUIRES a <= 4.0x TESTED QUARTERLY
+        COVENANT coverage REQUIRES a >= 1.5x TESTED QUARTERLY
+      `;
+      const result = validate(await parseOrThrow(source));
+
+      expect(result.valid).toBe(true);
+    });
+  });
+
+  describe('Reference checks previously skipped', () => {
+    it('should check TECHNICAL_MILESTONE TRIGGERS references', async () => {
+      // Skipped on a false "self-contained" assumption.
+      const source = `
+        TECHNICAL_MILESTONE PanelInstall
+          TARGET 2026-06-30
+          MEASUREMENT "Panels"
+          TARGET_VALUE 1000
+          CURRENT_VALUE 0
+          TRIGGERS NoSuchEvent
+      `;
+      const result = validate(await parseOrThrow(source));
+
+      expect(result.warnings.some(w => w.reference === 'NoSuchEvent')).toBe(true);
+    });
+
+    it('should check TECHNICAL_MILESTONE REQUIRES references', async () => {
+      const source = `
+        TECHNICAL_MILESTONE PanelInstall
+          TARGET 2026-06-30
+          MEASUREMENT "Panels"
+          TARGET_VALUE 1000
+          CURRENT_VALUE 0
+          REQUIRES NoSuchMilestone
+      `;
+      const result = validate(await parseOrThrow(source));
+
+      expect(result.warnings.some(w => w.reference === 'NoSuchMilestone')).toBe(true);
+    });
+
+    it('should not warn when TECHNICAL_MILESTONE references resolve', async () => {
+      const source = `
+        EVENT ArrayComplete
+          TRIGGERS WHEN panels_installed > 0
+          CONSEQUENCE Notice
+
+        TECHNICAL_MILESTONE PanelInstall
+          TARGET 2026-06-30
+          MEASUREMENT "Panels"
+          TARGET_VALUE 1000
+          CURRENT_VALUE 0
+          TRIGGERS ArrayComplete
+      `;
+      const result = validate(await parseOrThrow(source));
+
+      expect(result.warnings.some(w => w.reference === 'ArrayComplete')).toBe(false);
+    });
+
+    it('should check PHASE REQUIRED covenant references', async () => {
+      const source = `
+        PHASE Construction
+          UNTIL COD
+          REQUIRED NoSuchCovenant
+      `;
+      const result = validate(await parseOrThrow(source));
+
+      expect(result.warnings.some(w => w.reference === 'NoSuchCovenant')).toBe(true);
+    });
+
+    it('should not warn when PHASE REQUIRED covenants resolve', async () => {
+      const source = `
+        COVENANT MinEquity REQUIRES equity >= $10_000_000 TESTED QUARTERLY
+
+        PHASE Construction
+          UNTIL COD
+          REQUIRED MinEquity
+      `;
+      const result = validate(await parseOrThrow(source));
+
+      expect(result.warnings.some(w => w.reference === 'MinEquity')).toBe(false);
+    });
+  });
+
   it('should error on undefined basket in AVAILABLE()', async () => {
     const source = `
       PROHIBIT Investments
