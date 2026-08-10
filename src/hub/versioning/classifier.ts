@@ -168,13 +168,16 @@ function classifyCovenantModification(diff: ElementDiff): ChangeImpact {
     const operator = extractOperator(from.requires);
 
     if (fromThreshold !== null && toThreshold !== null && operator) {
-      // For <= (max covenants), higher threshold = borrower favorable
-      if (operator === '<=') {
+      // Strict operators carry the same direction as their inclusive
+      // counterparts; omitting them classified a genuine loosening on a
+      // `<` or `>` covenant as neutral.
+      // For < and <= (max covenants), a higher threshold = borrower favorable
+      if (operator === '<=' || operator === '<') {
         if (toThreshold > fromThreshold) return 'borrower_favorable';
         if (toThreshold < fromThreshold) return 'lender_favorable';
       }
-      // For >= (min covenants), lower threshold = borrower favorable
-      if (operator === '>=') {
+      // For > and >= (min covenants), a lower threshold = borrower favorable
+      if (operator === '>=' || operator === '>') {
         if (toThreshold < fromThreshold) return 'borrower_favorable';
         if (toThreshold > fromThreshold) return 'lender_favorable';
       }

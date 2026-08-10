@@ -248,6 +248,96 @@ describe('State Diffing', () => {
     expect(result.success).toBe(false);
     expect(result.toError).not.toBeNull();
   });
+
+  describe('Type-specific field coverage', () => {
+    // The per-type comparators only inspected a subset of each element's
+    // fields, so edits the Word generator renders were reported as "no change".
+    async function diff(fromCode: string, toCode: string) {
+      const from = await compileToState(fromCode);
+      const to = await compileToState(toCode);
+      return diffStates(from, to);
+    }
+
+    function fieldNames(result: { diffs: ElementDiff[] }): string[] {
+      return result.diffs.flatMap((d) => d.fieldChanges.map((f) => f.field));
+    }
+
+    it('should detect a change to a reserve RELEASED_TO', async () => {
+      const result = await diff(
+        `RESERVE DSRA
+           TARGET 30_000_000
+           RELEASED_TO Sponsor`,
+        `RESERVE DSRA
+           TARGET 30_000_000
+           RELEASED_TO Lender`
+      );
+
+      expect(result.diffs).toHaveLength(1);
+      expect(fieldNames(result)).toContain('releasedTo');
+    });
+
+    it('should detect a change to a reserve FUNDED_BY', async () => {
+      const result = await diff(
+        `RESERVE DSRA
+           TARGET 30_000_000
+           FUNDED_BY Waterfall`,
+        `RESERVE DSRA
+           TARGET 30_000_000
+           FUNDED_BY Waterfall, EquityContribution`
+      );
+
+      expect(fieldNames(result)).toContain('fundedBy');
+    });
+
+    it('should detect a change to a reserve RELEASED_FOR', async () => {
+      const result = await diff(
+        `RESERVE MaintReserve
+           TARGET 10_000_000
+           RELEASED_FOR PermittedCapEx`,
+        `RESERVE MaintReserve
+           TARGET 10_000_000
+           RELEASED_FOR EmergencyRepairs`
+      );
+
+      expect(fieldNames(result)).toContain('releasedFor');
+    });
+
+    it('should detect a change to a milestone REQUIRES', async () => {
+      const result = await diff(
+        `MILESTONE Mechanical
+           TARGET 2026-06-30
+           REQUIRES FoundationComplete`,
+        `MILESTONE Mechanical
+           TARGET 2026-06-30
+           REQUIRES StructuralComplete`
+      );
+
+      expect(fieldNames(result)).toContain('requires');
+    });
+
+    it('should detect a change to a phase REQUIRED covenant list', async () => {
+      const result = await diff(
+        `PHASE Construction
+           UNTIL COD
+           REQUIRED MinEquity`,
+        `PHASE Construction
+           UNTIL COD
+           REQUIRED MinEquity, MinLiquidity`
+      );
+
+      expect(fieldNames(result)).toContain('requiredCovenants');
+    });
+
+    it('should still report no change when nothing moved', async () => {
+      const code = `RESERVE DSRA
+         TARGET 30_000_000
+         FUNDED_BY Waterfall
+         RELEASED_TO Sponsor`;
+      const result = await diff(code, code);
+
+      expect(result.diffs).toHaveLength(0);
+    });
+  });
 });
 
 // =============================================================================
@@ -373,6 +463,59 @@ describe('Change Classification', () => {
 
       const impact = classifyImpact(diff);
       expect(impact).toBe('lender_favorable');
+    });
+
+    describe('Strict comparison operators', () => {
+      // Only <= and >= were handled, so a genuine loosening on a strict
+      // < or > covenant was reported as neutral/immaterial.
+      function thresholdChange(
+        operator: '<' | '>' | '<=' | '>=',
+        fromValue: number,
+        toValue: number
+      ): ElementDiff {
+        const make = (value: number) => ({
+          type: 'Covenant' as const,
+          name: 'Cov',
+          requires: {
+            type: 'Comparison' as const,
+            left: 'Metric',
+            operator,
+            right: { type: 'Number' as const, value },
+          },
+          tested: null,
+          cure: null,
+          breach: null,
+        });
+        return {
+          changeType: 'modified',
+          elementType: 'covenant',
+          elementName: 'Cov',
+          fromElement: make(fromValue),
+          toElement: make(toValue),
+          fieldChanges: [{ field: 'requires', fromValue: 'a', toValue: 'b' }],
+        };
+      }
+
+      it('should treat a raised strict-max threshold as borrower favorable', () => {
+        expect(classifyImpact(thresholdChange('<', 4.0, 4.5))).toBe('borrower_favorable');
+      });
+
+      it('should treat a lowered strict-max threshold as lender favorable', () => {
+        expect(classifyImpact(thresholdChange('<', 4.5, 4.0))).toBe('lender_favorable');
+      });
+
+      it('should treat a lowered strict-min threshold as borrower favorable', () => {
+        expect(classifyImpact(thresholdChange('>', 1.25, 1.10))).toBe('borrower_favorable');
+      });
+
+      it('should treat a raised strict-min threshold as lender favorable', () => {
+        expect(classifyImpact(thresholdChange('>', 1.10, 1.25))).toBe('lender_favorable');
+      });
+
+      it('should keep inclusive operators classifying as before', () => {
+        expect(classifyImpact(thresholdChange('<=', 4.0, 4.5))).toBe('borrower_favorable');
+        expect(classifyImpact(thresholdChange('>=', 1.25, 1.10))).toBe('borrower_favorable');
+      });
     });
   });
 

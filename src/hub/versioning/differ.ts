@@ -469,6 +469,61 @@ function diffPhases(from: PhaseStatement, to: PhaseStatement, changes: FieldChan
   if (fromActive !== toActive) {
     changes.push({ field: 'covenantsActive', fromValue: fromActive, toValue: toActive });
   }
+
+  compareLists('requiredCovenants', from.requiredCovenants, to.requiredCovenants, changes);
+}
+
+/**
+ * Push a FieldChange when two scalar values differ.
+ * Everything the Word generator renders must be compared, or a real edit
+ * shows up as "no change" in the party-vs-party diff.
+ */
+function compareScalars(
+  field: string,
+  fromValue: string | null | undefined,
+  toValue: string | null | undefined,
+  changes: FieldChange[]
+): void {
+  const a = fromValue ?? null;
+  const b = toValue ?? null;
+  if (a !== b) {
+    changes.push({ field, fromValue: a, toValue: b });
+  }
+}
+
+/** Push a FieldChange when two string lists differ, order-sensitively. */
+function compareLists(
+  field: string,
+  fromValue: string[] | null | undefined,
+  toValue: string[] | null | undefined,
+  changes: FieldChange[]
+): void {
+  const a = (fromValue ?? []).join(', ');
+  const b = (toValue ?? []).join(', ');
+  if (a !== b) {
+    changes.push({ field, fromValue: a || null, toValue: b || null });
+  }
+}
+
+/**
+ * Compare a field that may hold a plain identifier or a nested ALL_OF/ANY_OF
+ * condition, by structural serialisation.
+ */
+function compareStructured(
+  field: string,
+  fromValue: unknown,
+  toValue: unknown,
+  changes: FieldChange[]
+): void {
+  const serialise = (v: unknown): string | null => {
+    if (v === null || v === undefined) return null;
+    return typeof v === 'string' ? v : JSON.stringify(v);
+  };
+  const a = serialise(fromValue);
+  const b = serialise(toValue);
+  if (a !== b) {
+    changes.push({ field, fromValue: a, toValue: b });
+  }
 }
 
 /**
@@ -487,6 +542,9 @@ function diffMilestones(from: MilestoneStatement, to: MilestoneStatement, change
   if (fromTriggers !== toTriggers) {
     changes.push({ field: 'triggers', fromValue: fromTriggers, toValue: toTriggers });
   }
+
+  // REQUIRES may be a bare identifier or a nested ALL_OF/ANY_OF condition.
+  compareStructured('requires', from.requires, to.requires, changes);
 }
 
 /**
@@ -504,6 +562,12 @@ function diffReserves(from: ReserveStatement, to: ReserveStatement, changes: Fie
   if (fromMin !== toMin) {
     changes.push({ field: 'minimum', fromValue: fromMin, toValue: toMin });
   }
+
+  // All three are rendered into the Word document, so a change to any of them
+  // is a real change the diff must report.
+  compareLists('fundedBy', from.fundedBy, to.fundedBy, changes);
+  compareScalars('releasedTo', from.releasedTo, to.releasedTo, changes);
+  compareScalars('releasedFor', from.releasedFor, to.releasedFor, changes);
 }
 
 /**
