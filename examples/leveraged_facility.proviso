@@ -7,12 +7,29 @@
 
 // ==================== THE FACILITY ====================
 
+// ==================== PRICING ====================
+// Applicable Margin ratchets with net leverage. The grid is read against a
+// ratio that excludes interest, so it cannot feed its own input.
+
+PRICING_GRID SeniorPricing
+  BASED_ON NetLeverage
+  WHEN >= 5.00x MARGIN 4.50%
+  WHEN >= 4.00x MARGIN 4.25%
+  WHEN >= 3.00x MARGIN 4.00%
+  OTHERWISE MARGIN 3.75%
+
+// ==================== THE FACILITY ====================
+
 // BENCHMARK is the reference rate the tranche margins are spreads over.
+// COMMITMENT_FEE is charged on undrawn revolving commitments; LC_FEE on
+// letters of credit outstanding.
 // CASH_NETTING_CAP limits how much cash may offset gross debt in net leverage.
 // Tranches: Revolver 2.01(a), Term Loan A 2.01(b), Term Loan B 2.01(c).
 FACILITY SeniorSecuredCredit
   BENCHMARK 5.00%
   CASH_NETTING_CAP $50_000_000
+  COMMITMENT_FEE 0.50%
+  LC_FEE 2.00%
 
   TRANCHE RevolvingFacility
     TYPE REVOLVING
@@ -33,7 +50,7 @@ FACILITY SeniorSecuredCredit
   TRANCHE TermLoanB
     TYPE TERM_LOAN_B
     COMMITMENT $500_000_000
-    MARGIN 4.25%
+    PRICING SeniorPricing
     MATURITY 2032-06-30
     AMORTIZATION 1%
 

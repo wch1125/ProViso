@@ -942,6 +942,21 @@ program
         }
       }
 
+      if (interpreter.hasPricingGrids()) {
+        console.log('\nPRICING GRIDS');
+        console.log('─'.repeat(78));
+        for (const grid of interpreter.getAllPricingGridStatuses()) {
+          const basis = grid.basisValue === null
+            ? 'unresolved'
+            : grid.basisValue.toFixed(2);
+          console.log(`  ${grid.name}  (${grid.basedOn} = ${basis})`);
+          console.log(
+            `    Level ${grid.activeLevel} in effect [${grid.levelDescription}]` +
+              `  →  applicable margin ${grid.margin.toFixed(2)}%`
+          );
+        }
+      }
+
       // The canonical metrics every other construct now reads.
       console.log('\nDERIVED METRICS');
       console.log('─'.repeat(78));

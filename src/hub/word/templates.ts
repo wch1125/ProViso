@@ -16,6 +16,7 @@ import type {
   WaterfallStatement,
   ConditionsPrecedentStatement,
   FacilityStatement,
+  PricingGridStatement,
   TrancheType,
   Expression,
 } from '../../types.js';
@@ -512,6 +513,71 @@ export function renderFacilityToWord(
   return prose;
 }
 
+/**
+ * Render a pricing grid as an "Applicable Margin" definition.
+ *
+ * Grids are papered as a lettered schedule of levels, so that is how this
+ * renders: each level states the ratio band and the margin that applies, with
+ * OTHERWISE stated as the residual level.
+ */
+export function renderPricingGridToWord(
+  grid: PricingGridStatement,
+  context?: WordTemplateContext
+): string {
+  const subsection = context?.subsectionLabel || '';
+
+  let prose = `${subsection ? `${subsection} ` : ''}"Applicable Margin" (${grid.name}). `;
+  prose += `The Applicable Margin shall be determined by reference to the ${grid.basedOn} `;
+  prose += `as of the most recent determination date, as follows:`;
+
+  grid.levels.forEach((level, index) => {
+    const margin = formatRateProse(level.margin) ?? '';
+    const romanLevel = toRoman(index + 1);
+
+    if (level.threshold === null || level.operator === null) {
+      prose += ` Level ${romanLevel}: if the ${grid.basedOn} is less than all `;
+      prose += `levels set forth above, the Applicable Margin shall be ${margin}.`;
+      return;
+    }
+
+    const threshold = expressionToString(level.threshold) ?? '';
+    prose += ` Level ${romanLevel}: if the ${grid.basedOn} is `;
+    prose += `${formatComparisonProse(level.operator)} ${threshold}, `;
+    prose += `the Applicable Margin shall be ${margin}.`;
+  });
+
+  return prose;
+}
+
+/** Comparison operators in the words an agreement uses. */
+function formatComparisonProse(operator: string): string {
+  const map: Record<string, string> = {
+    '>=': 'greater than or equal to',
+    '>': 'greater than',
+    '<=': 'less than or equal to',
+    '<': 'less than',
+    '=': 'equal to',
+    '!=': 'not equal to',
+  };
+  return map[operator] ?? operator;
+}
+
+/** Roman numerals for pricing levels — I, II, III as grids are conventionally lettered. */
+function toRoman(n: number): string {
+  const numerals: Array<[number, string]> = [
+    [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I'],
+  ];
+  let remaining = n;
+  let result = '';
+  for (const [value, numeral] of numerals) {
+    while (remaining >= value) {
+      result += numeral;
+      remaining -= value;
+    }
+  }
+  return result || 'I';
+}
+
 export function renderReserveToWord(
   reserve: ReserveStatement,
   context?: WordTemplateContext
@@ -717,6 +783,15 @@ export const wordTemplates: Map<string, WordTemplate> = new Map([
       elementType: 'Milestone',
       render: (element, context) =>
         renderMilestoneToWord(element as MilestoneStatement, context),
+    },
+  ],
+  [
+    'pricingGrid',
+    {
+      id: 'pricingGrid',
+      elementType: 'PricingGrid',
+      render: (element, context) =>
+        renderPricingGridToWord(element as PricingGridStatement, context),
     },
   ],
   [

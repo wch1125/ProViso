@@ -32,7 +32,8 @@ export type Statement =
   | ReserveStatement
   | WaterfallStatement
   | ConditionsPrecedentStatement
-  | FacilityStatement;
+  | FacilityStatement
+  | PricingGridStatement;
 
 export interface DefineStatement {
   type: 'Define';
@@ -1288,6 +1289,51 @@ export interface FlipEventResult {
   buyoutPrice: number | null;
 }
 
+// ==================== PRICING GRID TYPES ====================
+
+/**
+ * One level of a margin ratchet.
+ *
+ * `threshold` and `operator` are null on the OTHERWISE level, which acts as
+ * the floor when no earlier level matches.
+ */
+export interface PricingLevel {
+  threshold: Expression | null;
+  operator: string | null;
+  margin: Expression;
+}
+
+/**
+ * A pricing grid (margin ratchet): the applicable margin steps with a named
+ * ratio, conventionally leverage.
+ *
+ * The basis metric must not depend on the interest the grid produces, or the
+ * grid would feed itself. Leverage (debt / EBITDA) satisfies this because
+ * interest enters neither term.
+ */
+export interface PricingGridStatement {
+  type: 'PricingGrid';
+  name: string;
+  /** Name of the ratio the grid is read against, e.g. NetLeverage. */
+  basedOn: string;
+  /** Evaluated in order; the first matching level applies. */
+  levels: PricingLevel[];
+}
+
+/** Which level of a grid is currently in effect. */
+export interface PricingGridStatus {
+  name: string;
+  basedOn: string;
+  /** Current value of the basis metric, or null if it cannot be resolved. */
+  basisValue: number | null;
+  /** 1-indexed level in effect. */
+  activeLevel: number;
+  /** Applicable margin in percentage points. */
+  margin: number;
+  /** Description of the matched level, e.g. ">= 5.00". */
+  levelDescription: string;
+}
+
 // ==================== FACILITY TYPES ====================
 
 /** Tranche types, mirroring the TransactionType taxonomy in closing-enums.ts. */
@@ -1313,6 +1359,8 @@ export interface TrancheStatement {
   commitment: Expression | null;
   drawn: Expression | null;
   margin: Expression | null;
+  /** Name of a PRICING_GRID supplying the margin, instead of a fixed rate. */
+  pricingGrid: string | null;
   /** ISO date (YYYY-MM-DD) */
   maturity: string | null;
   amortization: Expression | null;
@@ -1334,6 +1382,10 @@ export interface FacilityStatement {
   benchmark: Expression | null;
   /** Cap on cash that may offset gross debt when computing net debt. */
   cashNettingCap: Expression | null;
+  /** Unused-line fee rate, charged on undrawn revolving commitments. */
+  commitmentFee: Expression | null;
+  /** Fee rate charged on letters of credit outstanding. */
+  lcFee: Expression | null;
   tranches: TrancheStatement[];
 }
 
@@ -1346,12 +1398,18 @@ export interface TrancheStatus {
   undrawn: number;
   /** Spread only. */
   margin: number;
+  /** Name of the grid supplying the margin, if it came from one. */
+  pricingGrid: string | null;
   /** Benchmark + margin. */
   allInRate: number;
   /** drawn × allInRate, annualized. */
   annualInterest: number;
   /** Annual scheduled principal. */
   scheduledAmortization: number;
+  /** Annual commitment (unused-line) fee on undrawn revolver commitments. */
+  commitmentFee: number;
+  /** Annual fee on letters of credit outstanding. */
+  lcFee: number;
   maturity: string | null;
   lcOutstanding: number;
   /** Revolvers only: commitment − drawn − LC outstanding. */
@@ -1371,7 +1429,9 @@ export interface FacilityStatus {
   weightedRate: number;
   annualInterest: number;
   scheduledAmortization: number;
-  /** annualInterest + scheduledAmortization. */
+  /** Commitment plus letter-of-credit fees across all tranches. */
+  fees: number;
+  /** annualInterest + fees + scheduledAmortization. */
   debtService: number;
   /** Revolver drawn+LC as a percentage of revolver commitments; null if none. */
   revolverUtilization: number | null;

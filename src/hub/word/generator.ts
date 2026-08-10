@@ -18,6 +18,7 @@ import {
   renderWaterfallToWord,
   renderConditionsPrecedentToWord,
   renderFacilityToWord,
+  renderPricingGridToWord,
   type WordTemplateContext,
   type GeneratedSection,
 } from './templates.js';
@@ -234,6 +235,22 @@ export class WordGenerator {
       });
     }
 
+    // Pricing grids define "Applicable Margin", a defined term, so they sit in
+    // Article 1 alongside the other definitions rather than in The Credits.
+    const grids = ast.statements.filter((s) => s.type === 'PricingGrid');
+    if (grids.length > 0) {
+      articles.push({
+        articleNumber: 1,
+        title: 'Definitions',
+        sections: grids.map((s, i) =>
+          this.generateSection(s, {
+            sectionPrefix: '1.02',
+            subsectionLabel: this.subsectionLabel(i),
+          })
+        ),
+      });
+    }
+
     // Article 2: The Credits — commitments and tranches
     const facilities = ast.statements.filter((s) => s.type === 'Facility');
     if (facilities.length > 0) {
@@ -388,6 +405,8 @@ export class WordGenerator {
         return renderConditionsPrecedentToWord(statement, context);
       case 'Facility':
         return renderFacilityToWord(statement, context);
+      case 'PricingGrid':
+        return renderPricingGridToWord(statement, context);
       default:
         return `[Unknown statement type: ${statement.type}]`;
     }
@@ -408,6 +427,7 @@ export class WordGenerator {
       case 'Waterfall':
       case 'ConditionsPrecedent':
       case 'Facility':
+      case 'PricingGrid':
         return statement.name;
       case 'Prohibit':
         return statement.target;

@@ -29,6 +29,7 @@ Program
 
 Statement
   = AmendmentStatement
+  / PricingGridStatement
   / FacilityStatement
   / PhaseStatement
   / TransitionStatement
@@ -733,6 +734,32 @@ MilestoneRequires
 
 // ==================== RESERVE ====================
 
+// ==================== PRICING GRID ====================
+
+// A margin ratchet: the applicable margin steps with a named ratio, usually
+// leverage. Levels are tested in the order written; the first whose threshold
+// is met applies, with OTHERWISE as the floor.
+PricingGridStatement
+  = "PRICING_GRID" __ name:Identifier _ basis:PricingBasis levels:PricingLevel+ {
+      return {
+        type: 'PricingGrid',
+        name: name,
+        basedOn: basis,
+        levels: levels
+      };
+    }
+
+PricingBasis
+  = "BASED_ON" __ metric:Identifier _ { return metric; }
+
+PricingLevel
+  = "WHEN" __ op:ComparisonOperator _ threshold:Expression __ "MARGIN" __ margin:Expression _ {
+      return { threshold: threshold, operator: op, margin: margin };
+    }
+  / "OTHERWISE" __ "MARGIN" __ margin:Expression _ {
+      return { threshold: null, operator: null, margin: margin };
+    }
+
 // ==================== FACILITY ====================
 
 // A FACILITY is the authoritative source of the debt stack. Its TRANCHEs carry
@@ -745,11 +772,15 @@ FacilityStatement
         name: name,
         benchmark: null,
         cashNettingCap: null,
+        commitmentFee: null,
+        lcFee: null,
         tranches: tranches
       };
       clauses.forEach(clause => {
         if (clause.type === 'benchmark') result.benchmark = clause.value;
         if (clause.type === 'cashNettingCap') result.cashNettingCap = clause.value;
+        if (clause.type === 'commitmentFee') result.commitmentFee = clause.value;
+        if (clause.type === 'lcFee') result.lcFee = clause.value;
       });
       return result;
     }
@@ -765,6 +796,14 @@ FacilityClause
   / "CASH_NETTING_CAP" __ value:Expression _ {
       return { type: 'cashNettingCap', value: value };
     }
+  // Unused-line fee, charged on undrawn revolving commitments.
+  / "COMMITMENT_FEE" __ value:Expression _ {
+      return { type: 'commitmentFee', value: value };
+    }
+  // Charged on letters of credit outstanding.
+  / "LC_FEE" __ value:Expression _ {
+      return { type: 'lcFee', value: value };
+    }
 
 TrancheStatement
   = "TRANCHE" __ name:Identifier _ clauses:TrancheClause+ {
@@ -775,6 +814,7 @@ TrancheStatement
         commitment: null,
         drawn: null,
         margin: null,
+        pricingGrid: null,
         maturity: null,
         amortization: null,
         lcOutstanding: null,
@@ -785,6 +825,7 @@ TrancheStatement
         if (clause.type === 'commitment') result.commitment = clause.value;
         if (clause.type === 'drawn') result.drawn = clause.value;
         if (clause.type === 'margin') result.margin = clause.value;
+        if (clause.type === 'pricingGrid') result.pricingGrid = clause.value;
         if (clause.type === 'maturity') result.maturity = clause.value;
         if (clause.type === 'amortization') result.amortization = clause.value;
         if (clause.type === 'lcOutstanding') result.lcOutstanding = clause.value;
@@ -805,6 +846,10 @@ TrancheClause
     }
   / "MARGIN" __ value:Expression _ {
       return { type: 'margin', value: value };
+    }
+  // Margin comes from a named PRICING_GRID rather than a fixed rate.
+  / "PRICING" __ value:Identifier _ {
+      return { type: 'pricingGrid', value: value };
     }
   / "MATURITY" __ value:DateLiteral _ {
       return { type: 'maturity', value: value.value };

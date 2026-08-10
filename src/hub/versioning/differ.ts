@@ -22,6 +22,7 @@ import type {
   ConditionsPrecedentStatement,
   FacilityStatement,
   TrancheStatement,
+  PricingGridStatement,
   Expression,
 } from '../../types.js';
 import type { ElementType, ChangeType } from '../types.js';
@@ -61,6 +62,8 @@ export interface CompiledState {
   conditionsPrecedent: Map<string, ConditionsPrecedentStatement>;
   /** FACILITY statements by name */
   facilities: Map<string, FacilityStatement>;
+  /** PRICING_GRID statements by name */
+  pricingGrids: Map<string, PricingGridStatement>;
   /** Raw source code */
   sourceCode: string;
   /** Parse errors if any */
@@ -146,6 +149,7 @@ export async function compileToState(code: string): Promise<CompiledState> {
     waterfalls: new Map(),
     conditionsPrecedent: new Map(),
     facilities: new Map(),
+    pricingGrids: new Map(),
     sourceCode: code,
     parseError: null,
   };
@@ -197,6 +201,9 @@ export async function compileToState(code: string): Promise<CompiledState> {
       case 'Facility':
         state.facilities.set(stmt.name, stmt);
         break;
+      case 'PricingGrid':
+        state.pricingGrids.set(stmt.name, stmt);
+        break;
       // Skip: Comment, Load, Amendment (amendments are applied separately)
     }
   }
@@ -239,6 +246,7 @@ export function diffStates(fromState: CompiledState, toState: CompiledState): Di
   diffMaps(fromState.waterfalls, toState.waterfalls, 'waterfall', diffs);
   diffMaps(fromState.conditionsPrecedent, toState.conditionsPrecedent, 'cp', diffs);
   diffMaps(fromState.facilities, toState.facilities, 'facility', diffs);
+  diffMaps(fromState.pricingGrids, toState.pricingGrids, 'facility', diffs);
 
   // Compute stats
   const stats = computeStats(diffs);
@@ -335,6 +343,9 @@ function diffElements(fromElement: Statement, toElement: Statement): FieldChange
       break;
     case 'Facility':
       diffFacilities(fromElement, toElement as FacilityStatement, changes);
+      break;
+    case 'PricingGrid':
+      diffPricingGrids(fromElement, toElement as PricingGridStatement, changes);
       break;
     case 'Waterfall':
       diffWaterfalls(fromElement, toElement as WaterfallStatement, changes);
@@ -560,6 +571,40 @@ function diffMilestones(from: MilestoneStatement, to: MilestoneStatement, change
 }
 
 /**
+ * Compare two pricing grids level by level.
+ *
+ * A repricing is one of the most negotiated changes in a deal, and it lives
+ * entirely in the level thresholds and margins — comparing only the grid name
+ * would report no change on a full repricing.
+ */
+function diffPricingGrids(
+  from: PricingGridStatement,
+  to: PricingGridStatement,
+  changes: FieldChange[]
+): void {
+  compareScalars('basedOn', from.basedOn, to.basedOn, changes);
+
+  const describe = (level: PricingGridStatement['levels'][number]): string => {
+    const threshold = level.threshold === null
+      ? 'otherwise'
+      : `${level.operator ?? ''} ${expressionToString(level.threshold) ?? ''}`.trim();
+    return `${threshold} -> ${expressionToString(level.margin) ?? ''}`;
+  };
+
+  const most = Math.max(from.levels.length, to.levels.length);
+  for (let i = 0; i < most; i++) {
+    const a = from.levels[i];
+    const b = to.levels[i];
+    compareScalars(
+      `level.${i + 1}`,
+      a ? describe(a) : null,
+      b ? describe(b) : null,
+      changes
+    );
+  }
+}
+
+/**
  * Compare two facilities, tranche by tranche.
  *
  * Commitments, margins and maturities are among the most-negotiated terms in a
@@ -576,6 +621,13 @@ function diffFacilities(from: FacilityStatement, to: FacilityStatement, changes:
     expressionToString(to.cashNettingCap),
     changes
   );
+  compareScalars(
+    'commitmentFee',
+    expressionToString(from.commitmentFee),
+    expressionToString(to.commitmentFee),
+    changes
+  );
+  compareScalars('lcFee', expressionToString(from.lcFee), expressionToString(to.lcFee), changes);
 
   const fromTranches = new Map(from.tranches.map((t) => [t.name, t]));
   const toTranches = new Map(to.tranches.map((t) => [t.name, t]));
@@ -606,6 +658,7 @@ function diffTranche(
   const field = (suffix: string): string => `tranche.${name}.${suffix}`;
 
   compareScalars(field('type'), from.trancheType, to.trancheType, changes);
+  compareScalars(field('pricingGrid'), from.pricingGrid, to.pricingGrid, changes);
   compareScalars(field('maturity'), from.maturity, to.maturity, changes);
 
   const expressionFields: Array<[string, keyof TrancheStatement]> = [

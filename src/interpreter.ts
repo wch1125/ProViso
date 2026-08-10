@@ -52,6 +52,8 @@ import {
   TrancheStatement,
   TrancheStatus,
   FacilityStatus,
+  PricingGridStatement,
+  PricingGridStatus,
   CPStatus,
   CPChecklistResult,
   CPItemResult,
@@ -116,6 +118,7 @@ export class ProVisoInterpreter {
   private conditionsPrecedent: Map<string, ConditionsPrecedentStatement> = new Map();
   private cpStatuses: Map<string, Map<string, CPStatus>> = new Map(); // checklist -> (cp -> status)
   private facilities: Map<string, FacilityStatement> = new Map();
+  private pricingGrids: Map<string, PricingGridStatement> = new Map();
 
   // Simple financial data (flat record) - used when not in multi-period mode
   private simpleFinancialData: SimpleFinancialData = {};
@@ -262,6 +265,9 @@ export class ProVisoInterpreter {
       }
       case 'Facility':
         this.facilities.set(stmt.name, stmt);
+        break;
+      case 'PricingGrid':
+        this.pricingGrids.set(stmt.name, stmt);
         break;
       case 'Amendment':
         // Amendments are processed separately via applyAmendment
@@ -3341,12 +3347,108 @@ export class ProVisoInterpreter {
     'AnnualInterest',
     'ScheduledAmortization',
     'DebtService',
+    'TotalFees',
     'RevolverUtilization',
     'WeightedRate',
   ] as const;
 
   hasFacilities(): boolean {
     return this.facilities.size > 0;
+  }
+
+  hasPricingGrids(): boolean {
+    return this.pricingGrids.size > 0;
+  }
+
+  getPricingGridNames(): string[] {
+    return Array.from(this.pricingGrids.keys());
+  }
+
+  /**
+   * Resolve which level of a pricing grid is currently in effect.
+   *
+   * Levels are tested in written order and the first match wins, so a grid
+   * reads top-down exactly as drafted. The OTHERWISE level (null threshold)
+   * always matches and acts as the floor.
+   *
+   * The basis metric must not depend on the interest this grid produces.
+   * Leverage satisfies that — interest enters neither debt nor EBITDA — and a
+   * basis that cannot be resolved falls to the floor rather than throwing, so
+   * a missing input degrades to the cheapest pricing rather than a crash.
+   */
+  getPricingGridStatus(name: string): PricingGridStatus {
+    const grid = this.pricingGrids.get(name);
+    if (!grid) {
+      throw new Error(`Unknown pricing grid: ${name}`);
+    }
+
+    let basisValue: number | null;
+    try {
+      basisValue = this.evaluate(grid.basedOn);
+    } catch {
+      basisValue = null;
+    }
+
+    for (let i = 0; i < grid.levels.length; i++) {
+      const level = grid.levels[i]!;
+      const margin = this.evaluate(level.margin) * 100;
+
+      // OTHERWISE level — always matches.
+      if (level.threshold === null || level.operator === null) {
+        return {
+          name: grid.name,
+          basedOn: grid.basedOn,
+          basisValue,
+          activeLevel: i + 1,
+          margin,
+          levelDescription: 'otherwise',
+        };
+      }
+
+      if (basisValue === null) continue;
+
+      const threshold = this.evaluate(level.threshold);
+      if (this.compareValues(basisValue, level.operator, threshold)) {
+        return {
+          name: grid.name,
+          basedOn: grid.basedOn,
+          basisValue,
+          activeLevel: i + 1,
+          margin,
+          levelDescription: `${level.operator} ${threshold}`,
+        };
+      }
+    }
+
+    // No level matched and no OTHERWISE was supplied. The validator warns
+    // about this; at runtime the highest (first) level is the safe answer,
+    // since a grid without a floor is drafted worst-case-first.
+    const first = grid.levels[0];
+    return {
+      name: grid.name,
+      basedOn: grid.basedOn,
+      basisValue,
+      activeLevel: 1,
+      margin: first ? this.evaluate(first.margin) * 100 : 0,
+      levelDescription: 'no level matched',
+    };
+  }
+
+  getAllPricingGridStatuses(): PricingGridStatus[] {
+    return this.getPricingGridNames().map((name) => this.getPricingGridStatus(name));
+  }
+
+  /** Apply a comparison operator to two numbers. */
+  private compareValues(left: number, operator: string, right: number): boolean {
+    switch (operator) {
+      case '<=': return left <= right;
+      case '>=': return left >= right;
+      case '<': return left < right;
+      case '>': return left > right;
+      case '=': return left === right;
+      case '!=': return left !== right;
+      default: return false;
+    }
   }
 
   getFacilityNames(): string[] {
@@ -3366,7 +3468,12 @@ export class ProVisoInterpreter {
    * converted back to percentage points so a consumer formatting "8.25%" does
    * not have to know which convention this method chose.
    */
-  private evaluateTranche(tranche: TrancheStatement, benchmarkRate: number): TrancheStatus {
+  private evaluateTranche(
+    tranche: TrancheStatement,
+    benchmarkRate: number,
+    commitmentFeeRate: number,
+    lcFeeRate: number
+  ): TrancheStatus {
     const commitment = this.evaluateOptional(tranche.commitment);
     // A tranche with no explicit DRAWN is assumed fully drawn if it is a term
     // loan, and undrawn if it is a revolver — the conventional default.
@@ -3374,7 +3481,14 @@ export class ProVisoInterpreter {
       ? this.evaluate(tranche.drawn)
       : tranche.trancheType === 'revolving_credit' ? 0 : commitment;
 
-    const marginRate = this.evaluateOptional(tranche.margin);
+    // A PRICING reference supplies the margin from a grid; an explicit MARGIN
+    // wins if both are present, since a hardcoded rate is the more specific
+    // statement of intent.
+    let marginRate = this.evaluateOptional(tranche.margin);
+    if (tranche.margin === null && tranche.pricingGrid) {
+      marginRate = this.getPricingGridStatus(tranche.pricingGrid).margin / 100;
+    }
+
     const allInRate = benchmarkRate + marginRate;
     const annualInterest = drawn * allInRate;
 
@@ -3384,17 +3498,26 @@ export class ProVisoInterpreter {
     const lcOutstanding = this.evaluateOptional(tranche.lcOutstanding);
     const isRevolver = tranche.trancheType === 'revolving_credit';
 
+    // The unused-line fee is charged on undrawn revolving commitments only —
+    // a fully drawn term loan has no undrawn line to charge for.
+    const undrawn = Math.max(0, commitment - drawn);
+    const commitmentFee = isRevolver ? undrawn * commitmentFeeRate : 0;
+    const lcFee = lcOutstanding * lcFeeRate;
+
     return {
       name: tranche.name,
       trancheType: tranche.trancheType,
       commitment,
       drawn,
-      undrawn: Math.max(0, commitment - drawn),
+      undrawn,
       // Reported in percentage points, e.g. 3.25 and 8.25.
       margin: marginRate * 100,
+      pricingGrid: tranche.margin === null ? tranche.pricingGrid : null,
       allInRate: allInRate * 100,
       annualInterest,
       scheduledAmortization,
+      commitmentFee,
+      lcFee,
       maturity: tranche.maturity,
       lcOutstanding,
       availability: isRevolver
@@ -3415,7 +3538,11 @@ export class ProVisoInterpreter {
     }
 
     const benchmarkRate = this.evaluateOptional(facility.benchmark);
-    const tranches = facility.tranches.map((t) => this.evaluateTranche(t, benchmarkRate));
+    const commitmentFeeRate = this.evaluateOptional(facility.commitmentFee);
+    const lcFeeRate = this.evaluateOptional(facility.lcFee);
+    const tranches = facility.tranches.map((t) =>
+      this.evaluateTranche(t, benchmarkRate, commitmentFeeRate, lcFeeRate)
+    );
 
     const sum = (pick: (t: TrancheStatus) => number): number =>
       tranches.reduce((total, t) => total + pick(t), 0);
@@ -3424,6 +3551,7 @@ export class ProVisoInterpreter {
     const totalDrawn = sum((t) => t.drawn);
     const annualInterest = sum((t) => t.annualInterest);
     const scheduledAmortization = sum((t) => t.scheduledAmortization);
+    const fees = sum((t) => t.commitmentFee + t.lcFee);
 
     // Weighted by drawn balance: an undrawn tranche contributes no interest,
     // so letting its rate move the average would misstate the cost of debt.
@@ -3448,7 +3576,10 @@ export class ProVisoInterpreter {
       weightedRate,
       annualInterest,
       scheduledAmortization,
-      debtService: annualInterest + scheduledAmortization,
+      fees,
+      // Fees are a cost of the facility, so they belong in debt service and
+      // therefore in any fixed-charge coverage test reading it.
+      debtService: annualInterest + fees + scheduledAmortization,
       revolverUtilization,
       cashNettingCap: facility.cashNettingCap === null
         ? null
@@ -3510,6 +3641,8 @@ export class ProVisoInterpreter {
         return total((f) => f.annualInterest);
       case 'ScheduledAmortization':
         return total((f) => f.scheduledAmortization);
+      case 'TotalFees':
+        return total((f) => f.fees);
       case 'DebtService':
         return total((f) => f.debtService);
       case 'WeightedRate': {

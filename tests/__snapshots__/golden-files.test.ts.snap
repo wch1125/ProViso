@@ -894,9 +894,9 @@ exports[`Golden files — shipped example deals > leveraged_facility.proviso eva
       "unit": "ratio",
     },
     {
-      "actual": 1.9391693685348155,
+      "actual": 1.9210180171912759,
       "compliant": true,
-      "headroom": 0.7891693685348156,
+      "headroom": 0.7710180171912759,
       "name": "MinFixedChargeCoverage",
       "operator": ">=",
       "threshold": 1.15,
@@ -919,7 +919,7 @@ exports[`Golden files — shipped example deals > leveraged_facility.proviso eva
     },
     {
       "name": "FixedChargeCoverage",
-      "value": 1.9391693685348155,
+      "value": 1.9210180171912759,
     },
     {
       "name": "InterestCoverage",

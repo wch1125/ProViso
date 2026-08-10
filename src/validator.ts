@@ -17,6 +17,7 @@ import {
   MilestoneStatement,
   TechnicalMilestoneStatement,
   FacilityStatement,
+  PricingGridStatement,
   ReserveStatement,
   WaterfallStatement,
   PhaseStatement,
@@ -47,6 +48,7 @@ interface SymbolTable {
   conditionsPrecedent: Set<string>;
   facilities: Set<string>;
   tranches: Set<string>;
+  pricingGrids: Set<string>;
 }
 
 /**
@@ -76,7 +78,7 @@ export function validate(ast: Program): ValidationResult {
 
   // Validate each statement
   for (const stmt of ast.statements) {
-    validateStatement(stmt, symbols, errors, warnings);
+    validateStatement(stmt, symbols, errors, warnings, ast);
   }
 
   return {
@@ -156,6 +158,115 @@ function detectReservedNameCollisions(ast: Program, errors: ValidationIssue[]): 
 }
 
 /**
+ * Validate a PRICING_GRID statement.
+ *
+ * The important check is D6: the ratio a grid is read against must not depend
+ * on the interest the grid produces, or the grid feeds itself. Leverage
+ * (debt / EBITDA) is safe because interest enters neither term; a basis
+ * defined in terms of AnnualInterest or DebtService is not.
+ */
+function validatePricingGrid(
+  stmt: PricingGridStatement,
+  symbols: SymbolTable,
+  errors: ValidationIssue[],
+  warnings: ValidationIssue[],
+  ast: Program
+): void {
+  const context = `PRICING_GRID ${stmt.name}`;
+
+  if (stmt.levels.length === 0) {
+    errors.push({ severity: 'error', message: 'Pricing grid declares no levels', context });
+    return;
+  }
+
+  // The basis should resolve to something — a DEFINE, or a facility-derived
+  // metric. An unresolvable basis silently falls to the floor at runtime.
+  const derived = new Set<string>(ProVisoInterpreter.DERIVED_FACILITY_METRICS);
+  if (!symbols.defines.has(stmt.basedOn) && !derived.has(stmt.basedOn)) {
+    warnings.push({
+      severity: 'warning',
+      message:
+        `BASED_ON references '${stmt.basedOn}', which is not a DEFINE or a ` +
+        `facility-derived metric — the grid will fall to its lowest level if it ` +
+        `cannot be resolved`,
+      reference: stmt.basedOn,
+      context,
+    });
+  }
+
+  // D6: walk the basis definition looking for an interest-derived term.
+  const interestDerived = ['AnnualInterest', 'DebtService', 'TotalFees', 'WeightedRate'];
+  const basisDefinition = ast.statements.find(
+    (s): s is DefineStatement => s.type === 'Define' && s.name === stmt.basedOn
+  );
+  if (basisDefinition) {
+    const referenced = new Set<string>();
+    collectIdentifiers(basisDefinition.expression, referenced);
+    for (const term of interestDerived) {
+      if (referenced.has(term)) {
+        errors.push({
+          severity: 'error',
+          message:
+            `BASED_ON '${stmt.basedOn}' depends on '${term}', which this grid ` +
+            `determines — the grid would feed its own input. Base the grid on a ` +
+            `ratio that excludes interest, such as debt to EBITDA.`,
+          reference: term,
+          context,
+        });
+      }
+    }
+  }
+
+  // OTHERWISE is the floor and only means anything last.
+  const otherwiseIndex = stmt.levels.findIndex((l) => l.threshold === null);
+  if (otherwiseIndex === -1) {
+    warnings.push({
+      severity: 'warning',
+      message:
+        'Grid has no OTHERWISE level — a basis below every threshold has no ' +
+        'applicable margin and will fall back to the first level',
+      context,
+    });
+  } else if (otherwiseIndex !== stmt.levels.length - 1) {
+    errors.push({
+      severity: 'error',
+      message:
+        'OTHERWISE must be the last level — levels after it are unreachable ' +
+        'because OTHERWISE always matches',
+      context,
+    });
+  }
+}
+
+/** Collect every identifier referenced by an expression tree. */
+function collectIdentifiers(expr: Expression, into: Set<string>): void {
+  if (typeof expr === 'string') {
+    into.add(expr);
+    return;
+  }
+  if (!isObjectExpression(expr)) return;
+
+  switch (expr.type) {
+    case 'BinaryExpression':
+    case 'Comparison':
+      collectIdentifiers(expr.left, into);
+      collectIdentifiers(expr.right, into);
+      break;
+    case 'UnaryExpression':
+      collectIdentifiers(expr.argument, into);
+      break;
+    case 'FunctionCall':
+      for (const arg of expr.arguments) collectIdentifiers(arg, into);
+      break;
+    case 'Trailing':
+      collectIdentifiers(expr.expression, into);
+      break;
+    default:
+      break;
+  }
+}
+
+/**
  * Validate a FACILITY statement.
  */
 function validateFacility(
@@ -197,10 +308,30 @@ function validateFacility(
       });
     }
 
-    if (tranche.margin === null) {
+    if (tranche.pricingGrid && !_symbols.pricingGrids.has(tranche.pricingGrid)) {
+      errors.push({
+        severity: 'error',
+        message: `PRICING references '${tranche.pricingGrid}', which is not a defined PRICING_GRID`,
+        reference: tranche.pricingGrid,
+        context: trancheContext,
+      });
+    }
+
+    if (tranche.margin !== null && tranche.pricingGrid) {
       warnings.push({
         severity: 'warning',
-        message: 'Tranche has no MARGIN — interest for this tranche will be benchmark-only',
+        message:
+          'Tranche declares both MARGIN and PRICING — the fixed MARGIN wins and ' +
+          'the grid is ignored for this tranche',
+        context: trancheContext,
+      });
+    }
+
+    if (tranche.margin === null && !tranche.pricingGrid) {
+      warnings.push({
+        severity: 'warning',
+        message:
+          'Tranche has no MARGIN or PRICING — interest for this tranche will be benchmark-only',
         context: trancheContext,
       });
     }
@@ -238,6 +369,7 @@ function buildSymbolTable(ast: Program): SymbolTable {
     conditionsPrecedent: new Set(),
     facilities: new Set(),
     tranches: new Set(),
+    pricingGrids: new Set(),
   };
 
   for (const stmt of ast.statements) {
@@ -286,6 +418,9 @@ function buildSymbolTable(ast: Program): SymbolTable {
         symbols.facilities.add(stmt.name);
         for (const tranche of stmt.tranches) symbols.tranches.add(tranche.name);
         break;
+      case 'PricingGrid':
+        symbols.pricingGrids.add(stmt.name);
+        break;
     }
   }
 
@@ -311,7 +446,8 @@ function isKnownSymbol(name: string, symbols: SymbolTable): boolean {
     symbols.flipEvents.has(name) ||
     symbols.conditionsPrecedent.has(name) ||
     symbols.facilities.has(name) ||
-    symbols.tranches.has(name)
+    symbols.tranches.has(name) ||
+    symbols.pricingGrids.has(name)
   );
 }
 
@@ -322,7 +458,8 @@ function validateStatement(
   stmt: Statement,
   symbols: SymbolTable,
   errors: ValidationIssue[],
-  warnings: ValidationIssue[]
+  warnings: ValidationIssue[],
+  ast: Program
 ): void {
   switch (stmt.type) {
     case 'Define':
@@ -375,6 +512,9 @@ function validateStatement(
       break;
     case 'Facility':
       validateFacility(stmt, symbols, errors, warnings);
+      break;
+    case 'PricingGrid':
+      validatePricingGrid(stmt, symbols, errors, warnings, ast);
       break;
     // Remaining types (RegulatoryRequirement, PerformanceGuarantee,
     // DegradationSchedule, SeasonalAdjustment, TaxCredit, Depreciation) have
