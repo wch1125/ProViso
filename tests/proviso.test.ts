@@ -2475,6 +2475,112 @@ describe('Multi-Period Financial Data', () => {
       expect(result.valid).toBe(true);
     });
   });
+
+  describe('Definition Cache Invalidation', () => {
+    // The definition memo cache is keyed per-period. Any code path that walks
+    // periods (TRAILING, compliance history) or mutates the underlying data
+    // (simulate) must not serve values computed under different inputs.
+
+    const fourQuarters = {
+      periods: [
+        { period: '2024-Q1', periodType: 'quarterly' as const, data: { ebitda: 7 } },
+        { period: '2024-Q2', periodType: 'quarterly' as const, data: { ebitda: 100 } },
+        { period: '2024-Q3', periodType: 'quarterly' as const, data: { ebitda: 100 } },
+        { period: '2024-Q4', periodType: 'quarterly' as const, data: { ebitda: 100 } },
+      ],
+    };
+
+    it('should sum actual per-period values when TRAILING wraps a DEFINE', async () => {
+      // Regression: the memo cache was keyed by name only, so the first period's
+      // value was reused for every iteration, yielding 4 x 7 = 28 instead of 307.
+      const ast = await parseOrThrow(`
+        DEFINE Ebitda AS ebitda
+        DEFINE TTM AS TRAILING 4 QUARTERS OF Ebitda
+      `);
+      const interpreter = new ProVisoInterpreter(ast);
+      interpreter.loadFinancials(fourQuarters);
+      interpreter.setEvaluationPeriod('2024-Q4');
+
+      expect(interpreter.evaluate('TTM')).toBe(307);
+    });
+
+    it('should agree between TRAILING over a DEFINE and over a raw field', async () => {
+      const ast = await parseOrThrow(`
+        DEFINE Ebitda AS ebitda
+        DEFINE ViaDefine AS TRAILING 4 QUARTERS OF Ebitda
+        DEFINE ViaRawField AS TRAILING 4 QUARTERS OF ebitda
+      `);
+      const interpreter = new ProVisoInterpreter(ast);
+      interpreter.loadFinancials(fourQuarters);
+      interpreter.setEvaluationPeriod('2024-Q4');
+
+      expect(interpreter.evaluate('ViaDefine')).toBe(interpreter.evaluate('ViaRawField'));
+    });
+
+    it('should not leak a trailing window value into later single-period reads', async () => {
+      const ast = await parseOrThrow(`
+        DEFINE Ebitda AS ebitda
+        DEFINE TTM AS TRAILING 4 QUARTERS OF Ebitda
+      `);
+      const interpreter = new ProVisoInterpreter(ast);
+      interpreter.loadFinancials(fourQuarters);
+      interpreter.setEvaluationPeriod('2024-Q4');
+
+      interpreter.evaluate('TTM');
+      expect(interpreter.evaluate('Ebitda')).toBe(100);
+    });
+
+    it('should re-evaluate definitions after clearEvaluationPeriod', async () => {
+      const ast = await parseOrThrow(`DEFINE Ebitda AS ebitda`);
+      const interpreter = new ProVisoInterpreter(ast);
+      interpreter.loadFinancials(fourQuarters);
+
+      interpreter.setEvaluationPeriod('2024-Q1');
+      expect(interpreter.evaluate('Ebitda')).toBe(7);
+
+      // Falls back to the latest period, so the Q1 value must not survive.
+      interpreter.clearEvaluationPeriod();
+      expect(interpreter.evaluate('Ebitda')).toBe(100);
+    });
+
+    it('should reflect simulated values on an already-evaluated interpreter', async () => {
+      // Regression: simulate() left the pre-simulation memo in place, so a
+      // breaching pro forma reported as compliant on any warm interpreter.
+      const ast = await parseOrThrow(`
+        DEFINE EBITDA AS ebitda
+        DEFINE TotalDebt AS total_debt
+        DEFINE Leverage AS TotalDebt / EBITDA
+        COVENANT MaxLeverage REQUIRES Leverage <= 4.0x TESTED QUARTERLY
+      `);
+      const interpreter = new ProVisoInterpreter(ast);
+      interpreter.loadFinancials({ ebitda: 100, total_debt: 300 });
+
+      // Warm the cache first — this is what made the bug appear.
+      expect(interpreter.checkCovenant('MaxLeverage').compliant).toBe(true);
+
+      const result = interpreter.simulate({ total_debt: 900 });
+      expect(result.covenants[0]?.actual).toBe(9);
+      expect(result.covenants[0]?.compliant).toBe(false);
+    });
+
+    it('should restore real values after a simulation', async () => {
+      const ast = await parseOrThrow(`
+        DEFINE EBITDA AS ebitda
+        DEFINE TotalDebt AS total_debt
+        DEFINE Leverage AS TotalDebt / EBITDA
+        COVENANT MaxLeverage REQUIRES Leverage <= 4.0x TESTED QUARTERLY
+      `);
+      const interpreter = new ProVisoInterpreter(ast);
+      interpreter.loadFinancials({ ebitda: 100, total_debt: 300 });
+
+      interpreter.checkCovenant('MaxLeverage');
+      interpreter.simulate({ total_debt: 900 });
+
+      const after = interpreter.checkCovenant('MaxLeverage');
+      expect(after.actual).toBe(3);
+      expect(after.compliant).toBe(true);
+    });
+  });
 });
 
 // ==================== PHASE SYSTEM TESTS (v1.0) ====================

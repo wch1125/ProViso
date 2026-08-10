@@ -137,6 +137,15 @@ export class ProVisoInterpreter {
 
   // Cycle detection stack for definition evaluation
   private definitionEvalStack: Set<string> = new Set();
+  /**
+   * Memoized DEFINE values, keyed by `<evaluationPeriod>::<name>`.
+   *
+   * The period must be part of the key: several code paths (TRAILING windows,
+   * compliance history) walk periods by reassigning `evaluationPeriod`, and a
+   * name-only key would serve the first period's value for the whole walk.
+   * Callers that change the underlying *data* rather than the period (see
+   * loadFinancials, simulate, applyAmendment) must still clear the cache.
+   */
   private definitionEvalCache: Map<string, number> = new Map();
 
   constructor(private ast: Program) {
@@ -567,9 +576,18 @@ export class ProVisoInterpreter {
     });
   }
 
+  /**
+   * Cache key for a definition under the current evaluation period.
+   * Simple (non-multi-period) mode collapses to a single '' period bucket.
+   */
+  private definitionCacheKey(name: string): string {
+    return `${this.evaluationPeriod ?? ''}::${name}`;
+  }
+
   private evaluateDefinition(def: DefineStatement): number {
     // Check memo cache first
-    const cached = this.definitionEvalCache.get(def.name);
+    const cacheKey = this.definitionCacheKey(def.name);
+    const cached = this.definitionEvalCache.get(cacheKey);
     if (cached !== undefined) return cached;
 
     // Cycle detection
@@ -597,7 +615,10 @@ export class ProVisoInterpreter {
         value = Math.min(value, cap);
       }
 
-      this.definitionEvalCache.set(def.name, value);
+      // Use the key captured on entry: evaluating a TRAILING expression walks
+      // periods and restores, so recomputing here would be equivalent but this
+      // is explicit about which period the memo belongs to.
+      this.definitionEvalCache.set(cacheKey, value);
       return value;
     } finally {
       this.definitionEvalStack.delete(def.name);
@@ -1522,6 +1543,15 @@ export class ProVisoInterpreter {
 
   // ==================== SIMULATION ====================
 
+  /**
+   * Evaluate covenants and baskets against temporarily modified financials.
+   *
+   * The definition memo caches values derived from the inputs, so it must be
+   * cleared both before evaluating (or the pro forma reports pre-simulation
+   * numbers) and after restoring (or the next real check reads simulated
+   * ones). The period-qualified cache key does not help here: the period is
+   * unchanged and only the underlying data moves.
+   */
   simulate(changes: Partial<SimpleFinancialData>): SimulationResult {
     if (this.isMultiPeriodMode() && this.multiPeriodData && this.evaluationPeriod) {
       // Multi-period mode: apply changes to the current period
@@ -1539,14 +1569,16 @@ export class ProVisoInterpreter {
           }
         }
 
-        // Evaluate
-        const covenants = this.checkAllCovenants();
-        const baskets = this.getAllBasketStatuses();
-
-        // Restore
-        periodData.data = savedPeriodData;
-
-        return { covenants, baskets };
+        try {
+          this.definitionEvalCache.clear();
+          const covenants = this.checkAllCovenants();
+          const baskets = this.getAllBasketStatuses();
+          return { covenants, baskets };
+        } finally {
+          // Restore
+          periodData.data = savedPeriodData;
+          this.definitionEvalCache.clear();
+        }
       }
     }
 
@@ -1560,14 +1592,16 @@ export class ProVisoInterpreter {
       }
     }
 
-    // Evaluate
-    const covenants = this.checkAllCovenants();
-    const baskets = this.getAllBasketStatuses();
-
-    // Restore state
-    this.simpleFinancialData = savedData;
-
-    return { covenants, baskets };
+    try {
+      this.definitionEvalCache.clear();
+      const covenants = this.checkAllCovenants();
+      const baskets = this.getAllBasketStatuses();
+      return { covenants, baskets };
+    } finally {
+      // Restore state
+      this.simpleFinancialData = savedData;
+      this.definitionEvalCache.clear();
+    }
   }
 
   // ==================== STATUS REPORT ====================
