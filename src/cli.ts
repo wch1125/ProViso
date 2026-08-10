@@ -869,6 +869,106 @@ program
     }
   });
 
+// ==================== FACILITY COMMAND ====================
+
+program
+  .command('facility <file>')
+  .description('Show credit facility structure and derived debt metrics')
+  .option('-d, --data <file>', 'Financial data JSON file')
+  .option('-a, --amendments <files...>', 'Amendment files to apply in order')
+  .option('--json', 'Output as JSON')
+  .action(async (file: string, options: { data?: string; amendments?: string[]; json?: boolean }) => {
+    try {
+      const interpreter = await loadInterpreter(file, options.data, options.amendments);
+
+      if (!interpreter.hasFacilities()) {
+        console.log('\nNo facilities defined in this agreement.');
+        process.exit(0);
+      }
+
+      const facilities = interpreter.getAllFacilityStatuses();
+
+      if (options.json) {
+        console.log(JSON.stringify(facilities, null, 2));
+        return;
+      }
+
+      for (const facility of facilities) {
+        console.log(`\nFACILITY: ${facility.name}`);
+        console.log('─'.repeat(78));
+        if (facility.benchmark > 0) {
+          console.log(`Benchmark: ${facility.benchmark.toFixed(2)}%`);
+        }
+        console.log('');
+
+        for (const t of facility.tranches) {
+          console.log(`  ${t.name}  [${t.trancheType}]`);
+          console.log(
+            `    Commitment: ${formatMoney(t.commitment)}   Drawn: ${formatMoney(t.drawn)}` +
+              `   Undrawn: ${formatMoney(t.undrawn)}`
+          );
+          console.log(
+            `    Rate: ${t.allInRate.toFixed(2)}% (margin ${t.margin.toFixed(2)}%)` +
+              `   Interest: ${formatMoney(t.annualInterest)}/yr`
+          );
+          if (t.scheduledAmortization > 0) {
+            console.log(`    Scheduled amortization: ${formatMoney(t.scheduledAmortization)}/yr`);
+          }
+          if (t.availability !== null) {
+            console.log(
+              `    Availability: ${formatMoney(t.availability)}` +
+                `   Utilization: ${t.utilization?.toFixed(1) ?? '—'}%` +
+                (t.lcOutstanding > 0 ? `   LC outstanding: ${formatMoney(t.lcOutstanding)}` : '')
+            );
+          }
+          if (t.maturity) {
+            console.log(`    Maturity: ${t.maturity}`);
+          }
+          console.log('');
+        }
+
+        console.log('  ' + '─'.repeat(50));
+        console.log(`  Total commitment:  ${formatMoney(facility.totalCommitment)}`);
+        console.log(`  Total drawn:       ${formatMoney(facility.totalDrawn)}`);
+        console.log(`  Total undrawn:     ${formatMoney(facility.totalUndrawn)}`);
+        console.log(`  Weighted rate:     ${facility.weightedRate.toFixed(2)}%`);
+        console.log(`  Annual interest:   ${formatMoney(facility.annualInterest)}`);
+        if (facility.scheduledAmortization > 0) {
+          console.log(`  Scheduled amort:   ${formatMoney(facility.scheduledAmortization)}`);
+        }
+        console.log(`  Debt service:      ${formatMoney(facility.debtService)}`);
+        if (facility.revolverUtilization !== null) {
+          console.log(`  Revolver util:     ${facility.revolverUtilization.toFixed(1)}%`);
+        }
+      }
+
+      // The canonical metrics every other construct now reads.
+      console.log('\nDERIVED METRICS');
+      console.log('─'.repeat(78));
+      for (const metric of ProVisoInterpreter.DERIVED_FACILITY_METRICS) {
+        try {
+          const value = interpreter.evaluate(metric);
+          const display = metric === 'WeightedRate' || metric === 'RevolverUtilization'
+            ? `${value.toFixed(2)}%`
+            : formatMoney(value);
+          console.log(`  ${metric.padEnd(24)} ${display}`);
+        } catch {
+          // Metric not resolvable for this file (e.g. no revolver) — skip it
+          // rather than printing a misleading zero.
+          console.log(`  ${metric.padEnd(24)} —`);
+        }
+      }
+      console.log('');
+
+    } catch (err) {
+      const msg = (err as Error).message;
+      if (msg !== 'Parse failed') {
+        console.error(`Error: ${msg}`);
+      }
+      process.exit(1);
+    }
+  });
+
 // ==================== RESERVES COMMAND ====================
 
 program

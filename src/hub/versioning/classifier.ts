@@ -523,6 +523,7 @@ function getElementTypeLabel(type: ElementType): string {
     reserve: 'Reserve',
     waterfall: 'Waterfall',
     cp: 'Condition Precedent',
+    facility: 'Credit Facility',
     other: 'Element',
   };
   return labels[type];
@@ -542,6 +543,8 @@ function getSectionReference(type: ElementType): string {
     reserve: '6.02',
     waterfall: '6.03',
     cp: '4.01',
+    // Article 2 is conventionally "The Credits" — commitments and tranches.
+    facility: '2.01',
     other: '',
   };
   return refs[type];

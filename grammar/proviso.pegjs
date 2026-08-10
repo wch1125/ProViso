@@ -29,6 +29,7 @@ Program
 
 Statement
   = AmendmentStatement
+  / FacilityStatement
   / PhaseStatement
   / TransitionStatement
   / TechnicalMilestoneStatement
@@ -731,6 +732,102 @@ MilestoneRequires
     }
 
 // ==================== RESERVE ====================
+
+// ==================== FACILITY ====================
+
+// A FACILITY is the authoritative source of the debt stack. Its TRANCHEs carry
+// the commitments and drawn balances that leverage, coverage and debt-service
+// figures derive from, replacing free-floating supplied metrics.
+FacilityStatement
+  = "FACILITY" __ name:Identifier _ clauses:FacilityClause* _ tranches:TrancheStatement+ {
+      const result = {
+        type: 'Facility',
+        name: name,
+        benchmark: null,
+        cashNettingCap: null,
+        tranches: tranches
+      };
+      clauses.forEach(clause => {
+        if (clause.type === 'benchmark') result.benchmark = clause.value;
+        if (clause.type === 'cashNettingCap') result.cashNettingCap = clause.value;
+      });
+      return result;
+    }
+
+FacilityClause
+  // Reference rate the tranche MARGINs are spreads over; all-in rate is
+  // benchmark + margin. Without it, margin alone is used and interest is a
+  // spread-only figure.
+  = "BENCHMARK" __ value:Expression _ {
+      return { type: 'benchmark', value: value };
+    }
+  // Dollar cap on how much cash may offset gross debt when computing net debt.
+  / "CASH_NETTING_CAP" __ value:Expression _ {
+      return { type: 'cashNettingCap', value: value };
+    }
+
+TrancheStatement
+  = "TRANCHE" __ name:Identifier _ clauses:TrancheClause+ {
+      const result = {
+        type: 'Tranche',
+        name: name,
+        trancheType: 'term_loan_a',
+        commitment: null,
+        drawn: null,
+        margin: null,
+        maturity: null,
+        amortization: null,
+        lcOutstanding: null,
+        lcSublimit: null
+      };
+      clauses.forEach(clause => {
+        if (clause.type === 'trancheType') result.trancheType = clause.value;
+        if (clause.type === 'commitment') result.commitment = clause.value;
+        if (clause.type === 'drawn') result.drawn = clause.value;
+        if (clause.type === 'margin') result.margin = clause.value;
+        if (clause.type === 'maturity') result.maturity = clause.value;
+        if (clause.type === 'amortization') result.amortization = clause.value;
+        if (clause.type === 'lcOutstanding') result.lcOutstanding = clause.value;
+        if (clause.type === 'lcSublimit') result.lcSublimit = clause.value;
+      });
+      return result;
+    }
+
+TrancheClause
+  = "TYPE" __ value:TrancheType _ {
+      return { type: 'trancheType', value: value };
+    }
+  / "COMMITMENT" __ value:Expression _ {
+      return { type: 'commitment', value: value };
+    }
+  / "DRAWN" __ value:Expression _ {
+      return { type: 'drawn', value: value };
+    }
+  / "MARGIN" __ value:Expression _ {
+      return { type: 'margin', value: value };
+    }
+  / "MATURITY" __ value:DateLiteral _ {
+      return { type: 'maturity', value: value.value };
+    }
+  // Annual scheduled principal, as a percentage of the original commitment.
+  / "AMORTIZATION" __ value:Expression _ {
+      return { type: 'amortization', value: value };
+    }
+  / "LC_OUTSTANDING" __ value:Expression _ {
+      return { type: 'lcOutstanding', value: value };
+    }
+  / "LC_SUBLIMIT" __ value:Expression _ {
+      return { type: 'lcSublimit', value: value };
+    }
+
+// Mirrors the TransactionType taxonomy in closing-enums.ts.
+TrancheType
+  = "REVOLVING" !IdentifierChar { return 'revolving_credit'; }
+  / "TERM_LOAN_A" !IdentifierChar { return 'term_loan_a'; }
+  / "TERM_LOAN_B" !IdentifierChar { return 'term_loan_b'; }
+  / "DELAYED_DRAW" !IdentifierChar { return 'delayed_draw'; }
+  / "BRIDGE" !IdentifierChar { return 'bridge_loan'; }
+  / "ABL" !IdentifierChar { return 'asset_based_loan'; }
 
 ReserveStatement
   = "RESERVE" __ name:Identifier _ clauses:ReserveClause+ {

@@ -16,6 +16,7 @@ import {
   EventStatement,
   MilestoneStatement,
   TechnicalMilestoneStatement,
+  FacilityStatement,
   ReserveStatement,
   WaterfallStatement,
   PhaseStatement,
@@ -25,6 +26,7 @@ import {
   TaxEquityStructureStatement,
   ConditionsPrecedentStatement,
 } from './types.js';
+import { ProVisoInterpreter } from './interpreter.js';
 
 /**
  * Symbol table containing all named definitions from the program
@@ -43,6 +45,8 @@ interface SymbolTable {
   taxEquityStructures: Set<string>;
   flipEvents: Set<string>;
   conditionsPrecedent: Set<string>;
+  facilities: Set<string>;
+  tranches: Set<string>;
 }
 
 /**
@@ -66,6 +70,9 @@ export function validate(ast: Program): ValidationResult {
   // Duplicate names silently shadow each other at load time — the interpreter
   // keys its maps by name, so the second definition wins with no diagnostic.
   detectDuplicateNames(ast, errors);
+
+  // Canonical debt metrics are only reserved once a FACILITY exists.
+  detectReservedNameCollisions(ast, errors);
 
   // Validate each statement
   for (const stmt of ast.statements) {
@@ -115,6 +122,103 @@ function detectDuplicateNames(ast: Program, errors: ValidationIssue[]): void {
 }
 
 /**
+ * Report a user DEFINE that shadows a facility-derived debt metric.
+ *
+ * These names are only reserved when a FACILITY is declared. Without one,
+ * `DEFINE TotalDebt AS funded_debt + capital_leases` is the ordinary way to
+ * express the concept and six of the seven shipped examples do exactly that —
+ * so an unconditional reservation would be wrong.
+ *
+ * With a facility present the collision is real and dangerous: resolution
+ * checks definitions before derived metrics, so the DEFINE silently wins and
+ * the file ends up with two disagreeing answers to "what is total debt?".
+ */
+function detectReservedNameCollisions(ast: Program, errors: ValidationIssue[]): void {
+  const hasFacility = ast.statements.some((s) => s.type === 'Facility');
+  if (!hasFacility) return;
+
+  const reserved = new Set<string>(ProVisoInterpreter.DERIVED_FACILITY_METRICS);
+
+  for (const stmt of ast.statements) {
+    if (stmt.type !== 'Define') continue;
+    if (!reserved.has(stmt.name)) continue;
+
+    errors.push({
+      severity: 'error',
+      message:
+        `'${stmt.name}' is derived from the declared FACILITY — a DEFINE of the same ` +
+        `name shadows it, so covenants would read the DEFINE while facility reports ` +
+        `read the tranches. Rename the DEFINE or remove it.`,
+      reference: stmt.name,
+      context: `DEFINE ${stmt.name}`,
+    });
+  }
+}
+
+/**
+ * Validate a FACILITY statement.
+ */
+function validateFacility(
+  stmt: FacilityStatement,
+  _symbols: SymbolTable,
+  errors: ValidationIssue[],
+  warnings: ValidationIssue[]
+): void {
+  const context = `FACILITY ${stmt.name}`;
+
+  if (stmt.tranches.length === 0) {
+    errors.push({
+      severity: 'error',
+      message: 'Facility declares no tranches',
+      context,
+    });
+    return;
+  }
+
+  const seenTranches = new Set<string>();
+  for (const tranche of stmt.tranches) {
+    const trancheContext = `${context} / TRANCHE ${tranche.name}`;
+
+    if (seenTranches.has(tranche.name)) {
+      errors.push({
+        severity: 'error',
+        message: `Duplicate tranche name '${tranche.name}' within this facility`,
+        reference: tranche.name,
+        context: trancheContext,
+      });
+    }
+    seenTranches.add(tranche.name);
+
+    if (tranche.commitment === null) {
+      errors.push({
+        severity: 'error',
+        message: 'Tranche has no COMMITMENT — every debt figure derives from it',
+        context: trancheContext,
+      });
+    }
+
+    if (tranche.margin === null) {
+      warnings.push({
+        severity: 'warning',
+        message: 'Tranche has no MARGIN — interest for this tranche will be benchmark-only',
+        context: trancheContext,
+      });
+    }
+
+    // LC clauses only mean something on a revolver.
+    if (tranche.trancheType !== 'revolving_credit') {
+      if (tranche.lcOutstanding !== null || tranche.lcSublimit !== null) {
+        warnings.push({
+          severity: 'warning',
+          message: 'LC_OUTSTANDING / LC_SUBLIMIT apply to revolving tranches and are ignored here',
+          context: trancheContext,
+        });
+      }
+    }
+  }
+}
+
+/**
  * Build a symbol table from the program's statements
  */
 function buildSymbolTable(ast: Program): SymbolTable {
@@ -132,6 +236,8 @@ function buildSymbolTable(ast: Program): SymbolTable {
     taxEquityStructures: new Set(),
     flipEvents: new Set(),
     conditionsPrecedent: new Set(),
+    facilities: new Set(),
+    tranches: new Set(),
   };
 
   for (const stmt of ast.statements) {
@@ -176,6 +282,10 @@ function buildSymbolTable(ast: Program): SymbolTable {
       case 'ConditionsPrecedent':
         symbols.conditionsPrecedent.add(stmt.name);
         break;
+      case 'Facility':
+        symbols.facilities.add(stmt.name);
+        for (const tranche of stmt.tranches) symbols.tranches.add(tranche.name);
+        break;
     }
   }
 
@@ -199,7 +309,9 @@ function isKnownSymbol(name: string, symbols: SymbolTable): boolean {
     symbols.transitions.has(name) ||
     symbols.taxEquityStructures.has(name) ||
     symbols.flipEvents.has(name) ||
-    symbols.conditionsPrecedent.has(name)
+    symbols.conditionsPrecedent.has(name) ||
+    symbols.facilities.has(name) ||
+    symbols.tranches.has(name)
   );
 }
 
@@ -260,6 +372,9 @@ function validateStatement(
       break;
     case 'TechnicalMilestone':
       validateTechnicalMilestone(stmt, symbols, errors, warnings);
+      break;
+    case 'Facility':
+      validateFacility(stmt, symbols, errors, warnings);
       break;
     // Remaining types (RegulatoryRequirement, PerformanceGuarantee,
     // DegradationSchedule, SeasonalAdjustment, TaxCredit, Depreciation) have

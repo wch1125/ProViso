@@ -192,6 +192,7 @@ export type ElementType =
   | 'reserve'
   | 'waterfall'
   | 'cp'
+  | 'facility'
   | 'other';
 
 export type ChangeImpact = 'borrower_favorable' | 'lender_favorable' | 'neutral' | 'unclear';

@@ -48,6 +48,10 @@ import {
   WaterfallResult,
   WaterfallTierResult,
   ConditionsPrecedentStatement,
+  FacilityStatement,
+  TrancheStatement,
+  TrancheStatus,
+  FacilityStatus,
   CPStatus,
   CPChecklistResult,
   CPItemResult,
@@ -111,6 +115,7 @@ export class ProVisoInterpreter {
   private waterfalls: Map<string, WaterfallStatement> = new Map();
   private conditionsPrecedent: Map<string, ConditionsPrecedentStatement> = new Map();
   private cpStatuses: Map<string, Map<string, CPStatus>> = new Map(); // checklist -> (cp -> status)
+  private facilities: Map<string, FacilityStatement> = new Map();
 
   // Simple financial data (flat record) - used when not in multi-period mode
   private simpleFinancialData: SimpleFinancialData = {};
@@ -253,6 +258,9 @@ export class ProVisoInterpreter {
         this.cpStatuses.set(stmt.name, cpMap);
         break;
       }
+      case 'Facility':
+        this.facilities.set(stmt.name, stmt);
+        break;
       case 'Amendment':
         // Amendments are processed separately via applyAmendment
         break;
@@ -510,6 +518,16 @@ export class ProVisoInterpreter {
     const def = this.definitions.get(name);
     if (def) {
       return this.evaluateDefinition(def);
+    }
+
+    // Canonical debt metrics derived from declared facilities take precedence
+    // over supplied data of the same name (D1: the facility is the source of
+    // truth). Returns undefined when no facility is declared, so files without
+    // one are completely unaffected. A user DEFINE still wins over this, and
+    // the validator flags that collision rather than silently shadowing.
+    const derived = this.resolveFacilityMetric(name);
+    if (derived !== undefined) {
+      return derived;
     }
 
     // Get value from financial data (multi-period or simple)
@@ -3274,6 +3292,229 @@ export class ProVisoInterpreter {
    */
   hasReserves(): boolean {
     return this.reserves.size > 0;
+  }
+
+  // ==================== FACILITY SYSTEM ====================
+
+  /**
+   * Canonical debt metrics derived from declared facilities.
+   *
+   * These names are reserved: when a facility is declared they resolve from
+   * the tranches rather than from supplied financial data, so every covenant,
+   * reserve and waterfall reads the same debt figures. The validator warns if
+   * a file both declares a facility and supplies one of these directly.
+   */
+  static readonly DERIVED_FACILITY_METRICS = [
+    'TotalCommitment',
+    'TotalDrawn',
+    'TotalUndrawn',
+    'TotalDebt',
+    'NetDebt',
+    'AnnualInterest',
+    'ScheduledAmortization',
+    'DebtService',
+    'RevolverUtilization',
+    'WeightedRate',
+  ] as const;
+
+  hasFacilities(): boolean {
+    return this.facilities.size > 0;
+  }
+
+  getFacilityNames(): string[] {
+    return Array.from(this.facilities.keys());
+  }
+
+  /** Evaluate an optional expression, treating absence as zero. */
+  private evaluateOptional(expr: Expression | null): number {
+    return expr === null ? 0 : this.evaluate(expr);
+  }
+
+  /**
+   * Evaluate a single tranche's current state.
+   *
+   * Rate arithmetic is done in fractions, because `evaluate` already returns a
+   * percentage literal as a fraction (`4%` → 0.04). Reported rate fields are
+   * converted back to percentage points so a consumer formatting "8.25%" does
+   * not have to know which convention this method chose.
+   */
+  private evaluateTranche(tranche: TrancheStatement, benchmarkRate: number): TrancheStatus {
+    const commitment = this.evaluateOptional(tranche.commitment);
+    // A tranche with no explicit DRAWN is assumed fully drawn if it is a term
+    // loan, and undrawn if it is a revolver — the conventional default.
+    const drawn = tranche.drawn !== null
+      ? this.evaluate(tranche.drawn)
+      : tranche.trancheType === 'revolving_credit' ? 0 : commitment;
+
+    const marginRate = this.evaluateOptional(tranche.margin);
+    const allInRate = benchmarkRate + marginRate;
+    const annualInterest = drawn * allInRate;
+
+    // Annual scheduled principal, as a fraction of the original commitment.
+    const scheduledAmortization = commitment * this.evaluateOptional(tranche.amortization);
+
+    const lcOutstanding = this.evaluateOptional(tranche.lcOutstanding);
+    const isRevolver = tranche.trancheType === 'revolving_credit';
+
+    return {
+      name: tranche.name,
+      trancheType: tranche.trancheType,
+      commitment,
+      drawn,
+      undrawn: Math.max(0, commitment - drawn),
+      // Reported in percentage points, e.g. 3.25 and 8.25.
+      margin: marginRate * 100,
+      allInRate: allInRate * 100,
+      annualInterest,
+      scheduledAmortization,
+      maturity: tranche.maturity,
+      lcOutstanding,
+      availability: isRevolver
+        ? Math.max(0, commitment - drawn - lcOutstanding)
+        : null,
+      // Guarded: a zero-commitment revolver has no meaningful utilization.
+      utilization: isRevolver && commitment > 0
+        ? ((drawn + lcOutstanding) / commitment) * 100
+        : null,
+    };
+  }
+
+  /** Evaluate a facility and its aggregates. */
+  getFacilityStatus(name: string): FacilityStatus {
+    const facility = this.facilities.get(name);
+    if (!facility) {
+      throw new Error(`Unknown facility: ${name}`);
+    }
+
+    const benchmarkRate = this.evaluateOptional(facility.benchmark);
+    const tranches = facility.tranches.map((t) => this.evaluateTranche(t, benchmarkRate));
+
+    const sum = (pick: (t: TrancheStatus) => number): number =>
+      tranches.reduce((total, t) => total + pick(t), 0);
+
+    const totalCommitment = sum((t) => t.commitment);
+    const totalDrawn = sum((t) => t.drawn);
+    const annualInterest = sum((t) => t.annualInterest);
+    const scheduledAmortization = sum((t) => t.scheduledAmortization);
+
+    // Weighted by drawn balance: an undrawn tranche contributes no interest,
+    // so letting its rate move the average would misstate the cost of debt.
+    const weightedRate = totalDrawn > 0
+      ? sum((t) => t.allInRate * t.drawn) / totalDrawn
+      : 0;
+
+    const revolvers = tranches.filter((t) => t.trancheType === 'revolving_credit');
+    const revolverCommitment = revolvers.reduce((total, t) => total + t.commitment, 0);
+    const revolverUtilization = revolverCommitment > 0
+      ? (revolvers.reduce((total, t) => total + t.drawn + t.lcOutstanding, 0) /
+          revolverCommitment) * 100
+      : null;
+
+    return {
+      name: facility.name,
+      // Percentage points, matching the tranche rate fields.
+      benchmark: benchmarkRate * 100,
+      totalCommitment,
+      totalDrawn,
+      totalUndrawn: Math.max(0, totalCommitment - totalDrawn),
+      weightedRate,
+      annualInterest,
+      scheduledAmortization,
+      debtService: annualInterest + scheduledAmortization,
+      revolverUtilization,
+      cashNettingCap: facility.cashNettingCap === null
+        ? null
+        : this.evaluate(facility.cashNettingCap),
+      tranches,
+    };
+  }
+
+  getAllFacilityStatuses(): FacilityStatus[] {
+    return this.getFacilityNames().map((name) => this.getFacilityStatus(name));
+  }
+
+  /**
+   * Resolve a canonical debt metric from declared facilities.
+   *
+   * Returns undefined when no facility is declared, so resolution falls
+   * through to supplied financial data exactly as before — this whole layer is
+   * inert for files that declare no facility.
+   */
+  private resolveFacilityMetric(name: string): number | undefined {
+    if (this.facilities.size === 0) return undefined;
+
+    const statuses = this.getAllFacilityStatuses();
+    const total = (pick: (f: FacilityStatus) => number): number =>
+      statuses.reduce((sum, f) => sum + pick(f), 0);
+
+    switch (name) {
+      case 'TotalCommitment':
+        return total((f) => f.totalCommitment);
+      // Facility debt alone.
+      case 'TotalDrawn':
+        return total((f) => f.totalDrawn);
+      // Gross debt: facility tranches plus explicitly-tagged non-facility debt,
+      // so a deal whose debt is not entirely inside the modelled facilities
+      // never silently drops the remainder.
+      case 'TotalDebt': {
+        const otherDebt = this.getFinancialValue('other_debt') ?? 0;
+        const capitalLeases = this.getFinancialValue('capital_leases') ?? 0;
+        return total((f) => f.totalDrawn) + otherDebt + capitalLeases;
+      }
+      case 'NetDebt': {
+        const gross = this.resolveFacilityMetric('TotalDebt') ?? 0;
+        const cash = this.getFinancialValue('unrestricted_cash')
+          ?? this.getFinancialValue('cash')
+          ?? 0;
+        // Netting is capped where the facility states a cap; uncapped
+        // otherwise. Never nets more cash than exists.
+        const caps = statuses
+          .map((f) => f.cashNettingCap)
+          .filter((c): c is number => c !== null);
+        const nettable = caps.length > 0
+          ? Math.min(cash, Math.max(...caps))
+          : cash;
+        return Math.max(0, gross - nettable);
+      }
+      case 'TotalUndrawn':
+        return total((f) => f.totalUndrawn);
+      case 'AnnualInterest':
+        return total((f) => f.annualInterest);
+      case 'ScheduledAmortization':
+        return total((f) => f.scheduledAmortization);
+      case 'DebtService':
+        return total((f) => f.debtService);
+      case 'WeightedRate': {
+        const drawn = total((f) => f.totalDrawn);
+        return drawn > 0
+          ? statuses.reduce((sum, f) => sum + f.weightedRate * f.totalDrawn, 0) / drawn
+          : 0;
+      }
+      case 'RevolverUtilization': {
+        const withRevolvers = statuses.filter((f) => f.revolverUtilization !== null);
+        if (withRevolvers.length === 0) return undefined;
+        const commitment = withRevolvers.reduce(
+          (sum, f) =>
+            sum +
+            f.tranches
+              .filter((t) => t.trancheType === 'revolving_credit')
+              .reduce((s, t) => s + t.commitment, 0),
+          0
+        );
+        if (commitment === 0) return undefined;
+        const used = withRevolvers.reduce(
+          (sum, f) =>
+            sum +
+            f.tranches
+              .filter((t) => t.trancheType === 'revolving_credit')
+              .reduce((s, t) => s + t.drawn + t.lcOutstanding, 0),
+          0
+        );
+        return (used / commitment) * 100;
+      }
+      default:
+        return undefined;
+    }
   }
 
   // ==================== WATERFALL SYSTEM ====================

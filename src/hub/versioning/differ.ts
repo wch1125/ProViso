@@ -20,6 +20,8 @@ import type {
   ReserveStatement,
   WaterfallStatement,
   ConditionsPrecedentStatement,
+  FacilityStatement,
+  TrancheStatement,
   Expression,
 } from '../../types.js';
 import type { ElementType, ChangeType } from '../types.js';
@@ -57,6 +59,8 @@ export interface CompiledState {
   waterfalls: Map<string, WaterfallStatement>;
   /** CONDITIONS_PRECEDENT statements by name */
   conditionsPrecedent: Map<string, ConditionsPrecedentStatement>;
+  /** FACILITY statements by name */
+  facilities: Map<string, FacilityStatement>;
   /** Raw source code */
   sourceCode: string;
   /** Parse errors if any */
@@ -141,6 +145,7 @@ export async function compileToState(code: string): Promise<CompiledState> {
     reserves: new Map(),
     waterfalls: new Map(),
     conditionsPrecedent: new Map(),
+    facilities: new Map(),
     sourceCode: code,
     parseError: null,
   };
@@ -189,6 +194,9 @@ export async function compileToState(code: string): Promise<CompiledState> {
       case 'ConditionsPrecedent':
         state.conditionsPrecedent.set(stmt.name, stmt);
         break;
+      case 'Facility':
+        state.facilities.set(stmt.name, stmt);
+        break;
       // Skip: Comment, Load, Amendment (amendments are applied separately)
     }
   }
@@ -230,6 +238,7 @@ export function diffStates(fromState: CompiledState, toState: CompiledState): Di
   diffMaps(fromState.reserves, toState.reserves, 'reserve', diffs);
   diffMaps(fromState.waterfalls, toState.waterfalls, 'waterfall', diffs);
   diffMaps(fromState.conditionsPrecedent, toState.conditionsPrecedent, 'cp', diffs);
+  diffMaps(fromState.facilities, toState.facilities, 'facility', diffs);
 
   // Compute stats
   const stats = computeStats(diffs);
@@ -323,6 +332,9 @@ function diffElements(fromElement: Statement, toElement: Statement): FieldChange
       break;
     case 'Reserve':
       diffReserves(fromElement, toElement as ReserveStatement, changes);
+      break;
+    case 'Facility':
+      diffFacilities(fromElement, toElement as FacilityStatement, changes);
       break;
     case 'Waterfall':
       diffWaterfalls(fromElement, toElement as WaterfallStatement, changes);
@@ -548,6 +560,74 @@ function diffMilestones(from: MilestoneStatement, to: MilestoneStatement, change
 }
 
 /**
+ * Compare two facilities, tranche by tranche.
+ *
+ * Commitments, margins and maturities are among the most-negotiated terms in a
+ * deal, so a facility diff has to descend into tranches — comparing only
+ * facility-level fields would report "no change" when a revolver commitment
+ * moved by $50M. Tranches are matched by name; added and removed ones are
+ * reported as field changes rather than silently ignored.
+ */
+function diffFacilities(from: FacilityStatement, to: FacilityStatement, changes: FieldChange[]): void {
+  compareScalars('benchmark', expressionToString(from.benchmark), expressionToString(to.benchmark), changes);
+  compareScalars(
+    'cashNettingCap',
+    expressionToString(from.cashNettingCap),
+    expressionToString(to.cashNettingCap),
+    changes
+  );
+
+  const fromTranches = new Map(from.tranches.map((t) => [t.name, t]));
+  const toTranches = new Map(to.tranches.map((t) => [t.name, t]));
+
+  for (const [name, fromTranche] of fromTranches) {
+    const toTranche = toTranches.get(name);
+    if (!toTranche) {
+      changes.push({ field: `tranche.${name}`, fromValue: 'present', toValue: null });
+      continue;
+    }
+    diffTranche(name, fromTranche, toTranche, changes);
+  }
+
+  for (const [name] of toTranches) {
+    if (!fromTranches.has(name)) {
+      changes.push({ field: `tranche.${name}`, fromValue: null, toValue: 'present' });
+    }
+  }
+}
+
+/** Compare every negotiated field on a single tranche. */
+function diffTranche(
+  name: string,
+  from: TrancheStatement,
+  to: TrancheStatement,
+  changes: FieldChange[]
+): void {
+  const field = (suffix: string): string => `tranche.${name}.${suffix}`;
+
+  compareScalars(field('type'), from.trancheType, to.trancheType, changes);
+  compareScalars(field('maturity'), from.maturity, to.maturity, changes);
+
+  const expressionFields: Array<[string, keyof TrancheStatement]> = [
+    ['commitment', 'commitment'],
+    ['drawn', 'drawn'],
+    ['margin', 'margin'],
+    ['amortization', 'amortization'],
+    ['lcOutstanding', 'lcOutstanding'],
+    ['lcSublimit', 'lcSublimit'],
+  ];
+
+  for (const [label, key] of expressionFields) {
+    compareScalars(
+      field(label),
+      expressionToString(from[key] as Parameters<typeof expressionToString>[0]),
+      expressionToString(to[key] as Parameters<typeof expressionToString>[0]),
+      changes
+    );
+  }
+}
+
+/**
  * Compare two reserves.
  */
 function diffReserves(from: ReserveStatement, to: ReserveStatement, changes: FieldChange[]): void {
@@ -641,6 +721,7 @@ function emptyStats(): DiffStats {
       reserve: 0,
       waterfall: 0,
       cp: 0,
+      facility: 0,
       other: 0,
     },
   };

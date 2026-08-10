@@ -31,7 +31,8 @@ export type Statement =
   | FlipEventStatement
   | ReserveStatement
   | WaterfallStatement
-  | ConditionsPrecedentStatement;
+  | ConditionsPrecedentStatement
+  | FacilityStatement;
 
 export interface DefineStatement {
   type: 'Define';
@@ -1285,6 +1286,97 @@ export interface FlipEventResult {
   currentAllocation: AllocationSpec | null;
   /** Buyout price if applicable */
   buyoutPrice: number | null;
+}
+
+// ==================== FACILITY TYPES ====================
+
+/** Tranche types, mirroring the TransactionType taxonomy in closing-enums.ts. */
+export type TrancheType =
+  | 'revolving_credit'
+  | 'term_loan_a'
+  | 'term_loan_b'
+  | 'delayed_draw'
+  | 'bridge_loan'
+  | 'asset_based_loan';
+
+/**
+ * A single tranche of a credit facility.
+ *
+ * `margin` is a spread over the facility's `benchmark`; the all-in rate is
+ * benchmark + margin. `amortization` is annual scheduled principal expressed
+ * as a percentage of the original commitment.
+ */
+export interface TrancheStatement {
+  type: 'Tranche';
+  name: string;
+  trancheType: TrancheType;
+  commitment: Expression | null;
+  drawn: Expression | null;
+  margin: Expression | null;
+  /** ISO date (YYYY-MM-DD) */
+  maturity: string | null;
+  amortization: Expression | null;
+  /** Letters of credit outstanding — consumes revolver availability. */
+  lcOutstanding: Expression | null;
+  lcSublimit: Expression | null;
+}
+
+/**
+ * A credit facility — the authoritative source of the debt stack.
+ *
+ * When a facility is declared, debt figures derive from its tranches rather
+ * than from supplied metrics. Files declaring no facility are unaffected.
+ */
+export interface FacilityStatement {
+  type: 'Facility';
+  name: string;
+  /** Reference rate that tranche margins are spreads over. */
+  benchmark: Expression | null;
+  /** Cap on cash that may offset gross debt when computing net debt. */
+  cashNettingCap: Expression | null;
+  tranches: TrancheStatement[];
+}
+
+/** Evaluated state of a single tranche. */
+export interface TrancheStatus {
+  name: string;
+  trancheType: TrancheType;
+  commitment: number;
+  drawn: number;
+  undrawn: number;
+  /** Spread only. */
+  margin: number;
+  /** Benchmark + margin. */
+  allInRate: number;
+  /** drawn × allInRate, annualized. */
+  annualInterest: number;
+  /** Annual scheduled principal. */
+  scheduledAmortization: number;
+  maturity: string | null;
+  lcOutstanding: number;
+  /** Revolvers only: commitment − drawn − LC outstanding. */
+  availability: number | null;
+  /** Revolvers only: (drawn + LC) / commitment, as a percentage. */
+  utilization: number | null;
+}
+
+/** Evaluated state of a facility and its aggregates. */
+export interface FacilityStatus {
+  name: string;
+  benchmark: number;
+  totalCommitment: number;
+  totalDrawn: number;
+  totalUndrawn: number;
+  /** Commitment-weighted average all-in rate across drawn tranches. */
+  weightedRate: number;
+  annualInterest: number;
+  scheduledAmortization: number;
+  /** annualInterest + scheduledAmortization. */
+  debtService: number;
+  /** Revolver drawn+LC as a percentage of revolver commitments; null if none. */
+  revolverUtilization: number | null;
+  cashNettingCap: number | null;
+  tranches: TrancheStatus[];
 }
 
 // ==================== RESERVE TYPES ====================

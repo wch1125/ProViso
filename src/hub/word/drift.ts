@@ -51,6 +51,7 @@ export type ElementType =
   | 'reserve'
   | 'waterfall'
   | 'cp'
+  | 'facility'
   | 'other';
 
 export type ChangeCategory =
@@ -510,6 +511,7 @@ export class DriftDetector {
       reserve: ['reserve'],
       waterfall: ['waterfall-tier'],
       cp: ['cp-item'],
+      facility: ['facility-tranche'],
       other: [],
     };
 
