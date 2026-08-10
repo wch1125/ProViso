@@ -3262,10 +3262,16 @@ export class ProVisoInterpreter {
     for (const tier of sortedTiers) {
       const tierResult = this.executeTier(tier, remainder);
       tierResults.push(tierResult);
-      remainder -= tierResult.paid;
+      // Only the revenue-sourced portion depletes the revenue remainder.
+      // `paid` also includes any reserve draw, which is cash from the reserve
+      // account — deducting it here would charge revenue for money it never
+      // supplied, driving the remainder negative and starving junior tiers.
+      remainder -= tierResult.paid - tierResult.reserveDrawn;
     }
 
-    const totalDistributed = revenue - remainder;
+    // Total cash out across all tiers, revenue- and reserve-sourced alike.
+    // This can legitimately exceed revenue when reserves are drawn.
+    const totalDistributed = tierResults.reduce((sum, t) => sum + t.paid, 0);
 
     return {
       name,
@@ -3335,8 +3341,9 @@ export class ProVisoInterpreter {
       }
     }
 
-    // Determine how much we can pay from available funds
-    let paid = Math.min(requested, available);
+    // Determine how much we can pay from available funds. Floored at zero so
+    // an exhausted waterfall can never report a negative payment.
+    let paid = Math.max(0, Math.min(requested, available));
     let reserveDrawn = 0;
     let shortfall = requested - paid;
 

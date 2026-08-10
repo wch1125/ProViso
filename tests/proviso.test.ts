@@ -3621,6 +3621,82 @@ describe('Waterfalls', () => {
     const reserveStatus = interpreter.getReserveStatus('DebtServiceReserve');
     expect(reserveStatus.balance).toBe(30000000);
   });
+
+  describe('Reserve-funded shortfalls', () => {
+    // A reserve draw is cash from the reserve, not from revenue. Subtracting
+    // the full `paid` from the revenue remainder deducted reserve money from
+    // revenue it never came from, driving the remainder negative and starving
+    // every junior tier.
+    const source = `
+      RESERVE DebtServiceReserve
+        TARGET 50_000_000
+        MINIMUM 0
+
+      WATERFALL TestWaterfall
+        FREQUENCY monthly
+
+        TIER 1 "Senior Debt Service"
+          PAY 120_000_000
+          FROM Revenue
+          SHORTFALL -> DebtServiceReserve
+
+        TIER 2 "Junior Debt Service"
+          PAY 10_000_000
+          FROM REMAINDER
+    `;
+
+    async function runWaterfall(revenue: number) {
+      const ast = await parseOrThrow(source);
+      const interpreter = new ProVisoInterpreter(ast);
+      interpreter.setReserveBalance('DebtServiceReserve', 50_000_000);
+      return interpreter.executeWaterfall('TestWaterfall', revenue);
+    }
+
+    it('should not drive the remainder negative when a reserve covers a shortfall', async () => {
+      const result = await runWaterfall(100_000_000);
+
+      expect(result.tiers[0]?.paid).toBe(120_000_000);
+      expect(result.tiers[0]?.reserveDrawn).toBe(20_000_000);
+      expect(result.remainder).toBe(0);
+      expect(result.remainder).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should never pay a tier a negative amount', async () => {
+      const result = await runWaterfall(100_000_000);
+
+      for (const tier of result.tiers) {
+        expect(tier.paid).toBeGreaterThanOrEqual(0);
+      }
+    });
+
+    it('should deduct only the revenue portion from the remainder', async () => {
+      // Revenue 130M: tier 1 takes 120M from revenue with no reserve draw,
+      // leaving 10M for tier 2 — which it should receive in full.
+      const result = await runWaterfall(130_000_000);
+
+      expect(result.tiers[0]?.reserveDrawn).toBe(0);
+      expect(result.tiers[1]?.paid).toBe(10_000_000);
+      expect(result.remainder).toBe(0);
+    });
+
+    it('should report total distributed including reserve-sourced cash', async () => {
+      const result = await runWaterfall(100_000_000);
+
+      const sumPaid = result.tiers.reduce((sum, t) => sum + t.paid, 0);
+      expect(result.totalDistributed).toBe(sumPaid);
+      expect(result.totalDistributed).toBe(120_000_000);
+    });
+
+    it('should not distribute more revenue than it received', async () => {
+      const result = await runWaterfall(100_000_000);
+
+      const revenueSourced = result.tiers.reduce(
+        (sum, t) => sum + (t.paid - t.reserveDrawn),
+        0
+      );
+      expect(revenueSourced).toBeLessThanOrEqual(100_000_000);
+    });
+  });
 });
 
 // ==================== CONDITIONS PRECEDENT TESTS ====================
