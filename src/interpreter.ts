@@ -396,14 +396,25 @@ export class ProVisoInterpreter {
     const periods = this.getTrailingPeriods(expr.count, expr.period);
 
     if (periods.length === 0) {
+      const requiredType = ProVisoInterpreter.PERIOD_TYPE_FOR[expr.period];
       throw new Error(
-        `No periods available for TRAILING ${expr.count} ${expr.period.toUpperCase()}`
+        `No ${requiredType} periods available for TRAILING ${expr.count} ` +
+          `${expr.period.toUpperCase()}. Loaded data contains: ` +
+          `${this.describeLoadedPeriodTypes()}.`
       );
     }
 
-    // Note: When fewer periods are available than requested, we use what's available.
-    // This is intentional - early quarters in a series won't have full trailing data.
-    // The caller can check periods.length if they need to know.
+    // When fewer periods are available than requested we still sum what exists:
+    // early quarters in a series genuinely have no full trailing window. Warn
+    // so a partial figure is not mistaken for a complete one — a 2-quarter sum
+    // reported as TTM understates leverage by roughly half.
+    if (periods.length < expr.count) {
+      console.warn(
+        `TRAILING ${expr.count} ${expr.period.toUpperCase()} resolved only ` +
+          `${periods.length} period(s) (${periods.join(', ')}). The result is a ` +
+          `partial window and should not be treated as a full trailing figure.`
+      );
+    }
 
     // Sum the expression across all trailing periods
     let sum = 0;
@@ -419,9 +430,33 @@ export class ProVisoInterpreter {
     return sum;
   }
 
+  /** Summarise which period frequencies are actually loaded, for error messages. */
+  private describeLoadedPeriodTypes(): string {
+    if (!this.multiPeriodData || this.multiPeriodData.periods.length === 0) {
+      return 'no periods';
+    }
+    const counts = new Map<string, number>();
+    for (const p of this.multiPeriodData.periods) {
+      const key = p.periodType ?? 'untyped';
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return [...counts.entries()].map(([type, n]) => `${n} ${type}`).join(', ');
+  }
+
+  /** Maps a TRAILING window unit onto the periodType recorded on each row. */
+  private static readonly PERIOD_TYPE_FOR: Record<
+    'quarters' | 'months' | 'years',
+    'quarterly' | 'monthly' | 'annual'
+  > = {
+    quarters: 'quarterly',
+    months: 'monthly',
+    years: 'annual',
+  };
+
   /**
    * Get the periods for a trailing calculation.
-   * Returns periods ending at (and including) the current evaluation period.
+   * Returns periods ending at (and including) the current evaluation period,
+   * restricted to rows matching the requested frequency.
    */
   private getTrailingPeriods(
     count: number,
@@ -439,22 +474,17 @@ export class ProVisoInterpreter {
 
     if (currentIdx < 0) return [];
 
-    // Filter periods by type if multi-period data has mixed period types
+    // Restrict the window to periods of the requested frequency. Mixing
+    // frequencies silently sums incomparable rows — an annual row pulled into
+    // a QUARTERS window inflates the total by a full year.
     const periodData = this.multiPeriodData.periods;
+    const requiredType = ProVisoInterpreter.PERIOD_TYPE_FOR[periodType];
     const matchingPeriods = sorted.filter((p) => {
       const pd = periodData.find((d) => d.period === p);
       if (!pd) return false;
-
-      // If we're asking for quarters, we need quarterly data
-      // If we're asking for months with quarterly data, we can convert (4 quarters = 12 months - future enhancement)
-      // For now, we just use the available periods that match the type
-      if (periodType === 'quarters' && pd.periodType === 'quarterly') return true;
-      if (periodType === 'months' && pd.periodType === 'monthly') return true;
-      if (periodType === 'years' && pd.periodType === 'annual') return true;
-
-      // If types don't match exactly, we still include them with a warning
-      // This allows using quarterly data when asking for "months" by treating quarters as periods
-      return true;
+      // Rows without an explicit periodType are assumed to match, preserving
+      // behaviour for datasets that predate the field.
+      return pd.periodType === undefined || pd.periodType === requiredType;
     });
 
     // Find where the current period is in the matching periods

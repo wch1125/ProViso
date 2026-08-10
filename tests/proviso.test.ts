@@ -2529,6 +2529,50 @@ describe('Multi-Period Financial Data', () => {
     });
   });
 
+  describe('Trailing Period Type Filtering', () => {
+    // The periodType filter in getTrailingPeriods ended in an unconditional
+    // `return true`, so a mixed-frequency dataset pulled annual or monthly
+    // rows into a QUARTERS window and summed them together.
+    // "2024" (annual) sorts immediately before "2024-Q1", so a 4-quarter
+    // window anchored on Q3 reaches back far enough to swallow it.
+    const mixedFrequency = {
+      periods: [
+        { period: '2024', periodType: 'annual' as const, data: { ebitda: 1_000 } },
+        { period: '2024-Q1', periodType: 'quarterly' as const, data: { ebitda: 10 } },
+        { period: '2024-Q2', periodType: 'quarterly' as const, data: { ebitda: 20 } },
+        { period: '2024-Q3', periodType: 'quarterly' as const, data: { ebitda: 30 } },
+      ],
+    };
+
+    it('should ignore non-quarterly rows in a QUARTERS window', async () => {
+      const ast = await parseOrThrow(`DEFINE TTM AS TRAILING 4 QUARTERS OF ebitda`);
+      const interpreter = new ProVisoInterpreter(ast);
+      interpreter.loadFinancials(mixedFrequency);
+      interpreter.setEvaluationPeriod('2024-Q3');
+
+      // 10 + 20 + 30, with the 1,000 annual row excluded rather than summed in.
+      expect(interpreter.evaluate('TTM')).toBe(60);
+    });
+
+    it('should select only the annual row for a YEARS window', async () => {
+      const ast = await parseOrThrow(`DEFINE Annual AS TRAILING 1 YEARS OF ebitda`);
+      const interpreter = new ProVisoInterpreter(ast);
+      interpreter.loadFinancials(mixedFrequency);
+      interpreter.setEvaluationPeriod('2024');
+
+      expect(interpreter.evaluate('Annual')).toBe(1_000);
+    });
+
+    it('should report a clear error when no periods of the requested type exist', async () => {
+      const ast = await parseOrThrow(`DEFINE TTM AS TRAILING 12 MONTHS OF ebitda`);
+      const interpreter = new ProVisoInterpreter(ast);
+      interpreter.loadFinancials(mixedFrequency);
+      interpreter.setEvaluationPeriod('2024-Q3');
+
+      expect(() => interpreter.evaluate('TTM')).toThrow(/monthly/i);
+    });
+  });
+
   describe('Definition Cache Invalidation', () => {
     // The definition memo cache is keyed per-period. Any code path that walks
     // periods (TRAILING, compliance history) or mutates the underlying data
