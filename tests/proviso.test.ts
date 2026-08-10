@@ -1304,6 +1304,168 @@ describe('Cure Rights', () => {
       expect(result.reason).toContain('already compliant');
     });
 
+    describe('Cure period enforcement', () => {
+      const source = `
+        DEFINE Leverage AS total_debt / ebitda
+        COVENANT MaxLeverage
+          REQUIRES Leverage <= 4.50
+          CURE EquityCure CURE_PERIOD 10 DAYS
+      `;
+
+      async function breachedInterpreter() {
+        const ast = await parseOrThrow(source);
+        const interpreter = new ProVisoInterpreter(ast);
+        interpreter.loadFinancials({ total_debt: 150000000, ebitda: 30000000 });
+        return interpreter;
+      }
+
+      it('should accept a cure inside the cure period', async () => {
+        const interpreter = await breachedInterpreter();
+        interpreter.recordBreach('MaxLeverage', new Date('2026-01-01'));
+
+        const result = interpreter.applyCure('MaxLeverage', 10000000, new Date('2026-01-05'));
+        expect(result.success).toBe(true);
+      });
+
+      it('should reject a cure after the cure period has expired', async () => {
+        // Regression: CURE_PERIOD was computed and stored but never compared
+        // against, so a 10-day cure could be exercised 60 days after breach.
+        const interpreter = await breachedInterpreter();
+        interpreter.recordBreach('MaxLeverage', new Date('2026-01-01'));
+
+        const result = interpreter.applyCure('MaxLeverage', 10000000, new Date('2026-03-01'));
+        expect(result.success).toBe(false);
+        expect(result.reason).toMatch(/cure period/i);
+      });
+
+      it('should derive the deadline from the breach date, not the cure date', async () => {
+        const interpreter = await breachedInterpreter();
+        interpreter.recordBreach('MaxLeverage', new Date('2026-01-01'));
+
+        const state = interpreter.getCureState('MaxLeverage');
+        expect(state?.cureDeadline.toISOString().slice(0, 10)).toBe('2026-01-11');
+      });
+
+      it('should accept a cure on the deadline itself', async () => {
+        const interpreter = await breachedInterpreter();
+        interpreter.recordBreach('MaxLeverage', new Date('2026-01-01'));
+
+        const result = interpreter.applyCure('MaxLeverage', 10000000, new Date('2026-01-11'));
+        expect(result.success).toBe(true);
+      });
+    });
+
+    describe('Cure usage scoping', () => {
+      it('should count MAX_USES per covenant, not per mechanism type', async () => {
+        // Regression: cureUsage was keyed by covenant.cure.type, so two
+        // covenants both using EquityCure shared a single counter and the
+        // second was locked out by the first's usage.
+        const source = `
+          DEFINE Leverage AS total_debt / ebitda
+          DEFINE Coverage AS ebitda / interest
+          COVENANT MaxLeverage
+            REQUIRES Leverage <= 4.50
+            CURE EquityCure MAX_USES 1 OVER life_of_facility
+          COVENANT MinCoverage
+            REQUIRES Coverage >= 2.50
+            CURE EquityCure MAX_USES 1 OVER life_of_facility
+        `;
+        const ast = await parseOrThrow(source);
+        const interpreter = new ProVisoInterpreter(ast);
+        interpreter.loadFinancials({
+          total_debt: 150000000,
+          ebitda: 30000000,
+          interest: 15000000,
+        });
+
+        const first = interpreter.applyCure('MaxLeverage', 10000000);
+        expect(first.success).toBe(true);
+
+        // A different covenant's allowance must be untouched.
+        const second = interpreter.applyCure('MinCoverage', 10000000);
+        expect(second.success).toBe(true);
+      });
+
+      it('should still exhaust a single covenant own allowance', async () => {
+        const source = `
+          DEFINE Leverage AS total_debt / ebitda
+          COVENANT MaxLeverage
+            REQUIRES Leverage <= 4.50
+            CURE EquityCure MAX_USES 1 OVER life_of_facility
+        `;
+        const ast = await parseOrThrow(source);
+        const interpreter = new ProVisoInterpreter(ast);
+        interpreter.loadFinancials({ total_debt: 150000000, ebitda: 30000000 });
+
+        expect(interpreter.applyCure('MaxLeverage', 10000000).success).toBe(true);
+        const second = interpreter.applyCure('MaxLeverage', 10000000);
+        expect(second.success).toBe(false);
+        expect(second.reason).toContain('No cure uses remaining');
+      });
+    });
+
+    describe('Cure amount adequacy', () => {
+      it('should reject a dollar cure below a dollar shortfall', async () => {
+        const source = `
+          COVENANT MinLiquidity
+            REQUIRES cash >= $50_000_000
+            CURE EquityCure
+        `;
+        const ast = await parseOrThrow(source);
+        const interpreter = new ProVisoInterpreter(ast);
+        interpreter.loadFinancials({ cash: 30000000 }); // $20M short
+
+        const result = interpreter.applyCure('MinLiquidity', 5000000);
+        expect(result.success).toBe(false);
+        expect(result.reason).toMatch(/less than shortfall/i);
+      });
+
+      it('should accept a dollar cure that covers a dollar shortfall', async () => {
+        const source = `
+          COVENANT MinLiquidity
+            REQUIRES cash >= $50_000_000
+            CURE EquityCure
+        `;
+        const ast = await parseOrThrow(source);
+        const interpreter = new ProVisoInterpreter(ast);
+        interpreter.loadFinancials({ cash: 30000000 });
+
+        expect(interpreter.applyCure('MinLiquidity', 25000000).success).toBe(true);
+      });
+
+      it('should not compare a dollar cure against a ratio shortfall', async () => {
+        // Regression: `amount < shortfall` compared dollars to a ratio delta,
+        // so a $1 cure "satisfied" a 0.5x gap. The comparison is meaningless;
+        // it must not be presented as a passed adequacy check.
+        const source = `
+          DEFINE Leverage AS total_debt / ebitda
+          COVENANT MaxLeverage
+            REQUIRES Leverage <= 4.50
+            CURE EquityCure
+        `;
+        const ast = await parseOrThrow(source);
+        const interpreter = new ProVisoInterpreter(ast);
+        interpreter.loadFinancials({ total_debt: 150000000, ebitda: 30000000 });
+
+        const result = interpreter.applyCure('MaxLeverage', 1);
+        expect(result.shortfallVerified).toBe(false);
+      });
+
+      it('should mark a dollar-denominated cure as verified', async () => {
+        const source = `
+          COVENANT MinLiquidity
+            REQUIRES cash >= $50_000_000
+            CURE EquityCure
+        `;
+        const ast = await parseOrThrow(source);
+        const interpreter = new ProVisoInterpreter(ast);
+        interpreter.loadFinancials({ cash: 30000000 });
+
+        const result = interpreter.applyCure('MinLiquidity', 25000000);
+        expect(result.shortfallVerified).toBe(true);
+      });
+    });
+
     it('should identify covenants with cure mechanisms', async () => {
       const source = `
         COVENANT WithCure

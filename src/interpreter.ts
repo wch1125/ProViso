@@ -3596,14 +3596,19 @@ export class ProVisoInterpreter {
     const maxUses = covenant.cure.details?.maxUses;
     if (maxUses === undefined) return true;
 
-    const used = this.cureUsage.get(covenant.cure.type) ?? 0;
+    // Keyed per covenant: MAX_USES is an allowance for this covenant, not a
+    // pool shared by every covenant that happens to use the same mechanism.
+    const used = this.cureUsage.get(covenantName) ?? 0;
     return used < maxUses;
   }
 
   /**
-   * Apply a cure to a breached covenant
+   * Apply a cure to a breached covenant.
+   *
+   * @param asOf Date the cure is exercised. Defaults to now; pass explicitly
+   *             to evaluate against a historical breach.
    */
-  applyCure(covenantName: string, amount: number): CureResult {
+  applyCure(covenantName: string, amount: number, asOf?: Date): CureResult {
     const covenant = this.covenants.get(covenantName);
     if (!covenant) {
       return { success: false, reason: `Unknown covenant: ${covenantName}` };
@@ -3612,6 +3617,8 @@ export class ProVisoInterpreter {
     if (!covenant.cure) {
       return { success: false, reason: `Covenant ${covenantName} has no cure mechanism` };
     }
+
+    const cureDate = asOf ?? new Date();
 
     // Check if cure is available
     if (!this.canApplyCure(covenantName)) {
@@ -3632,23 +3639,45 @@ export class ProVisoInterpreter {
       return { success: false, reason: 'Covenant is already compliant, no cure needed' };
     }
 
-    // Calculate shortfall
-    const shortfall = this.calculateShortfall(covenantResult);
-    if (amount < shortfall) {
-      return { success: false, reason: `Cure amount ($${amount.toLocaleString()}) is less than shortfall ($${shortfall.toLocaleString()})` };
+    // A cure must land inside the cure period measured from the breach. If no
+    // breach was recorded, this call is the first observation of it, so the
+    // period starts now and cannot already have expired.
+    const existingState = this.cureStates.get(covenantName);
+    if (existingState && cureDate.getTime() > existingState.cureDeadline.getTime()) {
+      const deadline = existingState.cureDeadline.toISOString().slice(0, 10);
+      return {
+        success: false,
+        reason: `Cure period expired on ${deadline} (breach recorded ${existingState.breachDate
+          .toISOString()
+          .slice(0, 10)})`,
+      };
     }
 
-    // Track usage
-    const used = this.cureUsage.get(covenant.cure.type) ?? 0;
-    this.cureUsage.set(covenant.cure.type, used + 1);
+    // Shortfalls carry the covenant's own units; only currency thresholds are
+    // comparable to a cash cure. See CureResult.shortfallVerified.
+    const shortfall = this.calculateShortfall(covenantResult);
+    const shortfallVerified = this.isCurrencyDenominated(covenant);
+    if (shortfallVerified && amount < shortfall) {
+      return {
+        success: false,
+        reason: `Cure amount ($${amount.toLocaleString()}) is less than shortfall ($${shortfall.toLocaleString()})`,
+        shortfall,
+        shortfallVerified,
+      };
+    }
+
+    // Track usage per covenant. Keying by mechanism type made two covenants
+    // that both use EquityCure share one MAX_USES counter.
+    const used = this.cureUsage.get(covenantName) ?? 0;
+    this.cureUsage.set(covenantName, used + 1);
 
     // Update or create cure state
     let state = this.cureStates.get(covenantName);
     if (!state) {
       state = {
         covenantName,
-        breachDate: new Date(),
-        cureDeadline: this.calculateCureDeadline(covenant),
+        breachDate: cureDate,
+        cureDeadline: this.calculateCureDeadline(covenant, cureDate),
         status: 'breach',
         cureAttempts: [],
       };
@@ -3657,20 +3686,34 @@ export class ProVisoInterpreter {
 
     state.status = 'cured';
     state.cureAttempts.push({
-      date: new Date(),
+      date: cureDate,
       mechanism: covenant.cure.type,
       amount,
       successful: true,
     });
 
-    return { success: true, curedAmount: amount };
+    return { success: true, curedAmount: amount, shortfall, shortfallVerified };
   }
 
   /**
-   * Calculate the cure deadline based on covenant cure period
+   * Whether a covenant's threshold is expressed in currency, making a cash
+   * cure directly comparable to its shortfall.
    */
-  private calculateCureDeadline(covenant: CovenantStatement): Date {
-    const deadline = new Date();
+  private isCurrencyDenominated(covenant: CovenantStatement): boolean {
+    const requires = covenant.requires;
+    if (!requires || !isComparisonExpression(requires)) return false;
+    const right = requires.right;
+    return typeof right === 'object' && right !== null && 'type' in right && right.type === 'Currency';
+  }
+
+  /**
+   * Calculate the cure deadline based on the covenant's cure period.
+   *
+   * Measured from the breach, not from the moment of calculation — otherwise
+   * the deadline is always "now + period" and can never be exceeded.
+   */
+  private calculateCureDeadline(covenant: CovenantStatement, breachDate: Date = new Date()): Date {
+    const deadline = new Date(breachDate.getTime());
     const curePeriod = covenant.cure?.details?.curePeriod;
 
     if (curePeriod) {
@@ -3718,22 +3761,35 @@ export class ProVisoInterpreter {
   getCureUsage(): CureUsage[] {
     const usageMap = new Map<string, CureUsage>();
 
-    for (const [, covenant] of this.covenants) {
-      if (covenant.cure) {
-        const mechanismType = covenant.cure.type;
-        const maxUses = covenant.cure.details?.maxUses ?? Infinity;
+    // Usage is tracked per covenant; this view aggregates across every
+    // covenant sharing a mechanism, so allowances and uses both sum.
+    for (const [covenantName, covenant] of this.covenants) {
+      if (!covenant.cure) continue;
 
-        if (!usageMap.has(mechanismType)) {
-          const totalUses = this.cureUsage.get(mechanismType) ?? 0;
-          usageMap.set(mechanismType, {
-            mechanism: mechanismType,
-            usesRemaining: maxUses === Infinity ? Infinity : maxUses - totalUses,
-            totalUses,
-            maxUses,
-            period: covenant.cure.details?.overPeriod ?? 'unlimited',
-          });
-        }
+      const mechanismType = covenant.cure.type;
+      const maxUses = covenant.cure.details?.maxUses ?? Infinity;
+      const totalUses = this.cureUsage.get(covenantName) ?? 0;
+
+      const existing = usageMap.get(mechanismType);
+      if (existing) {
+        existing.totalUses += totalUses;
+        existing.maxUses = existing.maxUses === Infinity || maxUses === Infinity
+          ? Infinity
+          : existing.maxUses + maxUses;
+      } else {
+        usageMap.set(mechanismType, {
+          mechanism: mechanismType,
+          usesRemaining: 0, // recomputed below
+          totalUses,
+          maxUses,
+          period: covenant.cure.details?.overPeriod ?? 'unlimited',
+        });
       }
+    }
+
+    for (const usage of usageMap.values()) {
+      usage.usesRemaining =
+        usage.maxUses === Infinity ? Infinity : usage.maxUses - usage.totalUses;
     }
 
     return Array.from(usageMap.values());
@@ -3749,7 +3805,7 @@ export class ProVisoInterpreter {
   /**
    * Record a covenant breach (starts cure period)
    */
-  recordBreach(covenantName: string): void {
+  recordBreach(covenantName: string, breachDate: Date = new Date()): void {
     const covenant = this.covenants.get(covenantName);
     if (!covenant) {
       throw new Error(`Unknown covenant: ${covenantName}`);
@@ -3758,8 +3814,8 @@ export class ProVisoInterpreter {
     if (!this.cureStates.has(covenantName)) {
       this.cureStates.set(covenantName, {
         covenantName,
-        breachDate: new Date(),
-        cureDeadline: this.calculateCureDeadline(covenant),
+        breachDate,
+        cureDeadline: this.calculateCureDeadline(covenant, breachDate),
         status: 'breach',
         cureAttempts: [],
       });

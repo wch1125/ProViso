@@ -530,6 +530,19 @@ export interface CureResult {
   success: boolean;
   reason?: string;
   curedAmount?: number;
+  /**
+   * Whether the cure amount was actually checked against the shortfall.
+   *
+   * Shortfalls are expressed in the covenant's own units. A cure is a cash
+   * contribution, so the two are only comparable for currency-denominated
+   * covenants. For ratio or percentage covenants, converting a gap into a
+   * required contribution needs the metric's decomposition (which input the
+   * cure lands in), which the engine does not model — so no adequacy check is
+   * performed and this is false.
+   */
+  shortfallVerified?: boolean;
+  /** The shortfall figure, in the covenant's own units. */
+  shortfall?: number;
 }
 
 export interface CovenantResultWithCure extends CovenantResult {

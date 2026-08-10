@@ -150,7 +150,7 @@ describe('RedTeam: runtime safety hazards', () => {
 // ----------------------------
 
 describe('RedTeam: cure-right correctness', () => {
-  it('Cure usage is tracked per mechanism type, not per covenant (cross-covenant coupling risk)', async () => {
+  it('Cure usage is tracked per covenant, so one covenant cure does not consume another allowance', async () => {
     const source = `
       DEFINE Metric1 AS 10
       DEFINE Metric2 AS 10
@@ -171,14 +171,17 @@ describe('RedTeam: cure-right correctness', () => {
     expect(i.checkCovenantWithCure('C1').cureAvailable).toBe(true);
     expect(i.checkCovenantWithCure('C2').cureAvailable).toBe(true);
 
-    // Apply cure to C1. Under many deals, this should not necessarily consume
-    // all cure capacity for every covenant that has an equity cure.
+    // Applying a cure to C1 must not consume cure capacity for every other
+    // covenant that happens to use the same mechanism.
     const applied = i.applyCure('C1', 1000);
     expect(applied.success).toBe(true);
 
-    // Current implementation tracks by cure type (EquityCure), so C2 loses cure availability.
+    // C2 keeps its own MAX_USES allowance.
     const c2 = i.checkCovenantWithCure('C2');
-    expect(c2.cureAvailable).toBe(false);
+    expect(c2.cureAvailable).toBe(true);
+
+    // ...and C1's own allowance is now spent.
+    expect(i.checkCovenantWithCure('C1').cureAvailable).toBe(false);
   });
 
   it('CURE ... OVER <period> is not enforced (time-scoping gap)', async () => {
