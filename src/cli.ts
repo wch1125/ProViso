@@ -16,6 +16,45 @@ program
   .description('Domain-Specific Language for Credit Agreements')
   .version('2.6.0');
 
+// ==================== INPUT VALIDATION ====================
+// Unvalidated parseFloat/new Date calls propagate NaN straight into reports
+// ("$NaN" tier payouts, "NaNd to target"), so every user-supplied number and
+// date goes through these.
+
+/**
+ * Parse a user-supplied numeric option, exiting with a clear error if it is
+ * not a number. Tolerates the $, comma and underscore separators the DSL uses.
+ */
+function parseNumericOption(raw: string, optionName: string): number {
+  const cleaned = raw.replace(/[$,_]/g, '').trim();
+  // Strict: parseFloat('10x') silently returns 10, which would quietly turn a
+  // mistyped ratio into a dollar amount.
+  if (!/^-?\d+(\.\d+)?$/.test(cleaned)) {
+    console.error(`Error: Invalid ${optionName}: '${raw}' is not a number`);
+    process.exit(1);
+  }
+  const value = parseFloat(cleaned);
+  if (isNaN(value)) {
+    console.error(`Error: Invalid ${optionName}: '${raw}' is not a number`);
+    process.exit(1);
+  }
+  return value;
+}
+
+/**
+ * Parse a user-supplied date option, exiting with a clear error if it is not
+ * a valid date. `new Date('2026-13-40')` yields an Invalid Date rather than
+ * throwing, which then formats as NaN downstream.
+ */
+function parseDateOption(raw: string, optionName: string): Date {
+  const value = new Date(raw);
+  if (isNaN(value.getTime())) {
+    console.error(`Error: Invalid ${optionName}: '${raw}' is not a valid date (expected YYYY-MM-DD)`);
+    process.exit(1);
+  }
+  return value;
+}
+
 // ==================== PARSE COMMAND ====================
 
 program
@@ -428,13 +467,15 @@ program
   .action(async (file: string, action: string, options: { data?: string; amount?: string }) => {
     try {
       const interpreter = await loadInterpreter(file, options.data);
-      const amount = options.amount ? parseFloat(options.amount) : undefined;
+      const amount = options.amount
+        ? parseNumericOption(options.amount, '--amount')
+        : undefined;
       const result = interpreter.checkProhibition(action, amount);
-      
+
       console.log('\nQUERY RESULT');
       console.log('─'.repeat(50));
-      const amountDisplay = options.amount
-        ? ` ($${parseFloat(options.amount).toLocaleString()})`
+      const amountDisplay = amount !== undefined
+        ? ` ($${amount.toLocaleString()})`
         : ' (no amount specified — checking structural permission only)';
       console.log(`Action: ${action}${amountDisplay}`);
       console.log(`Result: ${result.permitted ? '✓ PERMITTED' : '✗ PROHIBITED'}`);
@@ -631,7 +672,7 @@ program
         ledger = ledger.filter(e => e.basket === options.basket);
       }
       if (options.since) {
-        const since = new Date(options.since);
+        const since = parseDateOption(options.since, '--since');
         ledger = ledger.filter(e => e.timestamp >= since);
       }
 
@@ -782,7 +823,9 @@ program
         process.exit(0);
       }
 
-      const asOfDate = options.asOf ? new Date(options.asOf) : new Date();
+      const asOfDate = options.asOf
+        ? parseDateOption(options.asOf, '--as-of')
+        : new Date();
       const milestones = interpreter.getAllMilestoneStatuses(asOfDate);
 
       if (options.json) {
@@ -905,7 +948,7 @@ program
       // Get revenue from option or try to resolve from financial data
       let revenue = 0;
       if (options.revenue) {
-        revenue = parseFloat(options.revenue.replace(/[$,_]/g, ''));
+        revenue = parseNumericOption(options.revenue, '--revenue');
       } else {
         // Try to get revenue from financial data
         try {
@@ -981,7 +1024,9 @@ program
 
       if (options.json) {
         console.log(JSON.stringify(result, null, 2));
-        return;
+        // Exit code must match the human-readable path below, or a CI gate
+        // reading JSON treats a blocked draw as success.
+        process.exit(result.complete ? 0 : 1);
       }
 
       console.log(`\nCONDITIONS PRECEDENT - ${result.name}`);
