@@ -11,6 +11,7 @@ import { parseOrThrow } from '../src/parser.js';
 import { ProVisoInterpreter } from '../src/interpreter.js';
 import { executeCommand } from '../dashboard/src/utils/commandRunner.js';
 import { generateComplianceReport } from '../dashboard/src/utils/complianceExport.js';
+import { getThresholdZone } from '../dashboard/src/utils/thresholds.js';
 import type { DashboardData, CovenantData, ReserveData } from '../dashboard/src/types/index.js';
 
 // =============================================================================
@@ -212,5 +213,37 @@ describe('Compliance certificate — reserve funding', () => {
     );
 
     expect(html).toContain('75.0%');
+  });
+});
+
+// =============================================================================
+// THRESHOLD ZONES
+// =============================================================================
+
+describe('Threshold zones — strict operators', () => {
+  // The zone was driven by `utilization > 1`, so actual === threshold showed
+  // amber "danger" even though a strict operator makes equality a breach.
+  it('should treat equality as a breach under a strict max operator', () => {
+    expect(getThresholdZone(4.5, 4.5, '<')).toBe('breach');
+  });
+
+  it('should treat equality as a breach under a strict min operator', () => {
+    expect(getThresholdZone(1.25, 1.25, '>')).toBe('breach');
+  });
+
+  it('should treat equality as compliant under an inclusive max operator', () => {
+    expect(getThresholdZone(4.5, 4.5, '<=')).not.toBe('breach');
+  });
+
+  it('should treat equality as compliant under an inclusive min operator', () => {
+    expect(getThresholdZone(1.25, 1.25, '>=')).not.toBe('breach');
+  });
+
+  it('should still report a genuine breach past the threshold', () => {
+    expect(getThresholdZone(5.0, 4.5, '<=')).toBe('breach');
+  });
+
+  it('should still report a comfortable covenant as safe', () => {
+    expect(getThresholdZone(2.0, 4.5, '<=')).toBe('safe');
   });
 });

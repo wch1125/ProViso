@@ -131,12 +131,31 @@ function parseProVisoCode(code: string): ParsedElement[] {
 // PROSE GENERATION
 // =============================================================================
 
+/**
+ * Subsection label for a zero-based index: (a), (b), ... (z), (aa), (ab), ...
+ *
+ * Mirrors the hub generator's helper. `String.fromCharCode(97 + i)` yielded
+ * '{', '|', '}' past 26 elements, and the `i > 0 ? ... : ''` form used at some
+ * call sites made lettering start at (b) and skip (a).
+ */
+function subsectionLabel(index: number): string {
+  let n = index;
+  let label = '';
+  do {
+    label = String.fromCharCode(97 + (n % 26)) + label;
+    n = Math.floor(n / 26) - 1;
+  } while (n >= 0);
+  return `(${label})`;
+}
+
 function formatCurrency(value: number): string {
   if (value >= 1_000_000_000) {
     return `$${(value / 1_000_000_000).toFixed(1)} billion`;
   }
   if (value >= 1_000_000) {
-    return `$${(value / 1_000_000).toFixed(0)} million`;
+    // One decimal place: toFixed(0) rendered a $7.5M basket as "$8 million",
+    // misstating the negotiated figure in generated prose.
+    return `$${(value / 1_000_000).toFixed(1)} million`;
   }
   return `$${value.toLocaleString('en-US')}`;
 }
@@ -147,7 +166,9 @@ function covenantToProse(name: string, raw: string): string {
   const testedMatch = raw.match(/TESTED\s+(\w+)/i);
   const cureMatch = raw.match(/CURE\s+(\w+)/i);
 
-  let prose = `Section 7.11 ${name}. `;
+  // No section number here: the caller prepends section.sectionRef, so
+  // hardcoding one produced "7.11(b) Section 7.11 MaxLeverage."
+  let prose = `${name}. `;
   prose += `The Borrower shall not permit the `;
 
   if (requiresMatch) {
@@ -180,7 +201,8 @@ function basketToProse(name: string, raw: string): string {
   const greaterOfMatch = raw.match(/GREATER_OF\s*\(/i);
   const buildsFromMatch = raw.match(/BUILDS_FROM\s+(\w+)/i);
 
-  let prose = `Section 7.02 ${name}; `;
+  // Section number comes from the caller's sectionRef — see covenantToProse.
+  let prose = `${name}; `;
   prose += `investments made pursuant to this clause `;
 
   if (greaterOfMatch) {
@@ -381,7 +403,7 @@ export function generateWordDocument(
     sections.push({
       articleNumber: 1,
       articleTitle: 'Definitions',
-      sectionRef: `1.01${i > 0 ? String.fromCharCode(97 + i) : ''}`,
+      sectionRef: `1.01${subsectionLabel(i)}`,
       title: el.name,
       content: definitionToProse(el.name, el.raw),
     });
@@ -392,7 +414,7 @@ export function generateWordDocument(
     sections.push({
       articleNumber: 5,
       articleTitle: 'Project Phases',
-      sectionRef: `5.01(${String.fromCharCode(97 + i)})`,
+      sectionRef: `5.01${subsectionLabel(i)}`,
       title: el.name,
       content: phaseToProse(el.name, el.raw),
     });
@@ -403,7 +425,7 @@ export function generateWordDocument(
     sections.push({
       articleNumber: 6,
       articleTitle: 'Construction Milestones',
-      sectionRef: `6.01(${String.fromCharCode(97 + i)})`,
+      sectionRef: `6.01${subsectionLabel(i)}`,
       title: el.name,
       content: milestoneToProse(el.name, el.raw),
     });
@@ -414,7 +436,7 @@ export function generateWordDocument(
     sections.push({
       articleNumber: 7,
       articleTitle: 'Covenants',
-      sectionRef: `7.11(${String.fromCharCode(97 + i)})`,
+      sectionRef: `7.11${subsectionLabel(i)}`,
       title: el.name,
       content: covenantToProse(el.name, el.raw),
     });
@@ -425,7 +447,7 @@ export function generateWordDocument(
     sections.push({
       articleNumber: 7,
       articleTitle: 'Covenants',
-      sectionRef: `7.02(${String.fromCharCode(97 + i)})`,
+      sectionRef: `7.02${subsectionLabel(i)}`,
       title: el.name,
       content: basketToProse(el.name, el.raw),
     });
@@ -436,7 +458,7 @@ export function generateWordDocument(
     sections.push({
       articleNumber: 9,
       articleTitle: 'Reserve Accounts',
-      sectionRef: `9.01(${String.fromCharCode(97 + i)})`,
+      sectionRef: `9.01${subsectionLabel(i)}`,
       title: el.name,
       content: reserveToProse(el.name, el.raw),
     });
@@ -447,7 +469,7 @@ export function generateWordDocument(
     sections.push({
       articleNumber: 10,
       articleTitle: 'Cash Waterfalls',
-      sectionRef: `10.01${i > 0 ? `(${String.fromCharCode(97 + i)})` : ''}`,
+      sectionRef: `10.01${subsectionLabel(i)}`,
       title: el.name,
       content: waterfallToProse(el.name, el.raw),
     });

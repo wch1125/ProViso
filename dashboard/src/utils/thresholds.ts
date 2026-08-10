@@ -50,7 +50,11 @@ export function getThresholdZone(
     utilization = threshold / actual;
   }
 
-  if (utilization > 1) return 'breach';
+  // Strict operators breach at equality: under `< 4.5x`, an actual of exactly
+  // 4.5x is already non-compliant. Treating it as merely "danger" showed amber
+  // for a covenant the engine reports as breached.
+  const isStrict = operator === '<' || operator === '>';
+  if (utilization > 1 || (isStrict && utilization === 1)) return 'breach';
   if (utilization >= config.dangerAt) return 'danger';
   if (utilization >= config.cautionAt) return 'caution';
   return 'safe';

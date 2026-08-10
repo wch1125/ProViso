@@ -231,6 +231,30 @@ describe('Post-Closing Module', () => {
       expect(r2.drawNumber).toBe(2);
     });
 
+    it('should number draws per deal, not globally', () => {
+      // Regression: a single module-level counter made deal B's first draw
+      // "Draw #2" purely because deal A had already drawn once.
+      createDrawRequest({ dealId: 'deal-1', requestedAmount: 1_000_000 });
+      createDrawRequest({ dealId: 'deal-1', requestedAmount: 2_000_000 });
+
+      const firstOnOtherDeal = createDrawRequest({
+        dealId: 'deal-2',
+        requestedAmount: 3_000_000,
+      });
+
+      expect(firstOnOtherDeal.drawNumber).toBe(1);
+    });
+
+    it('should keep each deal sequence independent', () => {
+      const a1 = createDrawRequest({ dealId: 'deal-a', requestedAmount: 1 });
+      const b1 = createDrawRequest({ dealId: 'deal-b', requestedAmount: 1 });
+      const a2 = createDrawRequest({ dealId: 'deal-a', requestedAmount: 1 });
+      const b2 = createDrawRequest({ dealId: 'deal-b', requestedAmount: 1 });
+
+      expect([a1.drawNumber, a2.drawNumber]).toEqual([1, 2]);
+      expect([b1.drawNumber, b2.drawNumber]).toEqual([1, 2]);
+    });
+
     it('should get a draw request by ID', () => {
       const created = createDrawRequest({
         dealId: 'deal-1',
@@ -405,6 +429,10 @@ describe('Post-Closing Module', () => {
       expect(history.dealId).toBe('deal-1');
       expect(history.periods.length).toBe(2);
       expect(history.periods[0]?.overallCompliant).toBe(true);
+
+      // Chronological order: history is consumed left-to-right by charts and
+      // trend lines, but the underlying submission list is newest-first.
+      expect(history.periods.map(p => p.period)).toEqual(['2024-Q3', '2024-Q4']);
     });
 
     it('should identify non-compliant periods', () => {

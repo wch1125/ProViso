@@ -34,7 +34,11 @@ import type {
 
 const submissionsStore = new Map<string, FinancialSubmission>();
 const drawRequestsStore = new Map<string, DrawRequest>();
-let drawRequestCounter = 0;
+/**
+ * Draw numbers are per deal, matching how store.ts scopes version counters.
+ * A single global counter made deal B's first draw "Draw #2".
+ */
+const drawRequestCounters = new Map<string, number>();
 
 // =============================================================================
 // FINANCIAL SUBMISSION OPERATIONS
@@ -153,7 +157,8 @@ export function deleteFinancialSubmission(id: string): boolean {
 export function createDrawRequest(input: CreateDrawRequestInput): DrawRequest {
   const id = generateId();
   const now = new Date();
-  drawRequestCounter++;
+  const drawNumber = (drawRequestCounters.get(input.dealId) ?? 0) + 1;
+  drawRequestCounters.set(input.dealId, drawNumber);
 
   const conditions: DrawCondition[] = (input.conditions ?? []).map((c) => ({
     conditionId: c.conditionId,
@@ -165,7 +170,7 @@ export function createDrawRequest(input: CreateDrawRequestInput): DrawRequest {
   const drawRequest: DrawRequest = {
     id,
     dealId: input.dealId,
-    drawNumber: drawRequestCounter,
+    drawNumber,
     requestedAmount: input.requestedAmount,
     approvedAmount: null,
     fundedAmount: null,
@@ -350,7 +355,11 @@ export function deleteDrawRequest(id: string): boolean {
 // =============================================================================
 
 /**
- * Get compliance history for a deal.
+ * Get compliance history for a deal, oldest period first.
+ *
+ * listFinancialSubmissions returns newest-first (the right default for an
+ * inbox view), but a *history* is consumed chronologically — charts and trend
+ * lines read it left to right — so it is re-sorted ascending here.
  */
 export function getComplianceHistory(dealId: string): ComplianceHistory {
   const submissions = listFinancialSubmissions(dealId);
@@ -362,7 +371,10 @@ export function getComplianceHistory(dealId: string): ComplianceHistory {
       periodEndDate: s.periodEndDate,
       covenants: s.covenantResults,
       overallCompliant: s.covenantResults.every((c) => c.compliant),
-    }));
+    }))
+    .sort(
+      (a, b) => new Date(a.periodEndDate).getTime() - new Date(b.periodEndDate).getTime()
+    );
 
   return {
     dealId,
@@ -461,7 +473,7 @@ export function runScenario(
 export function clearPostClosingData(): void {
   submissionsStore.clear();
   drawRequestsStore.clear();
-  drawRequestCounter = 0;
+  drawRequestCounters.clear();
 }
 
 /**
@@ -476,8 +488,10 @@ export function loadPostClosingData(
   }
   for (const r of drawRequests) {
     drawRequestsStore.set(r.id, r);
-    if (r.drawNumber > drawRequestCounter) {
-      drawRequestCounter = r.drawNumber;
+    // Advance that deal's counter so subsequent draws continue the sequence.
+    const highest = drawRequestCounters.get(r.dealId) ?? 0;
+    if (r.drawNumber > highest) {
+      drawRequestCounters.set(r.dealId, r.drawNumber);
     }
   }
 }

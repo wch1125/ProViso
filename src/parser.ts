@@ -17,9 +17,24 @@ async function loadParser(): Promise<{ parse: (input: string) => Program }> {
     const module = await import('./parser.generated.js');
     parserModule = module;
     return module;
-  } catch {
+  } catch (err) {
+    // Distinguish "never generated" from "generated but broken". Swallowing
+    // the cause meant a genuine runtime failure inside an existing
+    // parser.generated.js was reported as a missing build step, sending you
+    // to rebuild a file that was already there.
+    const cause = err instanceof Error ? err : new Error(String(err));
+    const notFound =
+      (err as NodeJS.ErrnoException)?.code === 'ERR_MODULE_NOT_FOUND' ||
+      /cannot find module/i.test(cause.message);
+
+    if (notFound) {
+      throw new Error('Parser not generated. Run "npm run build:grammar" first.');
+    }
+
     throw new Error(
-      'Parser not generated. Run "npm run build:grammar" first.'
+      `Failed to load the generated parser: ${cause.message}. ` +
+        'If parser.generated.js is stale, re-run "npm run build:grammar".',
+      { cause }
     );
   }
 }
