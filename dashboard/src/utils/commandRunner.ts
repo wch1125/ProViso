@@ -171,14 +171,20 @@ function formatBaskets(baskets: BasketStatus[]): string {
   lines.push('');
 
   for (const basket of baskets) {
-    const utilPct = basket.capacity > 0
-      ? ((basket.used / basket.capacity) * 100).toFixed(0)
-      : '0';
+    // A zero-capacity basket is exhausted if anything has been drawn against
+    // it, otherwise empty. Deriving the bar and the percentage from one ratio
+    // keeps them from disagreeing.
+    const utilization = basket.capacity > 0
+      ? basket.used / basket.capacity
+      : basket.used > 0 ? 1 : 0;
+    const utilPct = (utilization * 100).toFixed(0);
     const available = basket.capacity - basket.used;
 
-    // Create a simple bar visualization
+    // Create a simple bar visualization. The fill is clamped to [0, barWidth]:
+    // an over-utilized basket (used > capacity) is an expected state, and
+    // without the clamp repeat() throws on the resulting negative count.
     const barWidth = 20;
-    const filledWidth = Math.round((basket.used / basket.capacity) * barWidth);
+    const filledWidth = Math.max(0, Math.min(barWidth, Math.round(utilization * barWidth)));
     const bar = '[' + '='.repeat(filledWidth) + ' '.repeat(barWidth - filledWidth) + ']';
 
     lines.push(`${basket.name}`);

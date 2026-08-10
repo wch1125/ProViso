@@ -53,6 +53,18 @@ function formatPercent(value: number): string {
   return `${value.toFixed(1)}%`;
 }
 
+/**
+ * Funding percentage guarded against a zero or missing target.
+ *
+ * A reserve with no target (or an all-zero portfolio total) has no meaningful
+ * funding ratio; previously this divided straight through and rendered
+ * "NaN%" or "Infinity%" on the client-facing certificate.
+ */
+function formatFundingPercent(balance: number, target: number): string {
+  if (!target) return 'N/A';
+  return formatPercent((balance / target) * 100);
+}
+
 function formatDate(date: Date): string {
   return date.toLocaleDateString('en-US', {
     month: 'long',
@@ -61,12 +73,28 @@ function formatDate(date: Date): string {
   });
 }
 
+/**
+ * Headroom as a percentage of the covenant's threshold.
+ *
+ * The engine reports `headroom` as an ABSOLUTE difference in the covenant's
+ * own units (threshold - actual for max covenants, actual - threshold for min
+ * covenants) - not as a percentage. Dividing by the threshold converts it for
+ * the status bands and the bar below, both of which are percentage-scaled.
+ * Returns null when there is no headroom figure or no meaningful denominator.
+ */
+function headroomPercentOf(covenant: CovenantData): number | null {
+  if (covenant.headroom === undefined) return null;
+  if (!covenant.required) return null;
+  return (covenant.headroom / Math.abs(covenant.required)) * 100;
+}
+
 function getCovenantStatusClass(covenant: CovenantData): string {
   if (!covenant.compliant) return 'breach';
   if (covenant.suspended) return 'suspended';
-  const headroom = covenant.headroom ?? 100;
-  if (headroom < 10) return 'danger';
-  if (headroom < 25) return 'warning';
+  const headroomPct = headroomPercentOf(covenant);
+  if (headroomPct === null) return 'safe';
+  if (headroomPct < 10) return 'danger';
+  if (headroomPct < 25) return 'warning';
   return 'safe';
 }
 
@@ -372,7 +400,10 @@ export function generateComplianceReport(data: DashboardData): string {
         <div class="label">Milestones Achieved</div>
       </div>
       <div class="summary-stat">
-        <div class="value">${data.reserves.length > 0 ? formatPercent((data.reserves.reduce((sum, r) => sum + r.balance, 0) / data.reserves.reduce((sum, r) => sum + r.target, 0)) * 100) : 'N/A'}</div>
+        <div class="value">${formatFundingPercent(
+          data.reserves.reduce((sum, r) => sum + r.balance, 0),
+          data.reserves.reduce((sum, r) => sum + r.target, 0)
+        )}</div>
         <div class="label">Reserve Funding</div>
       </div>
       <div class="summary-stat">
@@ -398,7 +429,7 @@ export function generateComplianceReport(data: DashboardData): string {
       <tbody>
         ${data.covenants.map(covenant => {
           const status = getCovenantStatusClass(covenant);
-          const headroomPercent = Math.min(100, Math.max(0, covenant.headroom ?? 0));
+          const headroomPercent = Math.min(100, Math.max(0, headroomPercentOf(covenant) ?? 0));
           return `
             <tr>
               <td><strong>${covenant.name}</strong></td>
@@ -408,7 +439,7 @@ export function generateComplianceReport(data: DashboardData): string {
                 <div class="headroom-bar">
                   <div class="headroom-fill ${status}" style="width: ${headroomPercent}%"></div>
                 </div>
-                ${formatPercent(covenant.headroom ?? 0)}
+                ${covenant.headroom === undefined ? 'n/a' : formatRatio(covenant.headroom)}
               </td>
               <td><span class="status ${status}">${getStatusLabel(status)}</span></td>
             </tr>
@@ -461,14 +492,13 @@ export function generateComplianceReport(data: DashboardData): string {
       </thead>
       <tbody>
         ${data.reserves.map(reserve => {
-          const fundingPct = (reserve.balance / reserve.target) * 100;
           return `
             <tr>
               <td><strong>${reserve.name}</strong></td>
               <td>${formatCurrency(reserve.balance)}</td>
               <td>${formatCurrency(reserve.target)}</td>
               <td>${formatCurrency(reserve.minimum)}</td>
-              <td>${formatPercent(fundingPct)}</td>
+              <td>${formatFundingPercent(reserve.balance, reserve.target)}</td>
             </tr>
           `;
         }).join('')}
