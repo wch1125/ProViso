@@ -217,6 +217,83 @@ describe('Compliance certificate — reserve funding', () => {
 });
 
 // =============================================================================
+// TERMINAL: COVENANT UNITS AND SIMULATION
+// =============================================================================
+
+describe('Demo terminal — covenant value units', () => {
+  async function interpreterFor(source: string, data: Record<string, number>) {
+    const interpreter = new ProVisoInterpreter(await parseOrThrow(source));
+    interpreter.loadFinancials(data);
+    return interpreter;
+  }
+
+  it('should render a percentage covenant as a percentage, not a ratio', async () => {
+    // Regression: `const isRatio = cov.actual < 100` printed a percentage
+    // covenant of 15 as "15.00x".
+    const interpreter = await interpreterFor(
+      'COVENANT MinMargin REQUIRES margin >= 10% TESTED QUARTERLY',
+      { margin: 15 }
+    );
+    const result = executeCommand('check', interpreter);
+
+    expect(result.output).toContain('15.00%');
+    expect(result.output).not.toContain('15.00x');
+  });
+
+  it('should render a ratio covenant in ratio units', async () => {
+    const interpreter = await interpreterFor(
+      'COVENANT MaxLeverage REQUIRES leverage <= 4.0x TESTED QUARTERLY',
+      { leverage: 3.5 }
+    );
+    const result = executeCommand('check', interpreter);
+
+    expect(result.output).toContain('3.50x');
+  });
+
+  it('should render a currency covenant in currency units', async () => {
+    const interpreter = await interpreterFor(
+      'COVENANT MinLiquidity REQUIRES cash >= $50_000_000 TESTED QUARTERLY',
+      { cash: 75_000_000 }
+    );
+    const result = executeCommand('check', interpreter);
+
+    expect(result.output).toContain('$75.0M');
+  });
+
+  it('should not leak a novel simulate key into the shared interpreter', async () => {
+    // Regression: the terminal applied changes with loadFinancials and
+    // restored key by key, so a key with no prior value kept its simulated
+    // value for the rest of the session.
+    const interpreter = await interpreterFor(
+      `DEFINE Leverage AS total_debt / ebitda
+       COVENANT MaxLeverage REQUIRES Leverage <= 4.0x TESTED QUARTERLY`,
+      { total_debt: 300, ebitda: 100 }
+    );
+
+    const before = interpreter.checkCovenant('MaxLeverage').actual;
+    executeCommand('simulate NovelKey=999999', interpreter);
+    executeCommand('simulate total_debt=900', interpreter);
+
+    expect(interpreter.checkCovenant('MaxLeverage').actual).toBe(before);
+    expect(() => interpreter.evaluate('NovelKey')).toThrow();
+  });
+
+  it('should show the simulated pro forma value, not the current one', async () => {
+    const interpreter = await interpreterFor(
+      `DEFINE Leverage AS total_debt / ebitda
+       COVENANT MaxLeverage REQUIRES Leverage <= 4.0x TESTED QUARTERLY`,
+      { total_debt: 300, ebitda: 100 }
+    );
+
+    // Warm the interpreter first — this is what used to poison the result.
+    executeCommand('check', interpreter);
+    const result = executeCommand('simulate total_debt=900', interpreter);
+
+    expect(result.output).toContain('9.00x');
+  });
+});
+
+// =============================================================================
 // THRESHOLD ZONES
 // =============================================================================
 

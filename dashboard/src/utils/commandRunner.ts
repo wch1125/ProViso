@@ -54,16 +54,28 @@ function formatRatio(value: number): string {
   return `${value.toFixed(2)}x`;
 }
 
-// Unused but may be needed later
-// function formatPercentage(value: number): string {
-//   return `${(value * 100).toFixed(1)}%`;
-// }
+function formatPercentage(value: number): string {
+  return `${value.toFixed(2)}%`;
+}
 
-function formatHeadroom(headroom: number, isRatio: boolean): string {
-  if (isRatio) {
-    return formatRatio(Math.abs(headroom));
+/**
+ * Format a covenant value in the unit the engine reports.
+ *
+ * Previously inferred from magnitude (`actual < 100` meant "ratio"), which
+ * printed a percentage covenant of 15 as "15.00x" and would misread any
+ * sub-$100 currency figure.
+ */
+function formatCovenantValue(value: number, unit: CovenantResult['unit']): string {
+  switch (unit) {
+    case 'currency': return formatCurrency(value);
+    case 'percentage': return formatPercentage(value);
+    case 'ratio': return formatRatio(value);
+    default: return formatRatio(value);
   }
-  return formatCurrency(Math.abs(headroom));
+}
+
+function formatHeadroom(headroom: number, unit: CovenantResult['unit']): string {
+  return formatCovenantValue(Math.abs(headroom), unit);
 }
 
 function getComplianceIndicator(compliant: boolean): string {
@@ -96,11 +108,10 @@ function formatStatus(interpreter: ProVisoInterpreter): string {
 
   for (const cov of covenants) {
     const indicator = getComplianceIndicator(cov.compliant);
-    const isRatio = cov.actual < 100; // Simple heuristic
-    const actualStr = isRatio ? formatRatio(cov.actual) : formatCurrency(cov.actual);
-    const thresholdStr = isRatio ? formatRatio(cov.threshold) : formatCurrency(cov.threshold);
+    const actualStr = formatCovenantValue(cov.actual, cov.unit);
+    const thresholdStr = formatCovenantValue(cov.threshold, cov.unit);
     const headroomStr = cov.headroom !== undefined
-      ? ` (headroom: ${formatHeadroom(cov.headroom, isRatio)})`
+      ? ` (headroom: ${formatHeadroom(cov.headroom, cov.unit)})`
       : '';
 
     lines.push(`  ${indicator} ${cov.name}`);
@@ -140,16 +151,15 @@ function formatCovenants(covenants: CovenantResult[]): string {
 
   for (const cov of covenants) {
     const indicator = getComplianceIndicator(cov.compliant);
-    const isRatio = cov.actual < 100;
-    const actualStr = isRatio ? formatRatio(cov.actual) : formatCurrency(cov.actual);
-    const thresholdStr = isRatio ? formatRatio(cov.threshold) : formatCurrency(cov.threshold);
+    const actualStr = formatCovenantValue(cov.actual, cov.unit);
+    const thresholdStr = formatCovenantValue(cov.threshold, cov.unit);
 
     lines.push(`${indicator} ${cov.name}`);
     lines.push(`   ${actualStr} ${cov.operator} ${thresholdStr}`);
 
     if (cov.headroom !== undefined) {
       const headroomLabel = cov.compliant ? 'Headroom' : 'Shortfall';
-      lines.push(`   ${headroomLabel}: ${formatHeadroom(cov.headroom, isRatio)}`);
+      lines.push(`   ${headroomLabel}: ${formatHeadroom(cov.headroom, cov.unit)}`);
     }
     lines.push('');
   }
@@ -216,23 +226,12 @@ function formatSimulation(
   // Get current state before changes
   const currentCovenants = interpreter.checkAllCovenants();
 
-  // Snapshot all financials so we can fully restore after simulation
-  const snapshot: Record<string, number> = {};
-  for (const key of Object.keys(changes)) {
-    try {
-      const currentVal = interpreter.evaluate(key);
-      snapshot[key] = currentVal;
-    } catch {
-      // Key doesn't exist yet — mark for deletion after simulation
-      snapshot[key] = NaN;
-    }
-  }
-
-  // Apply changes for pro forma calculation
-  interpreter.loadFinancials(changes);
-
-  // Get pro forma state
-  const proFormaCovenants = interpreter.checkAllCovenants();
+  // Delegate to the engine's own pro forma, which snapshots and restores the
+  // whole financial object. The previous approach applied changes with
+  // loadFinancials and restored key by key, so a key that did not exist
+  // beforehand had no prior value to restore and leaked its simulated value
+  // into the shared dashboard interpreter for the rest of the session.
+  const proFormaCovenants = interpreter.simulate(changes).covenants;
 
   lines.push('Pro Forma Impact:');
   lines.push('');
@@ -241,9 +240,8 @@ function formatSimulation(
     const current = currentCovenants[i]!;
     const proForma = proFormaCovenants[i]!;
 
-    const isRatio = current.actual < 100;
-    const currentStr = isRatio ? formatRatio(current.actual) : formatCurrency(current.actual);
-    const proFormaStr = isRatio ? formatRatio(proForma.actual) : formatCurrency(proForma.actual);
+    const currentStr = formatCovenantValue(current.actual, current.unit);
+    const proFormaStr = formatCovenantValue(proForma.actual, proForma.unit);
 
     const currentIndicator = getComplianceIndicator(current.compliant);
     const proFormaIndicator = getComplianceIndicator(proForma.compliant);
@@ -260,19 +258,7 @@ function formatSimulation(
     lines.push('');
   }
 
-  // Restore original financials so simulation doesn't permanently mutate state
-  const restoreData: Record<string, number> = {};
-  for (const [key, val] of Object.entries(snapshot)) {
-    if (!isNaN(val)) {
-      restoreData[key] = val;
-    }
-    // Keys that were NaN (didn't exist before) will persist but with the
-    // simulated value; a full re-parse would be needed to fully reset.
-    // This is the best we can do without interpreter snapshot support.
-  }
-  if (Object.keys(restoreData).length > 0) {
-    interpreter.loadFinancials(restoreData);
-  }
+  // No manual restore needed — interpreter.simulate() restores its own state.
 
   return lines.join('\n');
 }

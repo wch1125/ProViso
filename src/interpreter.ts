@@ -55,6 +55,7 @@ import {
   SimpleFinancialData,
   MultiPeriodFinancialData,
   CovenantResult,
+  CovenantUnit,
   CovenantResultWithCure,
   BasketStatus,
   BasketLedgerEntry,
@@ -1177,6 +1178,8 @@ export class ProVisoInterpreter {
       default: compliant = false;
     }
 
+    // Headroom is an ABSOLUTE difference in the covenant's own units (see
+    // `unit` below), not a percentage.
     let headroom: number | undefined;
     if (covenant.requires.operator === '<=') {
       headroom = threshold - actual;
@@ -1191,6 +1194,7 @@ export class ProVisoInterpreter {
       threshold,
       operator: covenant.requires.operator,
       headroom,
+      unit: ProVisoInterpreter.unitOfThreshold(covenant.requires.right),
     };
 
     // Include step-down metadata if applicable
@@ -3696,14 +3700,30 @@ export class ProVisoInterpreter {
   }
 
   /**
+   * Derive a covenant's unit from its threshold literal, so consumers can
+   * format values instead of inferring the unit from magnitude (a percentage
+   * covenant of 15 was rendering as "15.00x" under an `actual < 100` guess).
+   * Computed thresholds fall back to 'number'.
+   */
+  private static unitOfThreshold(threshold: Expression): CovenantUnit {
+    if (typeof threshold === 'object' && threshold !== null && 'type' in threshold) {
+      switch (threshold.type) {
+        case 'Ratio': return 'ratio';
+        case 'Currency': return 'currency';
+        case 'Percentage': return 'percentage';
+      }
+    }
+    return 'number';
+  }
+
+  /**
    * Whether a covenant's threshold is expressed in currency, making a cash
    * cure directly comparable to its shortfall.
    */
   private isCurrencyDenominated(covenant: CovenantStatement): boolean {
     const requires = covenant.requires;
     if (!requires || !isComparisonExpression(requires)) return false;
-    const right = requires.right;
-    return typeof right === 'object' && right !== null && 'type' in right && right.type === 'Currency';
+    return ProVisoInterpreter.unitOfThreshold(requires.right) === 'currency';
   }
 
   /**

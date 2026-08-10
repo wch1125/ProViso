@@ -362,6 +362,13 @@ export function isSimpleFinancialData(data: unknown): data is SimpleFinancialDat
   return Object.values(data).every((v) => typeof v === 'number');
 }
 
+/**
+ * The unit a covenant's values are expressed in, taken from the threshold
+ * literal in the source. Lets consumers format actual/threshold/headroom
+ * correctly instead of guessing from magnitude.
+ */
+export type CovenantUnit = 'ratio' | 'currency' | 'percentage' | 'number';
+
 export interface CovenantResult {
   name: string;
   compliant: boolean;
@@ -369,6 +376,8 @@ export interface CovenantResult {
   threshold: number;
   operator: string;
   headroom?: number;
+  /** Unit of actual/threshold/headroom, derived from the threshold literal. */
+  unit?: CovenantUnit;
   /** If the covenant has a step-down schedule, the original (initial) threshold */
   originalThreshold?: number;
   /** The active step-down entry, if applicable */
