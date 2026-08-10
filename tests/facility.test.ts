@@ -13,6 +13,7 @@ import { parse, parseOrThrow } from '../src/parser.js';
 import { ProVisoInterpreter } from '../src/interpreter.js';
 import { validate } from '../src/validator.js';
 import { compileToState, diffStates } from '../src/hub/versioning/index.js';
+import { generateWordDocument, generateRedline, detectDrift } from '../src/hub/word/index.js';
 import type { FacilityStatement } from '../src/types.js';
 
 const FACILITY_SOURCE = `
@@ -445,5 +446,93 @@ describe('FACILITY — diff coverage', () => {
   it('should report no change when nothing moved', async () => {
     const result = await diff(FACILITY_SOURCE, FACILITY_SOURCE);
     expect(result.diffs).toHaveLength(0);
+  });
+});
+
+// =============================================================================
+// WORD RENDERING — the facility must appear in generated documents
+// =============================================================================
+
+describe('FACILITY — Word rendering', () => {
+  async function generate() {
+    return generateWordDocument(FACILITY_SOURCE, { dealName: 'Test Deal' });
+  }
+
+  it('should render the facility under Article 2, The Credits', async () => {
+    const doc = await generate();
+    const article = doc.articles.find((a) => a.articleNumber === 2);
+
+    expect(article?.title).toBe('The Credits');
+    expect(article?.sections).toHaveLength(1);
+    expect(article?.sections[0]?.sectionReference).toBe('2.01(a)');
+  });
+
+  it('should name every tranche with its type and amount', async () => {
+    const doc = await generate();
+    const prose = doc.fullText;
+
+    expect(prose).toContain('revolving credit facility');
+    expect(prose).toContain('term loan B facility');
+    expect(prose).toContain('$100,000,000');
+    expect(prose).toContain('$400,000,000');
+  });
+
+  it('should render rates to two decimals with "per annum"', async () => {
+    const doc = await generate();
+
+    // A margin drafted as 3.25% must not render as "3.25" or "3%".
+    expect(doc.fullText).toContain('3.25% per annum');
+    expect(doc.fullText).toContain('4.00% per annum');
+  });
+
+  it('should render maturities as agreement-style dates', async () => {
+    const doc = await generate();
+
+    expect(doc.fullText).toContain('June 30, 2029');
+    expect(doc.fullText).not.toContain('2029-06-30');
+  });
+
+  it('should describe the cash netting cap', async () => {
+    const doc = await generate();
+
+    expect(doc.fullText).toContain('netted against outstanding indebtedness');
+    expect(doc.fullText).toContain('$50,000,000');
+  });
+
+  it('should describe amortization where a tranche has it', async () => {
+    const doc = await generate();
+    expect(doc.fullText).toMatch(/TermLoanB shall amortize/);
+  });
+
+  it('should emit a uniquely-addressable section marker', async () => {
+    const doc = await generate();
+    expect(doc.fullText).toMatch(/^2\.01\(a\)/m);
+  });
+
+  it('should detect a commitment change as drift, not silence', async () => {
+    // The redline path: an edited document must not read as unchanged.
+    const doc = await generate();
+    const edited = doc.fullText.replace('$100,000,000', '$175,000,000');
+
+    expect(edited).not.toBe(doc.fullText);
+    const report = await detectDrift(edited, FACILITY_SOURCE);
+    expect(report.hasDrift).toBe(true);
+  });
+
+  it('should report no drift for an unedited document', async () => {
+    const doc = await generate();
+    const report = await detectDrift(doc.fullText, FACILITY_SOURCE);
+
+    expect(report.hasDrift).toBe(false);
+  });
+
+  it('should surface a tranche change in the redline', async () => {
+    const result = await generateRedline(
+      FACILITY_SOURCE,
+      FACILITY_SOURCE.replace('MARGIN 4.00%', 'MARGIN 4.75%')
+    );
+
+    expect(result.hasChanges).toBe(true);
+    expect(result.modifiedSections.some((s) => s.newContent.includes('4.75% per annum'))).toBe(true);
   });
 });

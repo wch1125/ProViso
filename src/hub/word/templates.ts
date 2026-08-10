@@ -15,6 +15,8 @@ import type {
   ReserveStatement,
   WaterfallStatement,
   ConditionsPrecedentStatement,
+  FacilityStatement,
+  TrancheType,
   Expression,
 } from '../../types.js';
 import { isComparisonExpression } from '../../types.js';
@@ -392,6 +394,124 @@ export function renderMilestoneToWord(
 // RESERVE TEMPLATE
 // =============================================================================
 
+// =============================================================================
+// FACILITY TEMPLATE
+// =============================================================================
+
+/** How each tranche type is described in agreement prose. */
+const TRANCHE_TYPE_PROSE: Record<TrancheType, string> = {
+  revolving_credit: 'revolving credit facility',
+  term_loan_a: 'term loan A facility',
+  term_loan_b: 'term loan B facility',
+  delayed_draw: 'delayed draw term loan facility',
+  bridge_loan: 'bridge facility',
+  asset_based_loan: 'asset-based revolving facility',
+};
+
+/**
+ * Render a rate expression as prose: "3.25% per annum".
+ *
+ * Rates are shown to two decimals because that is how they are papered — a
+ * margin drafted as 5.00% should not render as "5%".
+ */
+function formatRateProse(expr: Expression | null): string | null {
+  if (!expr) return null;
+  const str = expressionToString(expr);
+  if (!str) return null;
+
+  const percentage = str.match(/^(\d+(?:\.\d+)?)%$/);
+  if (percentage?.[1]) {
+    return `${Number(percentage[1]).toFixed(2)}% per annum`;
+  }
+  return str;
+}
+
+/** Render an ISO date the way an agreement writes it: "June 30, 2030". */
+function formatDateProse(iso: string | null): string | null {
+  if (!iso) return null;
+  const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return iso;
+
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+  const month = months[Number(match[2]) - 1];
+  if (!month) return iso;
+
+  return `${month} ${Number(match[3])}, ${match[1]}`;
+}
+
+/**
+ * Render a facility to Article 2 ("The Credits") prose.
+ *
+ * Each tranche becomes a lettered commitment paragraph naming its type,
+ * amount, pricing and maturity — the structure a credit agreement actually
+ * uses — followed by an aggregate sentence. Without this the facility would be
+ * invisible in generated documents and in the negotiation redline, so a
+ * commitment change would render as no change at all.
+ */
+export function renderFacilityToWord(
+  facility: FacilityStatement,
+  context?: WordTemplateContext
+): string {
+  const subsection = context?.subsectionLabel || '';
+  const benchmarkStr = formatRateProse(facility.benchmark);
+
+  let prose = `${subsection ? `${subsection} ` : ''}${facility.name}. `;
+  prose += `Subject to the terms and conditions set forth herein, the Lenders `;
+  prose += `severally agree to make available to the Borrower the credit facilities `;
+  prose += `described below`;
+  prose += benchmarkStr
+    ? `, each bearing interest at ${benchmarkStr} plus the applicable margin `
+      + `specified for such facility.`
+    : `.`;
+
+  for (const tranche of facility.tranches) {
+    const commitment = expressionToString(tranche.commitment);
+    const margin = formatRateProse(tranche.margin);
+
+    prose += ` ${tranche.name}: a ${TRANCHE_TYPE_PROSE[tranche.trancheType]}`;
+    if (commitment) {
+      prose += ` in an aggregate principal amount of ${commitment}`;
+    }
+    if (margin) {
+      prose += `, bearing an applicable margin of ${margin}`;
+    }
+    const maturity = formatDateProse(tranche.maturity);
+    if (maturity) {
+      prose += `, maturing ${maturity}`;
+    }
+    prose += '.';
+
+    const amortization = tranche.amortization
+      ? expressionToString(tranche.amortization)
+      : null;
+    if (amortization) {
+      prose += ` The ${tranche.name} shall amortize in equal quarterly `;
+      prose += `installments in an aggregate annual amount equal to ${amortization} `;
+      prose += `of the original principal amount thereof.`;
+    }
+
+    const sublimit = tranche.lcSublimit ? expressionToString(tranche.lcSublimit) : null;
+    if (sublimit) {
+      prose += ` Letters of credit may be issued under the ${tranche.name} in an `;
+      prose += `aggregate face amount not to exceed ${sublimit} at any time outstanding.`;
+    }
+  }
+
+  const nettingCap = facility.cashNettingCap
+    ? expressionToString(facility.cashNettingCap)
+    : null;
+  if (nettingCap) {
+    prose += ` For purposes of calculating net leverage, unrestricted cash and `;
+    prose += `cash equivalents may be netted against outstanding indebtedness in an `;
+    prose += `aggregate amount not to exceed ${nettingCap}.`;
+  }
+
+  return prose;
+}
+
 export function renderReserveToWord(
   reserve: ReserveStatement,
   context?: WordTemplateContext
@@ -597,6 +717,15 @@ export const wordTemplates: Map<string, WordTemplate> = new Map([
       elementType: 'Milestone',
       render: (element, context) =>
         renderMilestoneToWord(element as MilestoneStatement, context),
+    },
+  ],
+  [
+    'facility',
+    {
+      id: 'facility',
+      elementType: 'Facility',
+      render: (element, context) =>
+        renderFacilityToWord(element as FacilityStatement, context),
     },
   ],
   [

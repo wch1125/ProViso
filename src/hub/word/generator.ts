@@ -17,6 +17,7 @@ import {
   renderReserveToWord,
   renderWaterfallToWord,
   renderConditionsPrecedentToWord,
+  renderFacilityToWord,
   type WordTemplateContext,
   type GeneratedSection,
 } from './templates.js';
@@ -233,6 +234,21 @@ export class WordGenerator {
       });
     }
 
+    // Article 2: The Credits — commitments and tranches
+    const facilities = ast.statements.filter((s) => s.type === 'Facility');
+    if (facilities.length > 0) {
+      articles.push({
+        articleNumber: 2,
+        title: 'The Credits',
+        sections: facilities.map((s, i) =>
+          this.generateSection(s, {
+            sectionPrefix: '2.01',
+            subsectionLabel: this.subsectionLabel(i),
+          })
+        ),
+      });
+    }
+
     // Article 4: Conditions Precedent
     const cps = ast.statements.filter((s) => s.type === 'ConditionsPrecedent');
     if (cps.length > 0) {
@@ -370,6 +386,8 @@ export class WordGenerator {
         return renderWaterfallToWord(statement, context);
       case 'ConditionsPrecedent':
         return renderConditionsPrecedentToWord(statement, context);
+      case 'Facility':
+        return renderFacilityToWord(statement, context);
       default:
         return `[Unknown statement type: ${statement.type}]`;
     }
@@ -389,6 +407,7 @@ export class WordGenerator {
       case 'Reserve':
       case 'Waterfall':
       case 'ConditionsPrecedent':
+      case 'Facility':
         return statement.name;
       case 'Prohibit':
         return statement.target;
