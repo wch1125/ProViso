@@ -1137,7 +1137,9 @@ AmendmentStatement
         number: num,
         effective: header?.effective || null,
         description: header?.description || null,
-        directives: directives
+        // InlineComment yields null; strip those so consumers iterating
+        // directives never dereference a null entry.
+        directives: directives.filter(d => d !== null)
       };
     }
 
@@ -1294,14 +1296,26 @@ Condition
 // boolean precedence: `A OR B AND C` is `A OR (B AND C)`, not `(A OR B) AND C`.
 // Each tier stays left-associative within itself.
 BooleanExpression
-  = head:AndExpression tail:(_ "OR" _ AndExpression)* {
+  = head:AndExpression tail:(_ OrOperator _ AndExpression)* {
       return buildBinaryExpr(head, tail);
     }
 
 AndExpression
-  = head:BooleanTerm tail:(_ "AND" _ BooleanTerm)* {
+  = head:BooleanTerm tail:(_ AndOperator _ BooleanTerm)* {
       return buildBinaryExpr(head, tail);
     }
+
+// Word-boundary guarded so an identifier is never chopped into an operator
+// plus a remainder: without this, `x ORDINARY_COURSE` parsed as
+// `x OR DINARY_COURSE` and `x ANDREW` as `x AND REW`.
+OrOperator
+  = "OR" !IdentifierChar { return 'OR'; }
+
+AndOperator
+  = "AND" !IdentifierChar { return 'AND'; }
+
+IdentifierChar
+  = [a-zA-Z0-9_]
 
 BooleanTerm
   = ComparisonExpression
@@ -1337,9 +1351,12 @@ Currency
       return { type: 'Currency', value: amount };
     }
 
+// Mirrors Number's optional decimal so amounts like $1000.50 are accepted;
+// previously the "." was left dangling and the whole statement failed to parse.
 CurrencyAmount
-  = digits:$([0-9_]+) {
-      return parseInt(digits.replace(/_/g, ''), 10);
+  = digits:$([0-9_]+) dec:("." @$[0-9]+)? {
+      const numStr = digits.replace(/_/g, '') + (dec ? '.' + dec : '');
+      return parseFloat(numStr);
     }
 
 Percentage

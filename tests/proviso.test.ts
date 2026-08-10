@@ -263,6 +263,42 @@ describe('Interpreter', () => {
     });
   });
 
+  describe('Operator and Literal Lexing', () => {
+    it('should accept a currency literal with decimals', async () => {
+      const ast = await parseOrThrow('BASKET B CAPACITY $1000.50');
+      const basket = ast.statements[0] as { capacity: { type: string; value: number } };
+
+      expect(basket.capacity.type).toBe('Currency');
+      expect(basket.capacity.value).toBe(1000.5);
+    });
+
+    it('should still accept underscore-separated currency literals', async () => {
+      const ast = await parseOrThrow('BASKET B CAPACITY $25_000_000');
+      const basket = ast.statements[0] as { capacity: { value: number } };
+
+      expect(basket.capacity.value).toBe(25_000_000);
+    });
+
+    it('should not split an identifier beginning with OR', async () => {
+      // Regression: `x ORDINARY_COURSE` parsed as `x OR DINARY_COURSE`.
+      const result = await parse('CONDITION c AS x ORDINARY_COURSE');
+      expect(result.success).toBe(false);
+    });
+
+    it('should not split an identifier beginning with AND', async () => {
+      const result = await parse('CONDITION c AS x ANDREW');
+      expect(result.success).toBe(false);
+    });
+
+    it('should still parse genuine AND and OR operators', async () => {
+      const or = await parseOrThrow('CONDITION c AS a > 1 OR b > 1');
+      const and = await parseOrThrow('CONDITION c AS a > 1 AND b > 1');
+
+      expect((or.statements[0] as { expression: { operator: string } }).expression.operator).toBe('OR');
+      expect((and.statements[0] as { expression: { operator: string } }).expression.operator).toBe('AND');
+    });
+  });
+
   describe('Boolean Operator Precedence', () => {
     // AND must bind tighter than OR, per conventional boolean precedence.
     // Previously both folded into one left-associative list, so
@@ -1506,6 +1542,25 @@ describe('Amendments', () => {
       expect(amendment.effective.value).toBe('2024-06-15');
       expect(amendment.description).toBe('First Amendment');
       expect(amendment.directives.length).toBe(1);
+    });
+
+    it('should strip inline comments from the directive list', async () => {
+      // Regression: InlineComment returns null and the directives array was
+      // stored unfiltered, leaking nulls into the AST for consumers to trip on.
+      const source = `
+        AMENDMENT 1
+          EFFECTIVE 2024-06-15
+          // this comment must not become a directive
+          ADDS BASKET NewBasket
+            CAPACITY $10_000_000
+          // nor this one
+      `;
+      const ast = await parseOrThrow(source);
+      const amendment = ast.statements.find(s => s.type === 'Amendment') as any;
+
+      expect(amendment.directives).toHaveLength(1);
+      expect(amendment.directives.every((d: unknown) => d !== null)).toBe(true);
+      expect(amendment.directives[0].directive).toBe('add');
     });
 
     it('should parse REPLACES directive', async () => {
