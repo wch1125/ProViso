@@ -1,0 +1,15 @@
+{
+  "financials": {
+    "net_income": 42000000,
+    "interest_expense": 51000000,
+    "tax_expense": 14000000,
+    "depreciation": 38000000,
+    "amortization": 12000000,
+    "extraordinary_items": 0,
+    "cash": 62000000,
+    "unrestricted_cash": 62000000,
+    "capital_leases": 18000000,
+    "other_debt": 0,
+    "total_assets": 1450000000
+  }
+}

@@ -847,6 +847,96 @@ exports[`Golden files — shipped example deals > data_center.proviso evaluates 
 }
 `;
 
+exports[`Golden files — shipped example deals > leveraged_facility.proviso evaluates identically 1`] = `
+{
+  "baskets": [
+    {
+      "available": 40000000,
+      "basketType": "fixed",
+      "capacity": 40000000,
+      "name": "GeneralInvestments",
+      "used": 0,
+    },
+    {
+      "available": 25000000,
+      "baseCapacity": 23550000,
+      "basketType": "grower",
+      "capacity": 25000000,
+      "floor": 25000000,
+      "name": "GrowerInvestments",
+      "used": 0,
+    },
+    {
+      "available": 20000000,
+      "basketType": "fixed",
+      "capacity": 20000000,
+      "name": "RestrictedPayments",
+      "used": 0,
+    },
+  ],
+  "covenants": [
+    {
+      "activeStep": {
+        "afterDate": "2026-12-31",
+        "threshold": 5,
+      },
+      "actual": 4.54140127388535,
+      "compliant": true,
+      "headroom": 0.4585987261146496,
+      "name": "MaxNetLeverage",
+      "nextStep": {
+        "afterDate": "2027-12-31",
+        "threshold": 4.5,
+      },
+      "operator": "<=",
+      "originalThreshold": 5.5,
+      "threshold": 5,
+      "unit": "ratio",
+    },
+    {
+      "actual": 1.9391693685348155,
+      "compliant": true,
+      "headroom": 0.7891693685348156,
+      "name": "MinFixedChargeCoverage",
+      "operator": ">=",
+      "threshold": 1.15,
+      "unit": "ratio",
+    },
+    {
+      "actual": 2.380140231191965,
+      "compliant": true,
+      "headroom": 0.38014023119196505,
+      "name": "MinInterestCoverage",
+      "operator": ">=",
+      "threshold": 2,
+      "unit": "ratio",
+    },
+  ],
+  "definitions": [
+    {
+      "name": "ConsolidatedEBITDA",
+      "value": 157000000,
+    },
+    {
+      "name": "FixedChargeCoverage",
+      "value": 1.9391693685348155,
+    },
+    {
+      "name": "InterestCoverage",
+      "value": 2.380140231191965,
+    },
+    {
+      "name": "NetLeverage",
+      "value": 4.54140127388535,
+    },
+    {
+      "name": "TotalLeverage",
+      "value": 4.859872611464968,
+    },
+  ],
+}
+`;
+
 exports[`Golden files — shipped example deals > project_finance.proviso evaluates identically 1`] = `
 {
   "baskets": [],

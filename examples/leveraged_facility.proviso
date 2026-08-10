@@ -1,0 +1,119 @@
+// Leveraged Credit Facility — Senior Secured
+// ProViso v2.7
+//
+// Demonstrates the FACILITY spine: leverage, coverage and debt service all
+// derive from actual tranche balances rather than from supplied metrics.
+// Change a commitment or a margin and every dependent figure moves with it.
+
+// ==================== THE FACILITY ====================
+
+// BENCHMARK is the reference rate the tranche margins are spreads over.
+// CASH_NETTING_CAP limits how much cash may offset gross debt in net leverage.
+// Tranches: Revolver 2.01(a), Term Loan A 2.01(b), Term Loan B 2.01(c).
+FACILITY SeniorSecuredCredit
+  BENCHMARK 5.00%
+  CASH_NETTING_CAP $50_000_000
+
+  TRANCHE RevolvingFacility
+    TYPE REVOLVING
+    COMMITMENT $150_000_000
+    DRAWN $45_000_000
+    MARGIN 3.25%
+    MATURITY 2030-06-30
+    LC_OUTSTANDING $12_000_000
+    LC_SUBLIMIT $40_000_000
+
+  TRANCHE TermLoanA
+    TYPE TERM_LOAN_A
+    COMMITMENT $200_000_000
+    MARGIN 3.00%
+    MATURITY 2030-06-30
+    AMORTIZATION 5%
+
+  TRANCHE TermLoanB
+    TYPE TERM_LOAN_B
+    COMMITMENT $500_000_000
+    MARGIN 4.25%
+    MATURITY 2032-06-30
+    AMORTIZATION 1%
+
+// ==================== EARNINGS ====================
+
+DEFINE ConsolidatedEBITDA AS
+  net_income + interest_expense + tax_expense + depreciation + amortization
+  EXCLUDING extraordinary_items
+
+// ==================== RATIOS ====================
+// TotalDebt, NetDebt, AnnualInterest and DebtService are derived from the
+// facility above — they are not supplied in the financial data.
+
+DEFINE TotalLeverage AS TotalDebt / ConsolidatedEBITDA
+
+DEFINE NetLeverage AS NetDebt / ConsolidatedEBITDA
+
+DEFINE InterestCoverage AS ConsolidatedEBITDA / AnnualInterest
+
+DEFINE FixedChargeCoverage AS ConsolidatedEBITDA / DebtService
+
+// ==================== FINANCIAL COVENANTS ====================
+
+// Maximum Total Net Leverage - Section 7.11(a)
+// Steps down as the credit de-levers.
+COVENANT MaxNetLeverage
+  REQUIRES NetLeverage <= 5.50x
+  STEP_DOWN
+    AFTER 2026-12-31 TO 5.00x
+    AFTER 2027-12-31 TO 4.50x
+  TESTED QUARTERLY
+  CURE EquityCure MAX_USES 2 OVER life_of_facility MAX_AMOUNT $25_000_000
+  BREACH -> EventOfDefault
+
+// Minimum Interest Coverage - Section 7.11(b)
+COVENANT MinInterestCoverage
+  REQUIRES InterestCoverage >= 2.00x
+  TESTED QUARTERLY
+  BREACH -> EventOfDefault
+
+// Minimum Fixed Charge Coverage - Section 7.11(c)
+COVENANT MinFixedChargeCoverage
+  REQUIRES FixedChargeCoverage >= 1.15x
+  TESTED QUARTERLY
+
+// ==================== NEGATIVE COVENANTS ====================
+
+// General Investments - Section 7.02(a)
+BASKET GeneralInvestments
+  CAPACITY $40_000_000
+  SUBJECT TO NoDefault
+
+// EBITDA-Based Investments - Section 7.02(b)
+BASKET GrowerInvestments
+  CAPACITY 15% * ConsolidatedEBITDA
+  FLOOR $25_000_000
+  SUBJECT TO NoDefault
+
+// Restricted Payments - Section 7.06
+BASKET RestrictedPayments
+  CAPACITY $20_000_000
+  SUBJECT TO NoDefault
+
+CONDITION NoDefault AS NOT EXISTS(EventOfDefault)
+
+PROHIBIT Investments
+  EXCEPT WHEN
+    | amount <= AVAILABLE(GrowerInvestments)
+    | AND NoDefault
+
+PROHIBIT RestrictedPayments
+  EXCEPT WHEN
+    | amount <= AVAILABLE(RestrictedPayments)
+    | AND NoDefault
+    | AND COMPLIANT(MaxNetLeverage)
+
+// ==================== EVENTS OF DEFAULT ====================
+
+// Covenant Default - Section 8.01(c)
+EVENT CovenantDefault
+  TRIGGERS WHEN NOT COMPLIANT(MaxNetLeverage) OR NOT COMPLIANT(MinInterestCoverage)
+  GRACE_PERIOD 30 DAYS
+  CONSEQUENCE EventOfDefault

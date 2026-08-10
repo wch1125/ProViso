@@ -26,6 +26,7 @@ const EXAMPLES: Array<{ proviso: string; data?: string }> = [
   { proviso: 'project_finance.proviso', data: 'project_finance_demo.json' },
   { proviso: 'solar_utility.proviso', data: 'solar_utility_financials.json' },
   { proviso: 'trailing_definitions.proviso', data: 'multi_period_financials.json' },
+  { proviso: 'leveraged_facility.proviso', data: 'leveraged_facility_financials.json' },
   { proviso: 'data_center.proviso' },
   { proviso: 'wind_onshore.proviso' },
   { proviso: 'amendment_001.proviso' },
@@ -140,6 +141,11 @@ async function loadExample(proviso: string, data?: string): Promise<ProVisoInter
     const raw = JSON.parse(await readFile(`examples/${data}`, 'utf-8')) as Record<string, unknown>;
     interpreter.loadFinancialsFromFile(raw);
   }
+
+  // Covenant step-downs resolve against this rather than the wall clock, so a
+  // file with a STEP_DOWN schedule snapshots identically regardless of when
+  // the suite runs.
+  interpreter.setEvaluationDate(AS_OF);
 
   return interpreter;
 }

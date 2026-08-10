@@ -123,6 +123,8 @@ export class ProVisoInterpreter {
   private multiPeriodData: MultiPeriodFinancialData | null = null;
   // Current evaluation period (for multi-period mode)
   private evaluationPeriod: string | null = null;
+  // Explicit "as of" date for date-keyed schedules; null means use today.
+  private evaluationDate: Date | null = null;
 
   private basketLedger: BasketLedgerEntry[] = [];
   private basketUtilization: Map<string, number> = new Map();
@@ -1037,20 +1039,40 @@ export class ProVisoInterpreter {
    * Get the effective date for step-down evaluation.
    * Uses the evaluation period end date, or a supplied reference date.
    */
-  private getEffectiveDate(): string | null {
-    // In multi-period mode, use the evaluation period as a date reference.
-    // Period labels like "Q3 2025" or "2025-09" need to be converted to a comparable date.
+  private getEffectiveDate(): string {
+    // In multi-period mode, the evaluation period is the date reference.
+    // Period labels like "2025-Q3" or "2025-09" convert to a period-end date.
     if (this.evaluationPeriod) {
-      return this.periodToDate(this.evaluationPeriod);
+      const fromPeriod = this.periodToDate(this.evaluationPeriod);
+      if (fromPeriod) return fromPeriod;
     }
-    return null;
+    // Otherwise fall back to the explicit evaluation date, or today. Date-keyed
+    // schedules should answer "as of when?" the same way in every mode; simple
+    // mode previously had no date at all and assumed every step-down had
+    // already activated, reporting a future threshold as if it were current.
+    const asOf = this.evaluationDate ?? new Date();
+    return asOf.toISOString().slice(0, 10);
+  }
+
+  /**
+   * Pin the date used by date-keyed schedules (covenant step-downs today).
+   *
+   * Pass null to return to using the current date. Mainly for evaluating a
+   * deal as of a historical or future date, and for deterministic tests.
+   */
+  setEvaluationDate(date: Date | null): void {
+    this.evaluationDate = date;
+  }
+
+  getEvaluationDate(): Date | null {
+    return this.evaluationDate;
   }
 
   /**
    * Convert a period label to a sortable date string.
    * Handles: "Q1 2025" → "2025-03-31", "2025-09" → "2025-09-30", "2025-09-30" → "2025-09-30"
    */
-  private periodToDate(period: string): string {
+  private periodToDate(period: string): string | null {
     // Already a date: "2025-09-30"
     if (/^\d{4}-\d{2}-\d{2}$/.test(period)) {
       return period;
@@ -1060,24 +1082,40 @@ export class ProVisoInterpreter {
       const parts = period.split('-');
       const year = Number(parts[0]);
       const month = Number(parts[1]);
-      const lastDay = new Date(year, month, 0).getDate();
-      return `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+      return ProVisoInterpreter.endOfMonth(year, month);
     }
-    // Quarter: "Q1 2025", "Q2 2025", etc.
-    const quarterMatch = period.match(/^Q(\d)\s+(\d{4})$/);
-    if (quarterMatch && quarterMatch[1] && quarterMatch[2]) {
-      const quarter = parseInt(quarterMatch[1]);
-      const year = parseInt(quarterMatch[2]);
-      const endMonth = quarter * 3;
-      const lastDay = new Date(year, endMonth, 0).getDate();
-      return `${year}-${String(endMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    // Quarter, period-first: "2025-Q3" — the format used throughout this
+    // project's own multi-period data files. Previously unhandled, so it fell
+    // through to a raw string comparison in which '2026-Q3' >= '2026-12-31'
+    // is true (because 'Q' > '1'), silently activating step-downs early.
+    const isoQuarter = period.match(/^(\d{4})-Q(\d)$/i);
+    if (isoQuarter?.[1] && isoQuarter[2]) {
+      return ProVisoInterpreter.endOfQuarter(Number(isoQuarter[1]), Number(isoQuarter[2]));
+    }
+    // Quarter, quarter-first: "Q1 2025"
+    const quarterMatch = period.match(/^Q(\d)\s+(\d{4})$/i);
+    if (quarterMatch?.[1] && quarterMatch[2]) {
+      return ProVisoInterpreter.endOfQuarter(Number(quarterMatch[2]), Number(quarterMatch[1]));
     }
     // Year only: "2025"
     if (/^\d{4}$/.test(period)) {
       return `${period}-12-31`;
     }
-    // Fallback: return as-is (may not compare correctly, but won't crash)
-    return period;
+    // Unrecognised. Returning the label unchanged would let it be compared as
+    // a string against real ISO dates and produce confident nonsense, so
+    // signal "no usable date" instead and let the caller decide.
+    return null;
+  }
+
+  /** Last calendar day of a 1-indexed month, as an ISO date. */
+  private static endOfMonth(year: number, month: number): string {
+    const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    return `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+  }
+
+  /** Last calendar day of a quarter (1-4), as an ISO date. */
+  private static endOfQuarter(year: number, quarter: number): string {
+    return ProVisoInterpreter.endOfMonth(year, quarter * 3);
   }
 
   /**
@@ -1108,16 +1146,6 @@ export class ProVisoInterpreter {
       afterDate: step.afterDate,
       threshold: this.evaluate(step.threshold),
     }));
-
-    if (!effectiveDate) {
-      // No date context — use the last (tightest) step as the effective threshold
-      // This is the conservative approach: assume all steps have activated
-      const lastStep = evaluatedSteps[evaluatedSteps.length - 1] ?? { afterDate: '', threshold: originalThreshold };
-      return {
-        effectiveThreshold: lastStep.threshold,
-        activeStep: lastStep,
-      };
-    }
 
     // Find the active step: the last step whose date has passed
     let activeStep: { afterDate: string; threshold: number } | undefined;

@@ -5897,26 +5897,110 @@ describe('Step-Down Covenants', () => {
   });
 
   describe('Interpreter - Step-Down with Simple Data', () => {
-    it('should use the last (tightest) step-down when no date context available', async () => {
-      const code = `
-        COVENANT MaxRatio
-          REQUIRES ratio <= 5.00
-          STEP_DOWN
-            AFTER 2025-06-30 TO 4.50
-            AFTER 2026-06-30 TO 4.00
-            AFTER 2027-06-30 TO 3.50
-          TESTED QUARTERLY
-      `;
-      const ast = await parseOrThrow(code);
-      const interp = new ProVisoInterpreter(ast);
-      // Simple (non-period) financial data — no date context
-      interp.loadFinancials({ ratio: 4.20 });
+    // Simple mode previously had no date context and assumed every step-down
+    // had already activated, so it reported the tightest threshold as current
+    // even when that step was years away — and disagreed with multi-period
+    // mode on the same file. It now resolves against an explicit evaluation
+    // date, falling back to today.
+    const code = `
+      COVENANT MaxRatio
+        REQUIRES ratio <= 5.00
+        STEP_DOWN
+          AFTER 2025-06-30 TO 4.50
+          AFTER 2026-06-30 TO 4.00
+          AFTER 2027-06-30 TO 3.50
+        TESTED QUARTERLY
+    `;
 
-      const result = interp.checkCovenant('MaxRatio');
-      // Should use the tightest threshold (3.50) since no date is available
+    async function checkAsOf(asOf: Date) {
+      const interp = new ProVisoInterpreter(await parseOrThrow(code));
+      interp.loadFinancials({ ratio: 4.20 });
+      interp.setEvaluationDate(asOf);
+      return interp.checkCovenant('MaxRatio');
+    }
+
+    it('should use the original threshold before any step activates', async () => {
+      const result = await checkAsOf(new Date('2025-01-01'));
+
+      expect(result.threshold).toBe(5.00);
+      expect(result.compliant).toBe(true);
+      expect(result.activeStep).toBeUndefined();
+      expect(result.nextStep?.afterDate).toBe('2025-06-30');
+    });
+
+    it('should use the latest activated step, not a future one', async () => {
+      const result = await checkAsOf(new Date('2026-08-10'));
+
+      // 2027-06-30 has not arrived, so 3.50 must not be reported as current.
+      expect(result.threshold).toBe(4.00);
+      expect(result.originalThreshold).toBe(5.00);
+      expect(result.activeStep?.afterDate).toBe('2026-06-30');
+      expect(result.nextStep?.afterDate).toBe('2027-06-30');
+    });
+
+    it('should use the tightest step once every step has activated', async () => {
+      const result = await checkAsOf(new Date('2028-01-01'));
+
       expect(result.threshold).toBe(3.50);
       expect(result.compliant).toBe(false); // 4.20 > 3.50
-      expect(result.originalThreshold).toBe(5.00);
+      expect(result.nextStep).toBeUndefined();
+    });
+
+    it('should activate a step exactly on its date', async () => {
+      const result = await checkAsOf(new Date('2025-06-30'));
+      expect(result.threshold).toBe(4.50);
+    });
+
+    it('should agree with multi-period mode for the same point in time', async () => {
+      const simple = await checkAsOf(new Date('2026-09-30'));
+
+      const periodic = new ProVisoInterpreter(await parseOrThrow(code));
+      periodic.loadFinancials({
+        periods: [
+          { period: '2026-Q3', periodType: 'quarterly', data: { ratio: 4.20 } },
+        ],
+      });
+
+      expect(periodic.checkCovenant('MaxRatio').threshold).toBe(simple.threshold);
+    });
+  });
+
+  describe('Interpreter - Period label parsing', () => {
+    // '2026-Q3' is the format this project's own data files use, but it was
+    // unhandled and fell through to a raw string comparison in which
+    // '2026-Q3' >= '2026-12-31' is true (because 'Q' > '1'), activating
+    // step-downs months early.
+    const code = `
+      COVENANT MaxRatio
+        REQUIRES ratio <= 5.00
+        STEP_DOWN
+          AFTER 2026-12-31 TO 4.00
+        TESTED QUARTERLY
+    `;
+
+    async function thresholdForPeriod(period: string) {
+      const interp = new ProVisoInterpreter(await parseOrThrow(code));
+      interp.loadFinancials({
+        periods: [{ period, periodType: 'quarterly', data: { ratio: 4.20 } }],
+      });
+      return interp.checkCovenant('MaxRatio').threshold;
+    }
+
+    it('should not activate a step for a quarter ending before its date', async () => {
+      expect(await thresholdForPeriod('2026-Q3')).toBe(5.00);
+    });
+
+    it('should activate a step for a quarter ending on its date', async () => {
+      expect(await thresholdForPeriod('2026-Q4')).toBe(4.00);
+    });
+
+    it('should activate a step for a later quarter', async () => {
+      expect(await thresholdForPeriod('2027-Q1')).toBe(4.00);
+    });
+
+    it('should handle the quarter-first label format too', async () => {
+      expect(await thresholdForPeriod('Q3 2026')).toBe(5.00);
+      expect(await thresholdForPeriod('Q4 2026')).toBe(4.00);
     });
   });
 
