@@ -14,7 +14,7 @@ export function CPChecklist({ checklists }: CPChecklistProps) {
         title="Conditions Precedent"
         subtitle="Draw eligibility checklists"
       />
-      <CardBody className="p-0 space-y-0 divide-y divide-border-DEFAULT">
+      <CardBody className="p-0 space-y-0 divide-y divide-border-default">
         {checklists.map((checklist) => (
           <ChecklistSection key={checklist.name} checklist={checklist} />
         ))}

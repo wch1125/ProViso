@@ -25,7 +25,7 @@ export function CommandSuggestions({ onCommandClick, disabled = false }: Command
           className={`
             group flex items-center gap-2 px-3 py-1.5
             bg-surface-3 hover:bg-surface-4
-            border border-border-DEFAULT hover:border-gold-600/50
+            border border-border-default hover:border-gold-600/50
             rounded-lg transition-all duration-200
             ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
           `}

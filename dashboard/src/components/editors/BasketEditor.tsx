@@ -378,12 +378,12 @@ export function BasketEditor({
           </div>
 
           {/* Basket Type Tabs */}
-          <div className="border border-border-DEFAULT rounded-lg overflow-hidden">
+          <div className="border border-border-default rounded-lg overflow-hidden">
             <Tabs
               defaultTab={values.type}
               onChange={(type) => updateField('type', type as BasketType)}
             >
-              <TabList className="bg-surface-3 border-b border-border-DEFAULT px-4">
+              <TabList className="bg-surface-3 border-b border-border-default px-4">
                 <TabTrigger id="fixed">Fixed</TabTrigger>
                 <TabTrigger id="grower">Grower</TabTrigger>
                 <TabTrigger id="builder">Builder</TabTrigger>
@@ -504,7 +504,7 @@ export function BasketEditor({
           </div>
 
           {/* Subject To Conditions */}
-          <div className="border border-border-DEFAULT rounded-lg p-4 space-y-3">
+          <div className="border border-border-default rounded-lg p-4 space-y-3">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -536,8 +536,8 @@ export function BasketEditor({
         {/* Right Column: Preview */}
         <div className="space-y-4">
           {/* Code Preview */}
-          <div className="border border-border-DEFAULT rounded-lg overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2 bg-surface-3 border-b border-border-DEFAULT">
+          <div className="border border-border-default rounded-lg overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-2 bg-surface-3 border-b border-border-default">
               <div className="flex items-center gap-2">
                 <FileCode className="w-4 h-4 text-text-tertiary" />
                 <span className="text-sm font-medium text-text-primary">ProViso Code</span>
@@ -557,8 +557,8 @@ export function BasketEditor({
           </div>
 
           {/* Prose Preview */}
-          <div className="border border-border-DEFAULT rounded-lg overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2 bg-surface-3 border-b border-border-DEFAULT">
+          <div className="border border-border-default rounded-lg overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-2 bg-surface-3 border-b border-border-default">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-text-tertiary" />
                 <span className="text-sm font-medium text-text-primary">Word Document</span>
@@ -580,7 +580,7 @@ export function BasketEditor({
           </div>
 
           {/* Basket Type Description */}
-          <div className="border border-border-DEFAULT rounded-lg p-4 bg-surface-2/50">
+          <div className="border border-border-default rounded-lg p-4 bg-surface-2/50">
             <h4 className="text-sm font-medium text-text-primary mb-2">
               {values.type === 'fixed' && 'Fixed Basket'}
               {values.type === 'grower' && 'Grower Basket'}
@@ -608,7 +608,7 @@ export function BasketEditor({
       </div>
 
       {/* Footer */}
-      <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border-DEFAULT">
+      <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border-default">
         <Button variant="ghost" onClick={onClose}>
           Cancel
         </Button>

@@ -6,7 +6,13 @@ import { CovenantSummary } from './NaturalLanguageSummary';
 import { SourceCodeViewer, CodeViewButton } from './SourceCodeViewer';
 import { ClickableValue, type CalculationNode } from './CalculationDrilldown';
 import { useProViso } from '../context';
-import { getThresholdZone, getZoneStyle, getDistanceToBreach, type ThresholdZone } from '../utils/thresholds';
+import {
+  getThresholdZone,
+  getZoneStyle,
+  getZonePresentation,
+  getDistanceToBreach,
+  type ThresholdZone,
+} from '../utils/thresholds';
 import { generateCovenantCode } from '../utils/codeGenerators';
 import type { CovenantData, CovenantStatus } from '../types';
 import { COVENANT_STATUS_PRIORITY } from '../types';
@@ -31,7 +37,9 @@ interface CovenantPanelProps {
 function getCovenantStatus(covenant: CovenantData): CovenantStatus {
   if (covenant.suspended) return 'suspended';
   if (!covenant.compliant) return 'breach';
-  return getThresholdZone(covenant.actual, covenant.required, covenant.operator) as CovenantStatus;
+  // No cast: every ThresholdZone is a CovenantStatus, so adding a zone without
+  // a matching priority entry is now a compile error rather than a NaN sort.
+  return getThresholdZone(covenant.actual, covenant.required, covenant.operator);
 }
 
 export function CovenantPanel({ covenants, showNarratives = true, showCodeButtons = true, onRequestCure, onRequestWaiver, onRequestAmendment }: CovenantPanelProps) {
@@ -70,6 +78,10 @@ export function CovenantPanel({ covenants, showNarratives = true, showCodeButton
   }, {} as Record<ThresholdZone, number>);
 
   const warningCount = (zoneCounts.caution || 0) + (zoneCounts.danger || 0);
+  // Counted separately from "approaching": these covenants are not
+  // approaching anything, they have arrived. "3/3 passing" on its own would
+  // hide that entirely.
+  const atTheLineCount = zoneCounts.at_the_line || 0;
 
   return (
     <Card>
@@ -78,8 +90,13 @@ export function CovenantPanel({ covenants, showNarratives = true, showCodeButton
         subtitle={
           <span className="flex items-center gap-2">
             <span>{activeCovenants.filter(c => c.compliant).length}/{activeCovenants.length} passing</span>
+            {atTheLineCount > 0 && (
+              <span className="text-status-attention text-xs font-medium">
+                ({atTheLineCount} with no headroom)
+              </span>
+            )}
             {warningCount > 0 && (
-              <span className="text-warning text-xs">
+              <span className="text-status-caution text-xs">
                 ({warningCount} approaching threshold)
               </span>
             )}
@@ -176,26 +193,23 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
     return val.toFixed(2);
   };
 
+  // Presentation is looked up per zone rather than built from a ternary
+  // chain: a chain ends in an `else` that silently claims every zone it does
+  // not name, which is how a zero-cushion covenant used to render green.
+  const presentation = getZonePresentation(zone);
+
   // Get icon based on zone
   const Icon = suspended
     ? Pause
     : zone === 'breach'
     ? XCircle
-    : zone === 'danger'
+    : zone === 'danger' || zone === 'at_the_line'
     ? AlertCircle
     : zone === 'caution'
     ? AlertTriangle
     : CheckCircle2;
 
-  const iconColor = suspended
-    ? 'text-text-muted'
-    : zone === 'breach'
-    ? 'text-danger'
-    : zone === 'danger'
-    ? 'text-warning'
-    : zone === 'caution'
-    ? 'text-warning'
-    : 'text-success';
+  const iconColor = suspended ? 'text-text-muted' : presentation.textClass;
 
   // Build calc-tree node for the actual value (clickable drilldown)
   const metricName = name.replace(/^(Max|Min)/, '');
@@ -225,10 +239,17 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
                 <StatusBadge status="suspended" label="Suspended" />
               )}
               {!suspended && zone === 'caution' && (
-                <span className="text-xs text-warning font-medium">80%+</span>
+                <span className="text-xs text-status-caution font-medium">80%+</span>
               )}
               {!suspended && zone === 'danger' && (
-                <span className="text-xs text-warning font-medium animate-pulse">90%+</span>
+                <span className="text-xs text-status-caution font-medium animate-pulse">90%+</span>
+              )}
+              {/* Compliant, but with nothing left. Labelled explicitly so the
+                  state does not rest on its colour alone. */}
+              {!suspended && zone === 'at_the_line' && (
+                <span className="text-xs text-status-attention font-semibold">
+                  {presentation.label}
+                </span>
               )}
             </div>
           </div>
@@ -241,13 +262,9 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
                 className={`text-lg font-semibold tabular-nums ${
                   suspended
                     ? 'text-industry-textMuted'
-                    : zone === 'breach'
-                    ? 'text-danger'
-                    : zone === 'danger'
-                    ? 'text-warning'
-                    : zone === 'caution'
-                    ? 'text-warning'
-                    : 'text-industry-textPrimary'
+                    : zone === 'safe'
+                    ? 'text-industry-textPrimary'
+                    : presentation.textClass
                 }`}
               >
                 {formatValue(actual)}x
@@ -258,19 +275,14 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
             </div>
             {!suspended && (
               <span
-                className={`text-xs ${
-                  zone === 'breach'
-                    ? 'text-danger'
-                    : zone === 'danger'
-                    ? 'text-warning'
-                    : zone === 'caution'
-                    ? 'text-warning'
-                    : 'text-success'
-                }`}
+                className={`text-xs ${presentation.textClass}`}
                 title={headroom !== undefined ? `Headroom: ${formatValue(headroom)}x` : undefined}
               >
                 {distanceToBreach.isInBreach
                   ? 'In breach'
+                  : zone === 'at_the_line'
+                  ? // "0% to breach" on a compliant covenant reads as a breach.
+                    'At the limit — no headroom'
                   : `${distanceToBreach.percent.toFixed(0)}% to breach`}
               </span>
             )}

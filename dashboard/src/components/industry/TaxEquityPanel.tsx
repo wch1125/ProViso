@@ -132,7 +132,7 @@ export function TaxEquityPanel({
 
             {/* IRR tracking */}
             {structure.targetReturn && (
-              <div className="mt-4 pt-3 border-t border-border-DEFAULT">
+              <div className="mt-4 pt-3 border-t border-border-default">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-text-tertiary">Target IRR</p>
@@ -193,7 +193,7 @@ export function TaxEquityPanel({
                     </div>
                   </div>
                   {credit.adders && credit.adders.length > 0 && (
-                    <div className="mt-2 pt-2 border-t border-border-DEFAULT">
+                    <div className="mt-2 pt-2 border-t border-border-default">
                       <p className="text-xs text-text-tertiary mb-1">Adders:</p>
                       <div className="flex gap-2 flex-wrap">
                         {credit.adders.map((adder) => (
@@ -265,7 +265,7 @@ export function TaxEquityPanel({
                   className={`p-3 rounded-lg border ${
                     flip.hasTriggered
                       ? 'bg-success/5 border-success/30'
-                      : 'bg-surface-2/50 border-border-DEFAULT'
+                      : 'bg-surface-2/50 border-border-default'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">

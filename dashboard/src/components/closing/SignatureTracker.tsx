@@ -95,7 +95,7 @@ export function SignatureTracker({ documents, onRequestSignature, onMarkSigned }
           <div className="text-2xl font-bold text-warning">{stats.requested}</div>
           <div className="text-xs text-warning">Requested</div>
         </div>
-        <div className="bg-surface-1 border border-border-DEFAULT rounded-lg p-3 text-center">
+        <div className="bg-surface-1 border border-border-default rounded-lg p-3 text-center">
           <div className="text-2xl font-bold text-text-tertiary">{stats.pending}</div>
           <div className="text-xs text-text-secondary">Pending</div>
         </div>
@@ -116,11 +116,11 @@ export function SignatureTracker({ documents, onRequestSignature, onMarkSigned }
             <div
               key={doc.documentId}
               className={`bg-surface-1 rounded-lg overflow-hidden border ${
-                allSigned ? 'border-success/30' : 'border-border-DEFAULT'
+                allSigned ? 'border-success/30' : 'border-border-default'
               }`}
             >
               {/* Document Header */}
-              <div className="p-4 border-b border-border-DEFAULT flex items-center justify-between">
+              <div className="p-4 border-b border-border-default flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <FileText className={`w-5 h-5 ${allSigned ? 'text-success' : 'text-text-muted'}`} />
                   <div>
@@ -148,7 +148,7 @@ export function SignatureTracker({ documents, onRequestSignature, onMarkSigned }
                           ? 'border-warning/30 bg-warning/5'
                           : sig.status === 'declined'
                           ? 'border-danger/30 bg-danger/5'
-                          : 'border-border-DEFAULT bg-surface-1'
+                          : 'border-border-default bg-surface-1'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-2">

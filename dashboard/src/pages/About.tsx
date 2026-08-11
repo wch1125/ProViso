@@ -153,13 +153,13 @@ export function About() {
               className="bg-navy-800 rounded-xl p-6 font-mono text-sm opacity-0 animate-fade-up"
               style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}
             >
-              <div className="flex items-center gap-2 mb-4 text-slate-400 text-xs">
+              <div className="flex items-center gap-2 mb-4 text-text-tertiary text-xs">
                 <div className="w-3 h-3 rounded-full bg-red-500" />
                 <div className="w-3 h-3 rounded-full bg-yellow-500" />
                 <div className="w-3 h-3 rounded-full bg-green-500" />
                 <span className="ml-2">corporate_revolver.proviso</span>
               </div>
-              <pre className="text-slate-300 overflow-x-auto">
+              <pre className="text-text-secondary overflow-x-auto">
 {`DEFINE EBITDA AS
   net_income + interest_expense
   + tax_expense + depreciation

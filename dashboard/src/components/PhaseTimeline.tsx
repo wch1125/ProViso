@@ -122,7 +122,7 @@ export function PhaseTimeline({ phase }: PhaseTimelineProps) {
         </div>
 
         {/* Current Phase Details */}
-        <div className="mt-8 pt-4 border-t border-border-DEFAULT">
+        <div className="mt-8 pt-4 border-t border-border-default">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-text-tertiary">Current Phase</p>

@@ -89,7 +89,7 @@ interface ActivityItemProps {
 
 function ActivityItem({ activity }: ActivityItemProps) {
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-border-DEFAULT last:border-0">
+    <div className="flex items-start gap-3 py-3 border-b border-border-default last:border-0">
       <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${activityColors[activity.type]}`}>
         {activityIcons[activity.type]}
       </div>
@@ -141,9 +141,9 @@ export function ActivityFeed({
   }
 
   return (
-    <div className={`bg-surface-1 border border-border-DEFAULT rounded-xl ${className}`}>
+    <div className={`bg-surface-1 border border-border-default rounded-xl ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border-DEFAULT">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border-default">
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-text-tertiary" />
           <h3 className="text-sm font-medium text-text-primary">{title}</h3>
@@ -204,7 +204,7 @@ export function CollapsibleActivityFeed({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <div className={`bg-surface-1 border border-border-DEFAULT rounded-xl ${props.className}`}>
+    <div className={`bg-surface-1 border border-border-default rounded-xl ${props.className}`}>
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
@@ -228,7 +228,7 @@ export function CollapsibleActivityFeed({
 
       {/* Content */}
       {isExpanded && (
-        <div className="border-t border-border-DEFAULT">
+        <div className="border-t border-border-default">
           <div className="px-4">
             {props.activities.length === 0 ? (
               <div className="py-6 text-center">
@@ -271,7 +271,7 @@ export function ActivityPanel({ isOpen, onClose, activities, onClear }: Activity
       {/* Panel */}
       <div className="fixed right-0 top-0 bottom-0 w-96 bg-surface-0 border-l border-surface-2 z-50 shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-border-DEFAULT">
+        <div className="flex items-center justify-between px-4 py-4 border-b border-border-default">
           <div className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-text-tertiary" />
             <h2 className="text-lg font-semibold text-text-primary">Activity Feed</h2>
@@ -298,7 +298,7 @@ export function ActivityPanel({ isOpen, onClose, activities, onClear }: Activity
         <div className="overflow-y-auto h-[calc(100vh-65px)]">
           {activities.length === 0 ? (
             <div className="py-16 text-center">
-              <Clock className="w-12 h-12 text-slate-700 mx-auto mb-3" />
+              <Clock className="w-12 h-12 text-text-muted mx-auto mb-3" />
               <p className="text-text-muted">No recent activity</p>
               <p className="text-sm text-text-muted mt-1">
                 Actions you take will appear here

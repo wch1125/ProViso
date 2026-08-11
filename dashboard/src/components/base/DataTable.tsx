@@ -95,7 +95,7 @@ export function DataTable<T>({
   };
 
   return (
-    <div className="w-full overflow-hidden rounded-lg border border-border-DEFAULT">
+    <div className="w-full overflow-hidden rounded-lg border border-border-default">
       <div className="relative">
       <div className="overflow-x-auto">
       {/* Right-edge scroll hint gradient — mobile only */}
@@ -128,7 +128,7 @@ export function DataTable<T>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-border-DEFAULT">
+          <tbody className="divide-y divide-border-default">
             {loading ? (
               <tr>
                 <td
@@ -210,7 +210,7 @@ export function DataTable<T>({
 
       {/* Pagination */}
       {showPagination && totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-border-DEFAULT bg-surface-1/50">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-border-default bg-surface-1/50">
           <p className="text-sm text-text-tertiary">
             Showing {((currentPage - 1) * pageSize) + 1} to{' '}
             {Math.min(currentPage * pageSize, sortedData.length)} of{' '}

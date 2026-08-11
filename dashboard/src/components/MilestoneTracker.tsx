@@ -23,7 +23,7 @@ export function MilestoneTracker({ milestones }: MilestoneTrackerProps) {
         }
       />
       <CardBody className="p-0">
-        <div className="divide-y divide-border-DEFAULT">
+        <div className="divide-y divide-border-default">
           {milestones.map((milestone, index) => (
             <MilestoneRow
               key={milestone.name}
@@ -136,7 +136,7 @@ function MilestoneRow({ milestone }: MilestoneRowProps) {
           {status !== 'achieved' && (
             <div className="flex items-center gap-4 mt-2 text-xs">
               <div>
-                <span className="text-gray-500">Target: </span>
+                <span className="text-text-muted">Target: </span>
                 <span className={`font-medium ${
                   daysToTarget < 0
                     ? 'text-warning'
@@ -151,7 +151,7 @@ function MilestoneRow({ milestone }: MilestoneRowProps) {
                 </span>
               </div>
               <div>
-                <span className="text-gray-500">Longstop: </span>
+                <span className="text-text-muted">Longstop: </span>
                 <span className={`font-medium ${
                   daysToLongstop < 0
                     ? 'text-danger'

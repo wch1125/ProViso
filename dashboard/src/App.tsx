@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState, useEffect, useMemo, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
-import { ProVisoProvider, ClosingProvider, DealProvider, IndustryThemeProvider, useProViso } from './context';
+import { ProVisoProvider, ClosingProvider, DealProvider, IndustryThemeProvider, ThemeModeProvider, useProViso } from './context';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LoadingScreen } from './components/landing';
 import { transformCPChecklistsToConditions, mergeLiveWithDemoConditions } from './utils/cpTransformer';
@@ -99,6 +99,7 @@ function App() {
 
   return (
     <ErrorBoundary>
+    <ThemeModeProvider>
     <DealProvider>
       <ProVisoProvider>
         <BrowserRouter>
@@ -141,6 +142,7 @@ function App() {
         </BrowserRouter>
       </ProVisoProvider>
     </DealProvider>
+    </ThemeModeProvider>
     </ErrorBoundary>
   );
 }

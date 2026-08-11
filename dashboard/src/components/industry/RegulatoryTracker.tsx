@@ -154,7 +154,7 @@ export function RegulatoryTracker({ requirements, title = "Regulatory Status" }:
             const completion = getAgencyCompletion(reqs);
 
             return (
-              <div key={agency} className="border border-border-DEFAULT rounded-lg overflow-hidden">
+              <div key={agency} className="border border-border-default rounded-lg overflow-hidden">
                 {/* Agency header */}
                 <button
                   onClick={() => setExpandedAgency(isExpanded ? null : agency)}
@@ -193,7 +193,7 @@ export function RegulatoryTracker({ requirements, title = "Regulatory Status" }:
 
                 {/* Expanded permits */}
                 {isExpanded && (
-                  <div className="border-t border-border-DEFAULT divide-y divide-border-DEFAULT">
+                  <div className="border-t border-border-default divide-y divide-border-default">
                     {reqs.map((req) => (
                       <div key={req.name} className="p-3 bg-surface-0/50">
                         <div className="flex items-start justify-between">

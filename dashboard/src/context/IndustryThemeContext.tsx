@@ -8,13 +8,16 @@
 import React, { createContext, useContext, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
+  type IndustryColors,
   type IndustryTheme,
   type IndustryType,
   getThemeForIndustry,
   applyThemeToDocument,
+  resolveThemeColors,
   corporateTheme,
 } from '../themes/industry-themes';
 import { getScenarioById } from '../data/demo-scenarios';
+import { useThemeMode } from './ThemeModeContext';
 
 // =============================================================================
 // CONTEXT TYPES
@@ -27,9 +30,9 @@ interface IndustryThemeContextValue {
   industry: IndustryType;
   /** Current deal ID (if any) */
   dealId: string | null;
-  /** Direct access to theme colors */
-  colors: IndustryTheme['colors'];
-  /** Chart colors array for convenience */
+  /** Theme colors resolved for the active light/dark mode */
+  colors: IndustryColors;
+  /** Chart colors array for convenience, resolved for the active mode */
   chartColors: string[];
 }
 
@@ -49,6 +52,7 @@ interface IndustryThemeProviderProps {
 
 export function IndustryThemeProvider({ children }: IndustryThemeProviderProps) {
   const location = useLocation();
+  const { mode } = useThemeMode();
 
   // Extract dealId from URL path
   // Expected format: /deals/:dealId/...
@@ -74,19 +78,24 @@ export function IndustryThemeProvider({ children }: IndustryThemeProviderProps) 
     return getThemeForIndustry(industry);
   }, [industry]);
 
-  // Apply theme CSS variables when theme changes
+  // Apply theme CSS variables when the theme OR the light/dark mode changes.
+  // These land as inline styles on <html>, which outrank the `.dark` rules in
+  // index.css, so re-applying on a mode change is what keeps the two in step.
   useEffect(() => {
-    applyThemeToDocument(theme);
-  }, [theme]);
+    applyThemeToDocument(theme, mode);
+  }, [theme, mode]);
 
   // Memoize context value
-  const value = useMemo<IndustryThemeContextValue>(() => ({
-    theme,
-    industry,
-    dealId,
-    colors: theme.colors,
-    chartColors: theme.colors.chartColors,
-  }), [theme, industry, dealId]);
+  const value = useMemo<IndustryThemeContextValue>(() => {
+    const colors = resolveThemeColors(theme, mode);
+    return {
+      theme,
+      industry,
+      dealId,
+      colors,
+      chartColors: colors.chartColors,
+    };
+  }, [theme, industry, dealId, mode]);
 
   return (
     <IndustryThemeContext.Provider value={value}>
@@ -112,15 +121,17 @@ export function IndustryThemeProvider({ children }: IndustryThemeProviderProps) 
  */
 export function useIndustryTheme(): IndustryThemeContextValue {
   const context = useContext(IndustryThemeContext);
+  const { mode } = useThemeMode();
 
   // Return default values if used outside provider (e.g., on landing page)
   if (!context) {
+    const colors = resolveThemeColors(corporateTheme, mode);
     return {
       theme: corporateTheme,
       industry: 'corporate',
       dealId: null,
-      colors: corporateTheme.colors,
-      chartColors: corporateTheme.colors.chartColors,
+      colors,
+      chartColors: colors.chartColors,
     };
   }
 

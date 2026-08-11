@@ -45,7 +45,7 @@ export function SearchFilter({
           placeholder={searchPlaceholder}
           className="
             w-full pl-10 pr-10 py-2
-            bg-surface-2 border border-border-DEFAULT rounded-lg
+            bg-surface-2 border border-border-default rounded-lg
             text-text-primary placeholder-text-muted
             focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent
             transition-all
@@ -113,7 +113,7 @@ function FilterDropdown({ filter, value, onChange }: FilterDropdownProps) {
           focus:outline-none focus:ring-2 focus:ring-gold-500
           ${isActive
             ? 'bg-gold-500/10 border-gold-500/30 text-gold-500'
-            : 'bg-surface-2 border-border-DEFAULT text-text-secondary hover:text-text-primary hover:border-border-strong'
+            : 'bg-surface-2 border-border-default text-text-secondary hover:text-text-primary hover:border-border-strong'
           }
         `}
       >

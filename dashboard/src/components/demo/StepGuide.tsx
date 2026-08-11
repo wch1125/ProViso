@@ -23,13 +23,13 @@ export function StepGuide() {
         <div
           className="
             bg-surface-2/95 backdrop-blur-sm
-            border border-border-DEFAULT rounded-xl
+            border border-border-default rounded-xl
             shadow-2xl shadow-black/20
             overflow-hidden
           "
         >
           {/* Header with act info */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-border-DEFAULT bg-surface-3/50">
+          <div className="flex items-center justify-between px-4 py-2 border-b border-border-default bg-surface-3/50">
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium text-gold-400">
                 Act {currentAct}: {actInfo.title}
@@ -78,7 +78,7 @@ export function StepGuide() {
           </div>
 
           {/* Navigation */}
-          <div className="flex items-center justify-between px-4 py-3 border-t border-border-DEFAULT bg-surface-3/30">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border-default bg-surface-3/30">
             <button
               onClick={prevStep}
               disabled={isFirstStep}

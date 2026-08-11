@@ -89,8 +89,8 @@ export function NegotiationDemo() {
         </div>
 
         {/* Change List */}
-        <div className="overflow-hidden flex flex-col bg-surface-2 rounded-xl border border-border-DEFAULT">
-          <div className="px-4 py-3 border-b border-border-DEFAULT bg-surface-3/50">
+        <div className="overflow-hidden flex flex-col bg-surface-2 rounded-xl border border-border-default">
+          <div className="px-4 py-3 border-b border-border-default bg-surface-3/50">
             <h3 className="text-sm font-medium text-text-secondary">
               {changeSummary?.totalChanges ?? 0} Changes Detected
             </h3>
@@ -157,7 +157,7 @@ function VersionSelector({ value, onChange, min = 0, max = 2, label }: VersionSe
         onChange={(e) => onChange(parseInt(e.target.value, 10))}
         className="
           px-3 py-1.5 text-sm font-medium
-          bg-surface-3 border border-border-DEFAULT rounded-lg
+          bg-surface-3 border border-border-default rounded-lg
           text-text-primary
           focus:outline-none focus:ring-2 focus:ring-gold-600/50
         "

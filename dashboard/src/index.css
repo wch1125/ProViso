@@ -3,44 +3,214 @@
 @tailwind utilities;
 
 /* =============================================================================
-   INDUSTRY THEME CSS VARIABLES
-   Default values (Corporate steel gray theme) - overridden by IndustryThemeProvider
+   DESIGN TOKENS
+
+   Light is the default surface; dark is an opt-in toggle that swaps one class
+   on <html>. Everything below is defined twice — once here for light, once
+   under `.dark` — so no component needs to know which mode it is in.
+
+   TOKEN FORMAT: colour tokens hold SPACE-SEPARATED RGB CHANNELS ("245 246 248"),
+   not hex, and Tailwind consumes them as `rgb(var(--token) / <alpha-value>)`.
+   This is what keeps opacity modifiers working: Tailwind cannot compose an
+   alpha onto a var() that already holds a complete colour, so a hex token
+   would make `bg-surface-2/50` silently render at full opacity — and 62 such
+   modifiers are already in use.
+
+   Tokens that are inherently translucent (the `*-tint` steps, phase badges,
+   shadows) stay as complete colours; they are never used with a modifier.
    ============================================================================= */
 :root {
-  /* Page and layout backgrounds — v2.4 navy palette */
-  --industry-page-bg: #0A1628;
-  --industry-header-bg: #152238;
-  --industry-card-bg: #152238;
-  --industry-card-bg-hover: #1E2F47;
+  /* ==========================================================================
+     APP SURFACE / INK / RULE SCALES
 
-  /* Primary accent colors */
-  --industry-primary: #D4AF37;
-  --industry-primary-hover: #BF9B30;
-  --industry-primary-light: rgba(212, 175, 55, 0.15);
+     The bulk of the app paints from these rather than from the industry
+     tokens below (77 of 89 components), so these are what actually decide
+     whether the product reads light or dark.
+     ========================================================================== */
 
-  /* Secondary accent */
-  --industry-secondary: #9CA3AF;
+  /* Surfaces — page, card, elevated fill, hover, active */
+  --surface-0: 245 246 248;
+  --surface-1: 255 255 255;
+  --surface-2: 237 240 245;
+  --surface-3: 226 230 238;
+  --surface-4: 197 204 217;
 
-  /* Border colors */
-  --industry-border-default: #1E2F47;
-  --industry-border-strong: #2D4260;
+  /* Ink — a navy scale, not neutral grey, so the brand is in the text itself.
+     Every step clears WCAG AA (4.5:1) on both --surface-0 and --surface-1,
+     muted included: muted carries breadcrumbs and sub-labels, which are read,
+     not decorative. */
+  --text-primary: 10 22 40;      /* 16.9:1 on white */
+  --text-secondary: 45 63 95;    /*  9.9:1 */
+  --text-tertiary: 74 95 135;    /*  6.4:1 */
+  --text-muted: 91 110 146;      /*  5.1:1 */
 
-  /* Text colors */
-  --industry-text-primary: #F9FAFB;
-  --industry-text-secondary: #D1D5DB;
-  --industry-text-muted: #6B7280;
+  /* Rules */
+  --border-subtle: 237 240 245;
+  --border-default: 226 230 238;
+  --border-strong: 197 204 217;
 
-  /* Chart colors */
-  --industry-chart-1: #D4AF37;
-  --industry-chart-2: #06B6D4;
-  --industry-chart-3: #10B981;
-  --industry-chart-4: #F59E0B;
-  --industry-chart-5: #3B82F6;
+  /* Elevation. Dark-tuned shadows (black at 30–60%) turn to grey mud on a
+     light ground, so light uses tinted navy at low alpha instead. */
+  --shadow-sm: 0 1px 2px rgba(10, 22, 40, 0.06);
+  --shadow-md: 0 4px 6px rgba(10, 22, 40, 0.07), 0 1px 2px rgba(10, 22, 40, 0.04);
+  --shadow-lg: 0 10px 15px rgba(10, 22, 40, 0.08), 0 2px 4px rgba(10, 22, 40, 0.04);
+  --shadow-xl: 0 20px 25px rgba(10, 22, 40, 0.10), 0 4px 8px rgba(10, 22, 40, 0.04);
+
+  /* ==========================================================================
+     SEMANTIC STATUS + VISUALISATION TOKENS
+
+     Layered over the brand palette so meaning is separable from branding:
+       - amber is reserved strictly for caution; nothing decorative may use it
+       - gold is BRAND ONLY (primary CTA and small accents), never a status
+       - charts draw from --viz-cat-*, a categorical set chosen for colourblind
+         separation and contrast against the chart surface
+
+     Each mode's set was selected against its own surface rather than derived
+     by inverting the other: the lightness band that passes contrast differs
+     between a white ground and a navy one, so a naive flip fails.
+     ========================================================================== */
+
+  /* Status — always paired with an icon and a label, never colour alone.
+     These double as the success/warning/danger/info scales, so they are
+     picked to clear AA as TEXT on white, not merely as fills: the dark-mode
+     steps (#10B981, #F59E0B) sit at 2.5:1 and 2.1:1 on a light ground. */
+  --status-safe: 4 120 87;          /* 5.5:1 on white */
+  --status-safe-tint: rgba(4, 120, 87, 0.10);
+  --status-caution: 180 83 9;       /* 5.0:1 */
+  --status-caution-tint: rgba(180, 83, 9, 0.10);
+  /* Compliant, but sitting on the line with no cushion left. Distinct from
+     breach: the covenant is met. Escalates amber -> orange -> red. */
+  --status-attention: 194 65 12;    /* 5.2:1 */
+  --status-attention-tint: rgba(194, 65, 12, 0.12);
+  --status-breach: 220 38 38;       /* 4.9:1 */
+  --status-breach-tint: rgba(220, 38, 38, 0.09);
+  --status-info: 14 116 144;        /* 5.4:1 */
+  --status-info-tint: rgba(14, 116, 144, 0.10);
+
+  /* Brand — CTA and accents only. Never a status, never a chart series.
+     Gold is darkened on light surfaces; #D4AF37 on white is 1.9:1. */
+  --brand-gold: 139 112 40;
+  --brand-gold-hover: 111 90 32;
+  --brand-gold-tint: rgba(139, 112, 40, 0.14);
+
+  /* Categorical chart series, assigned in fixed order and never cycled. */
+  --viz-cat-1: 37 99 235;
+  --viz-cat-2: 13 148 136;
+  --viz-cat-3: 124 58 237;
+  --viz-cat-4: 8 145 178;
+  --viz-cat-5: 67 56 202;
+
+  /* ==========================================================================
+     INDUSTRY THEME VARIABLES
+     Defaults matching the corporate theme; IndustryThemeProvider overwrites
+     these with inline values for the active deal's industry and mode.
+     ========================================================================== */
+  --industry-page-bg: 245 246 248;
+  --industry-header-bg: 255 255 255;
+  --industry-card-bg: 255 255 255;
+  --industry-card-bg-hover: 250 251 252;
+
+  --industry-primary: 30 58 95;
+  --industry-primary-hover: 21 43 71;
+  --industry-primary-light: rgba(30, 58, 95, 0.10);
+
+  --industry-secondary: 80 104 148;
+
+  --industry-border-default: 226 230 238;
+  --industry-border-strong: 197 204 217;
+
+  --industry-text-primary: 10 22 40;
+  --industry-text-secondary: 45 63 95;
+  --industry-text-muted: 91 110 146;
+
+  /* Mirrors --viz-cat-* for the active mode: a cash cascade must never read
+     as a row of warnings, so no gold and no amber here. */
+  --industry-chart-1: 37 99 235;
+  --industry-chart-2: 13 148 136;
+  --industry-chart-3: 124 58 237;
+  --industry-chart-4: 8 145 178;
+  --industry-chart-5: 67 56 202;
 
   /* Phase-aware styling (default to construction) */
-  --phase-accent: #3b82f6;
-  --phase-badge-bg: rgba(59, 130, 246, 0.1);
-  --phase-badge-text: #60a5fa;
+  --phase-accent: #2563EB;
+  --phase-badge-bg: rgba(37, 99, 235, 0.10);
+  --phase-badge-text: #1D4ED8;
+}
+
+/* =============================================================================
+   DARK MODE
+
+   Set by ThemeModeProvider toggling `.dark` on <html>. Lighter status and
+   chart steps are required for contrast against a dark ground — this is a
+   selected palette, not an inversion of the light one.
+   ============================================================================= */
+.dark {
+  --surface-0: 10 22 40;
+  --surface-1: 21 34 56;
+  --surface-2: 30 47 71;
+  --surface-3: 45 66 96;
+  --surface-4: 58 85 120;
+
+  --text-primary: 249 250 251;
+  --text-secondary: 209 213 219;
+  --text-tertiary: 156 163 175;
+  --text-muted: 107 114 128;
+
+  --border-subtle: 21 34 56;
+  --border-default: 30 47 71;
+  --border-strong: 45 66 96;
+
+  /* Depth on a dark ground comes from black, and needs more of it */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.40);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.50);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.60);
+
+  --status-safe: 16 185 129;
+  --status-safe-tint: rgba(16, 185, 129, 0.12);
+  --status-caution: 245 158 11;
+  --status-caution-tint: rgba(245, 158, 11, 0.12);
+  --status-attention: 249 115 22;
+  --status-attention-tint: rgba(249, 115, 22, 0.14);
+  --status-breach: 239 68 68;
+  --status-breach-tint: rgba(239, 68, 68, 0.12);
+  --status-info: 6 182 212;
+  --status-info-tint: rgba(6, 182, 212, 0.12);
+
+  --brand-gold: 212 175 55;
+  --brand-gold-hover: 191 155 48;
+  --brand-gold-tint: rgba(212, 175, 55, 0.16);
+
+  --viz-cat-1: 59 130 246;
+  --viz-cat-2: 13 148 136;
+  --viz-cat-3: 139 92 246;
+  --viz-cat-4: 8 145 178;
+  --viz-cat-5: 99 102 241;
+
+  /* Industry defaults for the paint before IndustryThemeProvider mounts.
+     Kept in step with corporateTheme.dark in themes/industry-themes.ts. */
+  --industry-page-bg: 10 22 40;
+  --industry-header-bg: 21 34 56;
+  --industry-card-bg: 21 34 56;
+  --industry-card-bg-hover: 30 47 71;
+  --industry-primary: 96 132 188;
+  --industry-primary-hover: 130 162 210;
+  --industry-primary-light: rgba(96, 132, 188, 0.14);
+  --industry-secondary: 119 137 171;
+  --industry-border-default: 30 47 71;
+  --industry-border-strong: 45 66 96;
+  --industry-text-primary: 249 250 251;
+  --industry-text-secondary: 209 213 219;
+  --industry-text-muted: 156 163 175;
+  --industry-chart-1: 59 130 246;
+  --industry-chart-2: 13 148 136;
+  --industry-chart-3: 139 92 246;
+  --industry-chart-4: 8 145 178;
+  --industry-chart-5: 99 102 241;
+
+  --phase-accent: #60A5FA;
+  --phase-badge-bg: rgba(96, 165, 250, 0.12);
+  --phase-badge-text: #93C5FD;
 }
 
 /* Phase-specific color overrides */
@@ -109,7 +279,7 @@
 
   /* Premium card styles (v2.3) */
   .card-premium {
-    @apply bg-surface-1 border border-border-DEFAULT rounded-xl;
+    @apply bg-surface-1 border border-border-default rounded-xl;
     @apply shadow-sm hover:shadow-elevation-2;
     @apply transition-all duration-200;
   }
@@ -136,7 +306,7 @@
   }
 
   .status-badge-suspended {
-    @apply bg-gray-500/10 text-gray-400 ring-1 ring-gray-500/20;
+    @apply bg-text-muted/10 text-text-muted ring-1 ring-text-muted/20;
   }
 
   .status-badge-pending {
@@ -145,16 +315,17 @@
 
   /* Metrics */
   .metric-value {
-    @apply text-2xl font-semibold text-white tabular-nums;
+    @apply text-2xl font-semibold text-text-primary tabular-nums;
   }
 
   .metric-label {
-    @apply text-sm text-gray-400;
+    @apply text-sm text-text-tertiary;
   }
 
-  /* Progress bars */
+  /* Progress bars. The track is a surface step, not the header colour —
+     header is white in light mode, which left the track invisible. */
   .progress-bar {
-    @apply h-2 bg-industry-headerBg rounded-full overflow-hidden;
+    @apply h-2 bg-surface-2 rounded-full overflow-hidden;
   }
 
   .progress-bar-fill {
@@ -184,8 +355,8 @@
   }
 
   .btn-ghost {
-    @apply bg-transparent border border-border-DEFAULT;
-    @apply hover:border-border-strong hover:bg-white/5;
+    @apply bg-transparent border border-border-default;
+    @apply hover:border-border-strong hover:bg-surface-2;
     @apply text-text-secondary hover:text-text-primary;
     @apply px-4 py-2 rounded-md;
     @apply transition-all duration-200;

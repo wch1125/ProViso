@@ -46,7 +46,7 @@ function ReserveCard({ reserve }: ReserveCardProps) {
   const displayName = name.replace(/([A-Z])/g, ' $1').trim();
 
   return (
-    <div className="p-4 rounded-lg bg-surface-1 border border-border-DEFAULT">
+    <div className="p-4 rounded-lg bg-surface-1 border border-border-default">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className={`p-2 rounded-lg ${
@@ -142,7 +142,7 @@ function ReserveCard({ reserve }: ReserveCardProps) {
 
       {/* Available for Release */}
       {balance > minimum && (
-        <div className="mt-3 pt-3 border-t border-border-DEFAULT/50">
+        <div className="mt-3 pt-3 border-t border-border-default/50">
           <div className="flex items-center justify-between">
             <span className="text-xs text-text-muted">Available for Release</span>
             <span className="text-sm font-medium text-success">

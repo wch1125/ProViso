@@ -195,7 +195,7 @@ export function DealPageSidebar({
 }) {
   return (
     <aside
-      className="hidden md:block md:w-64 shrink-0 min-h-[calc(100vh-152px)] bg-surface-1 border-r border-border-DEFAULT p-4"
+      className="hidden md:block md:w-64 shrink-0 min-h-[calc(100vh-152px)] bg-surface-1 border-r border-border-default p-4"
     >
       {children}
     </aside>

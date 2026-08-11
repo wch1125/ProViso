@@ -83,9 +83,9 @@ export function InteractiveTerminal() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-surface-1 rounded-xl border border-border-DEFAULT overflow-hidden">
+    <div className="flex flex-col h-full bg-surface-1 rounded-xl border border-border-default overflow-hidden">
       {/* Terminal Header */}
-      <div className="flex items-center gap-2 px-4 py-2 bg-surface-2 border-b border-border-DEFAULT">
+      <div className="flex items-center gap-2 px-4 py-2 bg-surface-2 border-b border-border-default">
         <TerminalIcon className="w-4 h-4 text-gold-400" />
         <span className="text-sm font-medium text-text-secondary">ProViso Terminal</span>
         {isLoading && (
@@ -114,7 +114,7 @@ export function InteractiveTerminal() {
       </div>
 
       {/* Command Input */}
-      <div className="border-t border-border-DEFAULT">
+      <div className="border-t border-border-default">
         <form onSubmit={handleSubmit} className="flex items-center gap-2 px-4 py-3">
           <span className="text-gold-400 font-mono select-none">$</span>
           <input

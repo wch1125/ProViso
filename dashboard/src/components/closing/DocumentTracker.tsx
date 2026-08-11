@@ -181,14 +181,14 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
       <div className="space-y-6">
         {Object.entries(groupedDocs).map(([type, docs]) => (
           <div key={type}>
-            <h4 className="text-[11px] font-semibold text-text-tertiary mb-3 uppercase tracking-[1.5px] pb-3 border-b-2 border-border-DEFAULT">
+            <h4 className="text-[11px] font-semibold text-text-tertiary mb-3 uppercase tracking-[1.5px] pb-3 border-b-2 border-border-default">
               {documentTypeLabels[type] || type}
             </h4>
             <div className="space-y-3">
               {docs.map((doc) => (
                 <div
                   key={doc.id}
-                  className="bg-surface-1 border border-border-DEFAULT rounded-lg overflow-hidden hover:border-border-strong transition-colors"
+                  className="bg-surface-1 border border-border-default rounded-lg overflow-hidden hover:border-border-strong transition-colors"
                 >
                   {/* Document Row */}
                   <div
@@ -253,7 +253,7 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
 
                   {/* Expanded Details */}
                   {expandedDoc === doc.id && (
-                    <div className="px-5 pb-5 bg-surface-2/50 border-t border-border-DEFAULT">
+                    <div className="px-5 pb-5 bg-surface-2/50 border-t border-border-default">
                       {doc.signatures.length > 0 && (
                         <div className="mt-4">
                           <h6 className="text-xs text-text-tertiary uppercase tracking-wider mb-2">
@@ -270,7 +270,7 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
                                     ? 'border-warning/30 bg-warning/10'
                                     : sig.status === 'declined'
                                     ? 'border-danger/30 bg-danger/10'
-                                    : 'border-border-DEFAULT bg-surface-1'
+                                    : 'border-border-default bg-surface-1'
                                 }`}
                               >
                                 <div className="flex items-center gap-2">
@@ -333,7 +333,7 @@ export function DocumentTracker({ documents, onUpload }: DocumentTrackerProps) {
       >
         {selectedDocument && (
           <div className="space-y-4">
-            <div className="bg-surface-2 rounded-lg p-4 border border-border-DEFAULT">
+            <div className="bg-surface-2 rounded-lg p-4 border border-border-default">
               <p className="text-sm text-text-tertiary">Uploading for:</p>
               <p className="text-text-primary font-medium mt-1">{selectedDocument.title}</p>
             </div>

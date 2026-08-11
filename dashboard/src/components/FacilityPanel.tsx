@@ -117,7 +117,7 @@ function FacilityCard({ facility }: { facility: FacilityData }) {
       </div>
 
       {/* Facility totals */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border-DEFAULT">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border-default">
         <Metric label="Undrawn" value={formatCurrency(facility.totalUndrawn)} />
         <Metric label="Annual interest" value={formatCurrency(facility.annualInterest)} />
         <Metric label="Fees" value={formatCurrency(facility.fees)} />
@@ -129,7 +129,7 @@ function FacilityCard({ facility }: { facility: FacilityData }) {
 
 function PricingGridRow({ grid }: { grid: PricingGridData }) {
   return (
-    <div className="flex items-center justify-between p-2.5 rounded-lg bg-surface-2 border border-border-DEFAULT">
+    <div className="flex items-center justify-between p-2.5 rounded-lg bg-surface-2 border border-border-default">
       <div className="flex items-center gap-2 min-w-0">
         <TrendingDown className="w-4 h-4 text-gold-500 shrink-0" />
         <div className="min-w-0">
@@ -157,7 +157,7 @@ function TrancheRow({ tranche }: { tranche: TrancheData }) {
   const isRevolver = tranche.availability !== null;
 
   return (
-    <div className="p-3 rounded-lg bg-surface-1 border border-border-DEFAULT">
+    <div className="p-3 rounded-lg bg-surface-1 border border-border-default">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -189,7 +189,7 @@ function TrancheRow({ tranche }: { tranche: TrancheData }) {
 
       {/* Revolver availability, net of letters of credit */}
       {isRevolver && (
-        <div className="mt-2.5 pt-2.5 border-t border-border-DEFAULT flex items-center justify-between text-xs">
+        <div className="mt-2.5 pt-2.5 border-t border-border-default flex items-center justify-between text-xs">
           <span className="text-text-muted">
             Available {formatCurrency(tranche.availability ?? 0)}
             {tranche.lcOutstanding > 0 &&

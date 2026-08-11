@@ -383,7 +383,7 @@ export function AmendmentOverlay({
               {directives.map((dir) => (
                 <div
                   key={dir.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-border-DEFAULT bg-surface-1"
+                  className="flex items-center justify-between p-3 rounded-lg border border-border-default bg-surface-1"
                 >
                   <div className="flex items-center gap-3">
                     <Badge
@@ -421,7 +421,7 @@ export function AmendmentOverlay({
         )}
 
         {/* Add Directive Form */}
-        <div className="rounded-lg border border-border-DEFAULT bg-surface-1 p-4">
+        <div className="rounded-lg border border-border-default bg-surface-1 p-4">
           <h4 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
             <Plus className="w-4 h-4 text-text-muted" />
             Add Directive
@@ -511,8 +511,8 @@ export function AmendmentOverlay({
             </TabPanel>
 
             <TabPanel id="code">
-              <div className="rounded-lg border border-border-DEFAULT bg-surface-2 overflow-hidden">
-                <div className="px-4 py-2 bg-surface-3 border-b border-border-DEFAULT flex items-center justify-between">
+              <div className="rounded-lg border border-border-default bg-surface-2 overflow-hidden">
+                <div className="px-4 py-2 bg-surface-3 border-b border-border-default flex items-center justify-between">
                   <span className="text-sm text-text-tertiary">
                     Amendment {amendmentNumber} — ProViso syntax
                   </span>
@@ -553,7 +553,7 @@ export function AmendmentOverlay({
                 <div className="space-y-4">
                   {/* Summary Stats */}
                   <div className="grid grid-cols-4 gap-3">
-                    <div className="rounded-lg bg-surface-1 border border-border-DEFAULT p-3 text-center">
+                    <div className="rounded-lg bg-surface-1 border border-border-default p-3 text-center">
                       <p className="text-2xl font-bold text-text-primary">{changeSummary.totalChanges}</p>
                       <p className="text-xs text-text-muted">Total Changes</p>
                     </div>
@@ -565,7 +565,7 @@ export function AmendmentOverlay({
                       <p className="text-2xl font-bold text-danger">{changeSummary.lenderFavorable}</p>
                       <p className="text-xs text-text-muted">Lender Fav.</p>
                     </div>
-                    <div className="rounded-lg bg-surface-1 border border-border-DEFAULT p-3 text-center">
+                    <div className="rounded-lg bg-surface-1 border border-border-default p-3 text-center">
                       <p className="text-2xl font-bold text-text-tertiary">{changeSummary.neutral}</p>
                       <p className="text-xs text-text-muted">Neutral</p>
                     </div>
@@ -625,7 +625,7 @@ export function AmendmentOverlay({
 
         {/* Actions */}
         {directives.length > 0 && (
-          <div className="flex items-center justify-between pt-2 border-t border-border-DEFAULT">
+          <div className="flex items-center justify-between pt-2 border-t border-border-default">
             <p className="text-xs text-text-muted">
               {directives.length} directive{directives.length !== 1 ? 's' : ''} in this amendment
             </p>

@@ -172,15 +172,15 @@ export function ScenarioSimulator({
   }));
 
   return (
-    <div className={`bg-surface-1 rounded-lg border border-border-DEFAULT ${className}`}>
+    <div className={`bg-surface-1 rounded-lg border border-border-default ${className}`}>
       {/* Header */}
-      <div className="p-6 border-b border-border-DEFAULT">
+      <div className="p-6 border-b border-border-default">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-purple-500/10 rounded-lg">
             <Calculator className="h-5 w-5 text-purple-400" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white">Scenario Simulator</h3>
+            <h3 className="text-lg font-semibold text-text-primary">Scenario Simulator</h3>
             <p className="text-sm text-text-tertiary">
               Test "what if" scenarios on covenant compliance
             </p>
@@ -189,7 +189,7 @@ export function ScenarioSimulator({
       </div>
 
       {/* Adjustments */}
-      <div className="p-6 border-b border-border-DEFAULT">
+      <div className="p-6 border-b border-border-default">
         <h4 className="text-sm font-medium text-text-tertiary mb-4">Adjustments</h4>
         <div className="space-y-3">
           {adjustments.map((adj, index) => (
@@ -287,7 +287,7 @@ export function ScenarioSimulator({
               return (
                 <div key={field.key} className="bg-surface-2/50 rounded-lg p-3">
                   <div className="text-xs text-text-tertiary mb-1">{field.label}</div>
-                  <div className="text-white font-medium">{formatCurrency(adjusted)}</div>
+                  <div className="text-text-primary font-medium">{formatCurrency(adjusted)}</div>
                   {change !== 0 && (
                     <div className={`text-xs ${change > 0 ? 'text-success' : 'text-danger'}`}>
                       {change > 0 ? '+' : ''}{changePercent.toFixed(1)}%
@@ -323,7 +323,7 @@ export function ScenarioSimulator({
                         <Minus className="h-4 w-4 text-text-tertiary" />
                       )}
                       <div>
-                        <div className="text-white font-medium">{c.name}</div>
+                        <div className="text-text-primary font-medium">{c.name}</div>
                         <div className="text-sm text-text-tertiary">
                           Threshold: {c.threshold.toFixed(2)}x
                         </div>

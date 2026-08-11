@@ -163,7 +163,7 @@ export function ConnectedComplianceTrendChart({
   // Loading/not found states
   if (!isLoaded) {
     return (
-      <div className={`bg-surface-1 rounded-lg border border-border-DEFAULT p-6 ${className}`}>
+      <div className={`bg-surface-1 rounded-lg border border-border-default p-6 ${className}`}>
         <div className="text-center text-text-tertiary py-8">
           Loading covenant data...
         </div>
@@ -173,7 +173,7 @@ export function ConnectedComplianceTrendChart({
 
   if (!covenant) {
     return (
-      <div className={`bg-surface-1 rounded-lg border border-border-DEFAULT p-6 ${className}`}>
+      <div className={`bg-surface-1 rounded-lg border border-border-default p-6 ${className}`}>
         <div className="text-center text-text-tertiary py-8">
           Covenant "{covenantName}" not found
         </div>
@@ -229,14 +229,14 @@ export function ComplianceTrendPanel({
   if (!isLoaded) {
     return (
       <div className={`space-y-6 ${className}`}>
-        <div className="bg-surface-1 rounded-lg border border-border-DEFAULT p-6 h-80 animate-pulse" />
+        <div className="bg-surface-1 rounded-lg border border-border-default p-6 h-80 animate-pulse" />
       </div>
     );
   }
 
   if (names.length === 0) {
     return (
-      <div className={`bg-surface-1 rounded-lg border border-border-DEFAULT p-6 ${className}`}>
+      <div className={`bg-surface-1 rounded-lg border border-border-default p-6 ${className}`}>
         <div className="text-center text-text-tertiary py-8">
           No covenants available for trend display
         </div>

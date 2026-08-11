@@ -57,14 +57,14 @@ export function ComplianceTrendChart({
     : recentTrend > 0 ? 'improving' : recentTrend < 0 ? 'worsening' : 'stable';
 
   return (
-    <div className={`bg-surface-1 rounded-lg border border-border-DEFAULT p-6 ${className}`}>
+    <div className={`bg-surface-1 rounded-lg border border-border-default p-6 ${className}`}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-teal-500/10 rounded-lg">
             <TrendingUp className="h-5 w-5 text-teal-500" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white">{covenantName}</h3>
+            <h3 className="text-lg font-semibold text-text-primary">{covenantName}</h3>
             <p className="text-sm text-text-tertiary">
               Threshold: {operator} {threshold.toFixed(2)}x
             </p>

@@ -423,7 +423,7 @@ export function WaiverRequestPortal({
                   {copied ? 'Copied' : 'Copy'}
                 </Button>
               </div>
-              <div className="rounded-lg border border-border-DEFAULT bg-surface-2 overflow-hidden">
+              <div className="rounded-lg border border-border-default bg-surface-2 overflow-hidden">
                 <pre className="p-4 text-sm text-text-secondary overflow-auto max-h-[200px] whitespace-pre-wrap font-serif leading-relaxed">
                   {narrative}
                 </pre>
@@ -435,7 +435,7 @@ export function WaiverRequestPortal({
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-between pt-2 border-t border-border-DEFAULT">
+            <div className="flex items-center justify-between pt-2 border-t border-border-default">
               <div className="flex items-center gap-2 text-xs text-text-muted">
                 <MessageSquare className="w-3 h-3" />
                 <span>

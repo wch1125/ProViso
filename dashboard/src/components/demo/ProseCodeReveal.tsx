@@ -35,11 +35,11 @@ export function ProseCodeReveal() {
             flex flex-col rounded-xl border overflow-hidden transition-all duration-500
             ${currentStep === 2
               ? 'border-gold-600/50 bg-surface-2'
-              : 'border-border-DEFAULT bg-surface-2/50'
+              : 'border-border-default bg-surface-2/50'
             }
           `}
         >
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-border-DEFAULT bg-surface-3/50">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-border-default bg-surface-3/50">
             <FileText className="w-4 h-4 text-gold-400" />
             <span className="text-sm font-medium text-text-secondary">Legal Document</span>
             <span className="text-xs text-text-muted ml-auto">.docx</span>
@@ -57,11 +57,11 @@ export function ProseCodeReveal() {
             flex flex-col rounded-xl border overflow-hidden transition-all duration-500
             ${currentStep === 3
               ? 'border-gold-600/50 bg-surface-2'
-              : 'border-border-DEFAULT bg-surface-2/50'
+              : 'border-border-default bg-surface-2/50'
             }
           `}
         >
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-border-DEFAULT bg-surface-3/50">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-border-default bg-surface-3/50">
             <Code className="w-4 h-4 text-gold-400" />
             <span className="text-sm font-medium text-text-secondary">ProViso Code</span>
             <span className="text-xs text-text-muted ml-auto">.proviso</span>

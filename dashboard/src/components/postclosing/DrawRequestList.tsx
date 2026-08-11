@@ -90,16 +90,16 @@ export function DrawRequestList({
   ).length;
 
   return (
-    <div className={`bg-surface-1 rounded-lg border border-border-DEFAULT ${className}`}>
+    <div className={`bg-surface-1 rounded-lg border border-border-default ${className}`}>
       {/* Header */}
-      <div className="p-6 border-b border-border-DEFAULT">
+      <div className="p-6 border-b border-border-default">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gold-500/10 rounded-lg">
               <Banknote className="h-5 w-5 text-gold-500" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">Draw Requests</h3>
+              <h3 className="text-lg font-semibold text-text-primary">Draw Requests</h3>
               <p className="text-sm text-text-tertiary">
                 {requests.length} request{requests.length !== 1 ? 's' : ''} total
               </p>
@@ -108,7 +108,7 @@ export function DrawRequestList({
           <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
             <div>
               <div className="text-sm text-text-tertiary">Requested</div>
-              <div className="text-lg font-semibold text-white">{formatCurrency(totalRequested)}</div>
+              <div className="text-lg font-semibold text-text-primary">{formatCurrency(totalRequested)}</div>
             </div>
             <div>
               <div className="text-sm text-text-tertiary">Funded</div>
@@ -123,7 +123,7 @@ export function DrawRequestList({
       </div>
 
       {/* Request List */}
-      <div className="divide-y divide-border-DEFAULT">
+      <div className="divide-y divide-border-default">
         {requests.length === 0 ? (
           <div className="p-8 text-center text-text-tertiary">
             No draw requests yet
@@ -146,7 +146,7 @@ export function DrawRequestList({
                     {getStatusIcon(request.status)}
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-white font-medium">
+                        <span className="text-text-primary font-medium">
                           Draw #{request.drawNumber}
                         </span>
                         <Badge variant={statusConfig.variant} size="sm">
@@ -161,7 +161,7 @@ export function DrawRequestList({
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-white font-medium">
+                    <div className="text-text-primary font-medium">
                       {formatCurrency(request.requestedAmount)}
                     </div>
                     {request.fundedAmount && request.fundedAmount !== request.requestedAmount && (

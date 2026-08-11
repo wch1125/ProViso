@@ -118,7 +118,7 @@ function FieldGroupSection({
   onToggle: () => void;
 }) {
   return (
-    <div className="border border-border-DEFAULT rounded-lg overflow-hidden">
+    <div className="border border-border-default rounded-lg overflow-hidden">
       {/* Group header */}
       <button
         onClick={onToggle}
@@ -228,7 +228,7 @@ export function FinancialDataEditor({
   return (
     <div className={`bg-surface-0/50 border border-surface-2 rounded-xl ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border-DEFAULT">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border-default">
         <div>
           <h3 className="text-lg font-semibold text-text-primary">Financial Data</h3>
           <p className="text-sm text-text-tertiary">
@@ -268,7 +268,7 @@ export function FinancialDataEditor({
       </div>
 
       {/* Footer with actions */}
-      <div className="flex items-center justify-between px-5 py-4 border-t border-border-DEFAULT bg-surface-2/30">
+      <div className="flex items-center justify-between px-5 py-4 border-t border-border-default bg-surface-2/30">
         <div className="text-sm text-text-tertiary">
           {hasChanges ? (
             <span className="text-warning">Unsaved changes</span>
@@ -327,7 +327,7 @@ export function FinancialDataQuickEdit({
             type="number"
             value={financials[field.key]?.toString() ?? '0'}
             onChange={(e) => updateFinancial(field.key, parseCurrencyInput(e.target.value))}
-            className="w-24 px-2 py-1 text-xs bg-surface-2 border border-border-DEFAULT rounded text-text-primary focus:outline-none focus:border-gold-500"
+            className="w-24 px-2 py-1 text-xs bg-surface-2 border border-border-default rounded text-text-primary focus:outline-none focus:border-gold-500"
           />
         </div>
       ))}

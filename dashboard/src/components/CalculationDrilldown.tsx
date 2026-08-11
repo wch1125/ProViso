@@ -82,7 +82,7 @@ function TreeNode({ node, depth, onShowCode }: TreeNodeProps) {
   return (
     <div className="font-mono text-sm">
       <div
-        className={`flex items-start gap-2 py-1.5 px-2 rounded hover:bg-slate-800/50 ${
+        className={`flex items-start gap-2 py-1.5 px-2 rounded hover:bg-surface-2/50 ${
           hasChildren ? 'cursor-pointer' : ''
         }`}
         onClick={() => hasChildren && setExpanded(!expanded)}
@@ -91,8 +91,8 @@ function TreeNode({ node, depth, onShowCode }: TreeNodeProps) {
         <div className="w-4 flex-shrink-0">
           {hasChildren && (
             expanded
-              ? <ChevronDown className="w-4 h-4 text-gray-500" />
-              : <ChevronRight className="w-4 h-4 text-gray-500" />
+              ? <ChevronDown className="w-4 h-4 text-text-muted" />
+              : <ChevronRight className="w-4 h-4 text-text-muted" />
           )}
         </div>
 
@@ -103,7 +103,7 @@ function TreeNode({ node, depth, onShowCode }: TreeNodeProps) {
         <div className="flex-1 min-w-0">
           <span className="text-gray-200">{node.name}</span>
           {node.formula && (
-            <span className="text-gray-500 ml-2">= {node.formula}</span>
+            <span className="text-text-muted ml-2">= {node.formula}</span>
           )}
         </div>
 
@@ -113,7 +113,7 @@ function TreeNode({ node, depth, onShowCode }: TreeNodeProps) {
             {formatValue(node.value, node.valueType)}
           </span>
           {node.source === 'financial_data' && node.rawDataKey && (
-            <span className="text-xs text-gray-500 px-1.5 py-0.5 bg-slate-800 rounded">
+            <span className="text-xs text-text-muted px-1.5 py-0.5 bg-surface-2 rounded">
               data
             </span>
           )}
@@ -133,7 +133,7 @@ function TreeNode({ node, depth, onShowCode }: TreeNodeProps) {
 
       {/* Children */}
       {hasChildren && expanded && (
-        <div className="ml-6 border-l border-slate-700 pl-2">
+        <div className="ml-6 border-l border-border-default pl-2">
           {node.children!.map((child, i) => (
             <TreeNode
               key={`${child.name}-${i}`}
@@ -184,38 +184,38 @@ export function CalculationDrilldown({
                 <Calculator className="w-5 h-5 text-blue-400" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-lg font-semibold text-text-primary">
                   {title ?? 'Calculation Details'}
                 </h3>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-text-tertiary">
                   {rootNode.name}: {formatValue(rootNode.value, rootNode.valueType)}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+              className="p-2 hover:bg-surface-3 rounded-lg transition-colors"
             >
-              <X className="w-5 h-5 text-gray-400" />
+              <X className="w-5 h-5 text-text-tertiary" />
             </button>
           </div>
 
           {/* Formula display */}
           {rootNode.formula && (
-            <div className="mb-4 p-3 bg-slate-900 rounded-lg border border-slate-700">
-              <div className="text-xs text-gray-500 mb-1">Formula</div>
-              <div className="font-mono text-white">
+            <div className="mb-4 p-3 bg-surface-2 rounded-lg border border-border-default">
+              <div className="text-xs text-text-muted mb-1">Formula</div>
+              <div className="font-mono text-text-primary">
                 {rootNode.name} = {rootNode.formula}
               </div>
-              <div className="font-mono text-gray-400 mt-1">
+              <div className="font-mono text-text-tertiary mt-1">
                 = {formatValue(rootNode.value, rootNode.valueType)}
               </div>
             </div>
           )}
 
           {/* Calculation tree */}
-          <div className="bg-slate-900 rounded-lg border border-slate-700 p-3 max-h-96 overflow-y-auto">
-            <div className="text-xs text-gray-500 mb-2">Breakdown</div>
+          <div className="bg-surface-2 rounded-lg border border-border-default p-3 max-h-96 overflow-y-auto">
+            <div className="text-xs text-text-muted mb-2">Breakdown</div>
             <TreeNode node={rootNode} depth={0} onShowCode={handleShowCode} />
           </div>
 
@@ -223,19 +223,19 @@ export function CalculationDrilldown({
           <div className="mt-4 flex flex-wrap gap-4 text-xs">
             <div className="flex items-center gap-1.5">
               <Calculator className="w-3.5 h-3.5 text-purple-400" />
-              <span className="text-gray-400">Definition</span>
+              <span className="text-text-tertiary">Definition</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Database className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-gray-400">Financial Data</span>
+              <span className="text-text-tertiary">Financial Data</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Hash className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-gray-400">Constant</span>
+              <span className="text-text-tertiary">Constant</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Code className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-gray-400">View Code</span>
+              <Code className="w-3.5 h-3.5 text-text-tertiary" />
+              <span className="text-text-tertiary">View Code</span>
             </div>
           </div>
         </div>
@@ -330,7 +330,7 @@ export function ValueWithDrilldown({
         {calculationNode && (
           <button
             onClick={() => setShowDrilldown(true)}
-            className="p-0.5 text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
+            className="p-0.5 text-text-muted hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
             title="See calculation breakdown"
           >
             <Calculator className="w-3.5 h-3.5" />

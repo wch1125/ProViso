@@ -11,7 +11,12 @@ import { parseOrThrow } from '../src/parser.js';
 import { ProVisoInterpreter } from '../src/interpreter.js';
 import { executeCommand } from '../dashboard/src/utils/commandRunner.js';
 import { generateComplianceReport } from '../dashboard/src/utils/complianceExport.js';
-import { getThresholdZone } from '../dashboard/src/utils/thresholds.js';
+import {
+  getThresholdZone,
+  getZonePresentation,
+  generateAlerts,
+} from '../dashboard/src/utils/thresholds.js';
+import { COVENANT_STATUS_PRIORITY } from '../dashboard/src/types/index.js';
 import type { DashboardData, CovenantData, ReserveData } from '../dashboard/src/types/index.js';
 
 // =============================================================================
@@ -322,5 +327,105 @@ describe('Threshold zones — strict operators', () => {
 
   it('should still report a comfortable covenant as safe', () => {
     expect(getThresholdZone(2.0, 4.5, '<=')).toBe('safe');
+  });
+});
+
+// =============================================================================
+// AT-THE-LINE ZONE
+//
+// A covenant sitting exactly on its threshold under an inclusive operator is
+// compliant with zero cushion. It used to wear breach-red while the panel
+// header said "3/3 passing" — a contradiction on the same card.
+// =============================================================================
+
+describe('Threshold zones — at the line', () => {
+  it('should report a max covenant exactly at its ceiling as at_the_line', () => {
+    expect(getThresholdZone(4.5, 4.5, '<=')).toBe('at_the_line');
+  });
+
+  it('should report a min covenant exactly at its floor as at_the_line', () => {
+    expect(getThresholdZone(1.25, 1.25, '>=')).toBe('at_the_line');
+  });
+
+  it('should keep at_the_line distinct from both breach and danger', () => {
+    const atLine = getThresholdZone(4.5, 4.5, '<=');
+    expect(atLine).not.toBe('breach');
+    expect(atLine).not.toBe('danger');
+  });
+
+  it('should still report just-inside-the-line as danger, not at_the_line', () => {
+    expect(getThresholdZone(4.45, 4.5, '<=')).toBe('danger');
+  });
+
+  it('should carry a label so the state never rests on colour alone', () => {
+    expect(getZonePresentation('at_the_line').label).toMatch(/headroom/i);
+  });
+
+  it('should give every zone a non-empty label', () => {
+    const zones = ['safe', 'caution', 'danger', 'at_the_line', 'breach'] as const;
+    for (const zone of zones) {
+      expect(getZonePresentation(zone).label.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('should not dress at_the_line in the breach token', () => {
+    expect(getZonePresentation('at_the_line').textClass).not.toEqual(
+      getZonePresentation('breach').textClass
+    );
+  });
+});
+
+describe('Alerts — at-the-line covenants', () => {
+  const atLineCovenant = [
+    { name: 'MinEquityContribution', actual: 1.0, required: 1.0, operator: '>=' as const },
+  ];
+
+  it('should raise an alert rather than passing over it silently', () => {
+    const summary = generateAlerts(atLineCovenant);
+    expect(summary.hasAlerts).toBe(true);
+    expect(summary.atTheLineCount).toBe(1);
+  });
+
+  it('should give the alert a real message', () => {
+    const [alert] = generateAlerts(atLineCovenant).alerts;
+    expect(alert?.message.length).toBeGreaterThan(0);
+    expect(alert?.message).toMatch(/headroom/i);
+  });
+
+  it('should not count it as a breach', () => {
+    expect(generateAlerts(atLineCovenant).breachCount).toBe(0);
+  });
+
+  it('should rank it above a merely-approaching covenant', () => {
+    const summary = generateAlerts([
+      { name: 'Approaching', actual: 3.7, required: 4.5, operator: '<=' as const },
+      ...atLineCovenant,
+    ]);
+    expect(summary.alerts[0]?.name).toBe('MinEquityContribution');
+  });
+
+  it('should surface it in the summary message', () => {
+    expect(generateAlerts(atLineCovenant).message).toMatch(/no headroom/i);
+  });
+});
+
+// =============================================================================
+// COVENANT SORT PRIORITY
+// =============================================================================
+
+describe('Covenant status priority', () => {
+  // CovenantPanel derives a status straight from getThresholdZone, so a zone
+  // with no priority entry yields undefined and turns the comparator into NaN,
+  // which silently leaves the list unsorted.
+  it('should have a priority for every threshold zone', () => {
+    const zones = ['safe', 'caution', 'danger', 'at_the_line', 'breach'] as const;
+    for (const zone of zones) {
+      expect(typeof COVENANT_STATUS_PRIORITY[zone]).toBe('number');
+    }
+  });
+
+  it('should rank at_the_line between breach and danger', () => {
+    expect(COVENANT_STATUS_PRIORITY.breach).toBeLessThan(COVENANT_STATUS_PRIORITY.at_the_line);
+    expect(COVENANT_STATUS_PRIORITY.at_the_line).toBeLessThan(COVENANT_STATUS_PRIORITY.danger);
   });
 });

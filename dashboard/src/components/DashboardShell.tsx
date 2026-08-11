@@ -14,32 +14,32 @@ export function DashboardShell({ projectName, facility, currentPhase, children }
   return (
     <div className="min-h-screen bg-surface-0">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-slate-925/80 backdrop-blur-lg border-b border-border-strong">
+      <header className="sticky top-0 z-50 bg-surface-1/80 backdrop-blur-lg border-b border-border-strong">
         <div className="max-w-[1920px] mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             {/* Logo and Title */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-xl font-semibold text-white tracking-tight">Pro<span className="text-blue-500 font-bold">V</span>iso</span>
+                <span className="text-xl font-semibold text-text-primary tracking-tight">Pro<span className="text-blue-500 font-bold">V</span>iso</span>
               </div>
               <div className="h-8 w-px bg-surface-2" />
               <div>
-                <h1 className="text-lg font-medium text-white">{projectName}</h1>
-                <p className="text-sm text-gray-400">{facility}</p>
+                <h1 className="text-lg font-medium text-text-primary">{projectName}</h1>
+                <p className="text-sm text-text-tertiary">{facility}</p>
               </div>
             </div>
 
             {/* Status Indicators */}
             <div className="flex items-center gap-3 sm:gap-6 flex-wrap">
               <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-300">
+                <Building2 className="w-4 h-4 text-text-tertiary" />
+                <span className="text-sm text-text-secondary">
                   Phase: <span className="text-accent-400 font-medium">{phaseLabel}</span>
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-300">
+                <Clock className="w-4 h-4 text-text-tertiary" />
+                <span className="text-sm text-text-secondary">
                   {new Date().toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
@@ -60,7 +60,7 @@ export function DashboardShell({ projectName, facility, currentPhase, children }
       {/* Footer */}
       <footer className="border-t border-border-strong py-4 mt-8">
         <div className="max-w-[1920px] mx-auto px-6">
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-text-muted">
             ProViso v1.0 | Credit agreements as code
           </p>
         </div>

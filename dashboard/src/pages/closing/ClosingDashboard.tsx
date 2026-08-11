@@ -411,7 +411,7 @@ export function ClosingDashboard() {
           <p className="text-sm text-text-tertiary">
             Preview of the closing checklist in Markdown format. You can copy or download this file.
           </p>
-          <div className="bg-surface-2 border border-border-DEFAULT rounded-lg p-4 max-h-96 overflow-auto">
+          <div className="bg-surface-2 border border-border-default rounded-lg p-4 max-h-96 overflow-auto">
             <pre className="text-sm text-text-secondary whitespace-pre-wrap font-mono">
               {exportContent}
             </pre>

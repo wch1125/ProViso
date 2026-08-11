@@ -176,7 +176,7 @@ export function CPChecklist({
     return (
       <div
         key={cp.id}
-        className={`bg-surface-1 border border-border-DEFAULT rounded-lg p-5 border-l-4 hover:border-border-strong transition-colors ${
+        className={`bg-surface-1 border border-border-default rounded-lg p-5 border-l-4 hover:border-border-strong transition-colors ${
           isCompleted
             ? 'border-l-success/30'
             : tierConfig
@@ -254,7 +254,7 @@ export function CPChecklist({
         {/* Section header */}
         {isCompleted ? (
           <button
-            className="w-full flex items-center gap-2 text-left mb-3 pb-3 border-b-2 border-border-DEFAULT group"
+            className="w-full flex items-center gap-2 text-left mb-3 pb-3 border-b-2 border-border-default group"
             onClick={() => setCompletedExpanded(!completedExpanded)}
           >
             <span className={`w-2.5 h-2.5 rounded-full bg-success flex-shrink-0`} />
@@ -272,7 +272,7 @@ export function CPChecklist({
             </span>
           </button>
         ) : (
-          <div className="flex items-center gap-2 mb-3 pb-3 border-b-2 border-border-DEFAULT">
+          <div className="flex items-center gap-2 mb-3 pb-3 border-b-2 border-border-default">
             <span className={`w-2.5 h-2.5 rounded-full ${
               tier === 'gating' ? 'bg-danger' : tier === 'attention' ? 'bg-warning' : 'bg-info'
             } flex-shrink-0`} />
@@ -305,7 +305,7 @@ export function CPChecklist({
   return (
     <div className="space-y-4">
       {/* Filter Bar */}
-      <div className="bg-surface-1 border border-border-DEFAULT rounded-lg px-4 py-3 flex items-center gap-4 flex-wrap">
+      <div className="bg-surface-1 border border-border-default rounded-lg px-4 py-3 flex items-center gap-4 flex-wrap">
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-text-tertiary" />
           <span className="text-[13px] text-text-tertiary">Status:</span>
@@ -338,7 +338,7 @@ export function CPChecklist({
                 // Clear the ReadinessMeter filter when using dropdown
                 if (onLayerFilterChange) onLayerFilterChange(null);
               }}
-              className="bg-surface-2 border border-border-DEFAULT text-sm text-text-primary rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-gold-500/30"
+              className="bg-surface-2 border border-border-default text-sm text-text-primary rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-gold-500/30"
             >
               <option value="all">All Layers</option>
               {DOCUMENT_LAYERS.map((layer) => (
@@ -351,7 +351,7 @@ export function CPChecklist({
             <select
               value={layerFilter}
               onChange={(e) => setLayerFilter(e.target.value)}
-              className="bg-surface-2 border border-border-DEFAULT text-sm text-text-primary rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-gold-500/30"
+              className="bg-surface-2 border border-border-default text-sm text-text-primary rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-gold-500/30"
             >
               <option value="all">All Categories</option>
               {Array.from(new Set(conditions.map((c) => c.category))).map((cat) => (
@@ -401,7 +401,7 @@ export function CPChecklist({
           ? tierOrder.map((tier) => renderTierSection(tier, priorityGroups[tier]))
           : categoryGroups && Object.entries(categoryGroups).map(([category, cps]) => (
               <div key={category}>
-                <h4 className="text-[11px] font-semibold text-text-tertiary mb-3 uppercase tracking-[1.5px] pb-3 border-b-2 border-border-DEFAULT">
+                <h4 className="text-[11px] font-semibold text-text-tertiary mb-3 uppercase tracking-[1.5px] pb-3 border-b-2 border-border-default">
                   {categoryLabels[category] || category}
                 </h4>
                 <div className="space-y-3">
@@ -441,7 +441,7 @@ export function CPChecklist({
       >
         {selectedCondition && (
           <div className="space-y-4">
-            <div className="bg-surface-2 rounded-lg p-4 border border-border-DEFAULT">
+            <div className="bg-surface-2 rounded-lg p-4 border border-border-default">
               <p className="text-xs text-text-muted font-mono mb-1">
                 {selectedCondition.sectionReference}
               </p>
@@ -468,7 +468,7 @@ export function CPChecklist({
                 value={waiveApprovedBy}
                 onChange={(e) => setWaiveApprovedBy(e.target.value)}
                 placeholder="Name of approver (optional)"
-                className="w-full bg-white/5 border border-border-DEFAULT rounded-md px-3 py-2 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-gold-500/30 focus:border-gold-500"
+                className="w-full bg-white/5 border border-border-default rounded-md px-3 py-2 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-gold-500/30 focus:border-gold-500"
               />
             </div>
 

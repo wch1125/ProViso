@@ -26,21 +26,54 @@ export default {
       // Navy/Gold core palette with semantic colors
       // =================================================================
       colors: {
+        // =================================================================
+        // SEMANTIC TOKENS
+        // Meaning is separable from brand: amber is caution only, gold is
+        // brand only, charts draw from the categorical set. Every token
+        // resolves in both light and dark — see index.css.
+        // =================================================================
+        status: {
+          safe: 'rgb(var(--status-safe) / <alpha-value>)',
+          safeTint: 'var(--status-safe-tint)',
+          caution: 'rgb(var(--status-caution) / <alpha-value>)',
+          cautionTint: 'var(--status-caution-tint)',
+          // Compliant but with no cushion left — not a breach.
+          attention: 'rgb(var(--status-attention) / <alpha-value>)',
+          attentionTint: 'var(--status-attention-tint)',
+          breach: 'rgb(var(--status-breach) / <alpha-value>)',
+          breachTint: 'var(--status-breach-tint)',
+        },
+
+        brand: {
+          gold: 'rgb(var(--brand-gold) / <alpha-value>)',
+          goldHover: 'rgb(var(--brand-gold-hover) / <alpha-value>)',
+          goldTint: 'var(--brand-gold-tint)',
+        },
+
+        // Categorical chart series — fixed order, never cycled.
+        viz: {
+          cat1: 'rgb(var(--viz-cat-1) / <alpha-value>)',
+          cat2: 'rgb(var(--viz-cat-2) / <alpha-value>)',
+          cat3: 'rgb(var(--viz-cat-3) / <alpha-value>)',
+          cat4: 'rgb(var(--viz-cat-4) / <alpha-value>)',
+          cat5: 'rgb(var(--viz-cat-5) / <alpha-value>)',
+        },
+
         // Industry Theme Colors (CSS variable-based, set by IndustryThemeProvider)
         industry: {
-          pageBg: 'var(--industry-page-bg)',
-          headerBg: 'var(--industry-header-bg)',
-          cardBg: 'var(--industry-card-bg)',
-          cardBgHover: 'var(--industry-card-bg-hover)',
-          primary: 'var(--industry-primary)',
-          primaryHover: 'var(--industry-primary-hover)',
+          pageBg: 'rgb(var(--industry-page-bg) / <alpha-value>)',
+          headerBg: 'rgb(var(--industry-header-bg) / <alpha-value>)',
+          cardBg: 'rgb(var(--industry-card-bg) / <alpha-value>)',
+          cardBgHover: 'rgb(var(--industry-card-bg-hover) / <alpha-value>)',
+          primary: 'rgb(var(--industry-primary) / <alpha-value>)',
+          primaryHover: 'rgb(var(--industry-primary-hover) / <alpha-value>)',
           primaryLight: 'var(--industry-primary-light)',
-          secondary: 'var(--industry-secondary)',
-          borderDefault: 'var(--industry-border-default)',
-          borderStrong: 'var(--industry-border-strong)',
-          textPrimary: 'var(--industry-text-primary)',
-          textSecondary: 'var(--industry-text-secondary)',
-          textMuted: 'var(--industry-text-muted)',
+          secondary: 'rgb(var(--industry-secondary) / <alpha-value>)',
+          borderDefault: 'rgb(var(--industry-border-default) / <alpha-value>)',
+          borderStrong: 'rgb(var(--industry-border-strong) / <alpha-value>)',
+          textPrimary: 'rgb(var(--industry-text-primary) / <alpha-value>)',
+          textSecondary: 'rgb(var(--industry-text-secondary) / <alpha-value>)',
+          textMuted: 'rgb(var(--industry-text-muted) / <alpha-value>)',
         },
 
         // Phase-aware colors (CSS variable-based)
@@ -79,50 +112,59 @@ export default {
           950: '#060E1A',
         },
 
-        // Surfaces — mapped to navy scale for v2.4 cohesion
+        // Surfaces — token-backed so one class on <html> re-themes the app.
+        // Light: page #F5F6F8, cards white. Dark: the navy scale. See index.css.
         surface: {
-          0: '#0A1628',   // Page background (= navy-900)
-          1: '#152238',   // Card background (= navy-700)
-          2: '#1E2F47',   // Elevated card / borders (= navy-light)
-          3: '#2D4260',   // Hover state
-          4: '#3A5578',   // Active state
+          0: 'rgb(var(--surface-0) / <alpha-value>)',   // Page background
+          1: 'rgb(var(--surface-1) / <alpha-value>)',   // Card background
+          2: 'rgb(var(--surface-2) / <alpha-value>)',   // Elevated / subtle fill
+          3: 'rgb(var(--surface-3) / <alpha-value>)',   // Hover state
+          4: 'rgb(var(--surface-4) / <alpha-value>)',   // Active state
         },
 
-        // Text
+        // Text — a navy scale in light, the grey scale in dark
         text: {
-          primary: '#F9FAFB',    // v2.4 headings, important data
-          secondary: '#D1D5DB',  // v2.4 body text, descriptions
-          tertiary: '#9CA3AF',   // v2.4 metadata, timestamps
-          muted: '#6B7280',      // v2.4 disabled text
+          primary: 'rgb(var(--text-primary) / <alpha-value>)',      // headings, important data
+          secondary: 'rgb(var(--text-secondary) / <alpha-value>)',  // body text, descriptions
+          tertiary: 'rgb(var(--text-tertiary) / <alpha-value>)',    // metadata, timestamps
+          muted: 'rgb(var(--text-muted) / <alpha-value>)',          // sub-labels, breadcrumbs
         },
 
-        // Borders
+        // Borders.
+        //
+        // `default` is spelled out as its own key as well as DEFAULT. A nested
+        // DEFAULT collapses to the bare `border-border`, so `border-border-DEFAULT`
+        // never existed — yet 146 call sites used it, silently falling through to
+        // Tailwind's preflight border colour. Both spellings now resolve.
         border: {
-          subtle: '#152238',     // v2.4 very light separation
-          DEFAULT: '#1E2F47',    // v2.4 card borders, dividers
-          strong: '#2D4260',     // v2.4 focused elements, hover borders
+          subtle: 'rgb(var(--border-subtle) / <alpha-value>)',    // very light separation
+          DEFAULT: 'rgb(var(--border-default) / <alpha-value>)',  // -> border-border
+          default: 'rgb(var(--border-default) / <alpha-value>)',  // card borders, dividers
+          strong: 'rgb(var(--border-strong) / <alpha-value>)',    // focused elements, hover borders
         },
 
-        // Semantic Colors — v2.4 aligned
+        // Semantic Colors — aliases onto the status tokens above, so the ~470
+        // existing text-success / bg-danger / … usages follow the active mode
+        // instead of staying pinned to the dark-tuned steps.
         success: {
-          light: 'rgba(16, 185, 129, 0.1)',
-          DEFAULT: '#10B981',
-          dark: '#059669',
+          light: 'var(--status-safe-tint)',
+          DEFAULT: 'rgb(var(--status-safe) / <alpha-value>)',
+          dark: 'rgb(var(--status-safe) / <alpha-value>)',
         },
         warning: {
-          light: 'rgba(245, 158, 11, 0.1)',
-          DEFAULT: '#F59E0B',
-          dark: '#D97706',
+          light: 'var(--status-caution-tint)',
+          DEFAULT: 'rgb(var(--status-caution) / <alpha-value>)',
+          dark: 'rgb(var(--status-caution) / <alpha-value>)',
         },
         danger: {
-          light: 'rgba(239, 68, 68, 0.1)',
-          DEFAULT: '#EF4444',
-          dark: '#DC2626',
+          light: 'var(--status-breach-tint)',
+          DEFAULT: 'rgb(var(--status-breach) / <alpha-value>)',
+          dark: 'rgb(var(--status-breach) / <alpha-value>)',
         },
         info: {
-          light: 'rgba(6, 182, 212, 0.1)',
-          DEFAULT: '#06B6D4',
-          dark: '#0891B2',
+          light: 'var(--status-info-tint)',
+          DEFAULT: 'rgb(var(--status-info) / <alpha-value>)',
+          dark: 'rgb(var(--status-info) / <alpha-value>)',
         },
 
         // Progress blue (active timelines, in-progress items)
@@ -132,12 +174,15 @@ export default {
           dark: '#2563EB',
         },
 
-        // Status colors (used by dashboard components)
-        status: {
-          compliant: '#10B981',
-          breach: '#EF4444',
-          warning: '#F59E0B',
-          suspended: '#6B7280',
+        // Code surfaces stay dark in BOTH modes — a syntax-highlighted block
+        // on a dark ground is the convention readers expect, and it saves
+        // retuning every token colour for a light background.
+        code: {
+          bg: '#0D1A2D',
+          surface: '#152238',
+          border: 'rgba(255, 255, 255, 0.10)',
+          ink: 'rgba(255, 255, 255, 0.80)',
+          inkMuted: 'rgba(255, 255, 255, 0.50)',
         },
 
         // Legacy compatibility
@@ -193,17 +238,19 @@ export default {
       // BOX SHADOWS — v2.4 scale + gold glow
       // =================================================================
       boxShadow: {
-        'sm': '0 1px 2px rgba(0, 0, 0, 0.3)',
-        'md': '0 4px 6px rgba(0, 0, 0, 0.4)',
-        'lg': '0 10px 15px rgba(0, 0, 0, 0.5)',
-        'xl': '0 20px 25px rgba(0, 0, 0, 0.6)',
+        // Token-backed: black at 30–60% is right on navy and turns to grey
+        // mud on white, so light mode uses tinted navy at low alpha instead.
+        'sm': 'var(--shadow-sm)',
+        'md': 'var(--shadow-md)',
+        'lg': 'var(--shadow-lg)',
+        'xl': 'var(--shadow-xl)',
         'glow-gold': '0 0 20px rgba(212, 175, 55, 0.3)',
         'glow-gold-sm': '0 0 10px rgba(212, 175, 55, 0.15)',
         // Named elevation scale (alias)
-        'elevation-1': '0 1px 3px rgba(0, 0, 0, 0.3)',
-        'elevation-2': '0 4px 8px rgba(0, 0, 0, 0.35)',
-        'elevation-3': '0 8px 16px rgba(0, 0, 0, 0.4)',
-        'elevation-4': '0 16px 32px rgba(0, 0, 0, 0.45)',
+        'elevation-1': 'var(--shadow-sm)',
+        'elevation-2': 'var(--shadow-md)',
+        'elevation-3': 'var(--shadow-lg)',
+        'elevation-4': 'var(--shadow-xl)',
         // Gold accent shadows
         'gold-sm': '0 0 0 2px rgba(212, 175, 55, 0.2)',
         'gold': '0 0 0 4px rgba(212, 175, 55, 0.15), 0 4px 12px rgba(212, 175, 55, 0.2)',

@@ -233,7 +233,7 @@ export function FileUploader({
   return (
     <div className={`bg-surface-0/50 border border-surface-2 rounded-xl ${className}`}>
       {/* Header */}
-      <div className="px-5 py-4 border-b border-border-DEFAULT">
+      <div className="px-5 py-4 border-b border-border-default">
         <h3 className="text-lg font-semibold text-text-primary">Upload Files</h3>
         <p className="text-sm text-text-tertiary">
           Load ProViso code (.proviso) or financial data (.json)
@@ -252,7 +252,7 @@ export function FileUploader({
             transition-colors duration-200
             ${isDragging
               ? 'border-gold-500 bg-gold-500/10'
-              : 'border-border-DEFAULT hover:border-border-strong hover:bg-surface-2/50'
+              : 'border-border-default hover:border-border-strong hover:bg-surface-2/50'
             }
             ${loading ? 'pointer-events-none opacity-50' : ''}
           `}
@@ -288,7 +288,7 @@ export function FileUploader({
                 ? 'bg-success/10 border border-success/20'
                 : result.status === 'error'
                 ? 'bg-danger/10 border border-danger/20'
-                : 'bg-surface-2 border border-border-DEFAULT'
+                : 'bg-surface-2 border border-border-default'
               }
             `}
           >
@@ -338,7 +338,7 @@ export function FileUploader({
       </div>
 
       {/* File type hints */}
-      <div className="px-5 py-4 border-t border-border-DEFAULT bg-surface-2/30">
+      <div className="px-5 py-4 border-t border-border-default bg-surface-2/30">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="flex items-start gap-2">
             <FileText className="w-4 h-4 text-info mt-0.5" />

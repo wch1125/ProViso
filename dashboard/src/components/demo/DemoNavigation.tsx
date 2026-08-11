@@ -20,7 +20,7 @@ export function DemoNavigation() {
   const { currentAct, currentStep, setAct, maxActVisited } = useDemoNavigation();
 
   return (
-    <div className="bg-surface-2 border-b border-border-DEFAULT">
+    <div className="bg-surface-2 border-b border-border-default">
       <div className="max-w-6xl mx-auto px-4">
         <nav className="flex items-center justify-between py-3">
           {/* Act Tabs */}

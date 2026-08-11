@@ -3,17 +3,28 @@
 /**
  * Covenant status for risk-first ordering
  */
-export type CovenantStatus = 'breach' | 'danger' | 'caution' | 'safe' | 'suspended';
+export type CovenantStatus =
+  | 'breach'
+  | 'at_the_line'
+  | 'danger'
+  | 'caution'
+  | 'safe'
+  | 'suspended';
 
 /**
  * Priority order for covenant sorting (lower = higher priority)
+ *
+ * Must cover every ThresholdZone: CovenantPanel derives a status straight
+ * from getThresholdZone, so a zone missing here yields `undefined` and turns
+ * the sort comparator into NaN, which silently unsorts the list.
  */
 export const COVENANT_STATUS_PRIORITY: Record<CovenantStatus, number> = {
   breach: 0,
-  danger: 1,
-  caution: 2,
-  safe: 3,
-  suspended: 4,
+  at_the_line: 1,
+  danger: 2,
+  caution: 3,
+  safe: 4,
+  suspended: 5,
 };
 
 export interface ProjectInfo {

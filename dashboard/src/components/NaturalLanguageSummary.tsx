@@ -18,10 +18,10 @@ const statusColors: Record<StatusType, string> = {
   compliant: 'text-success font-semibold',
   breach: 'text-danger font-semibold',
   cured: 'text-warning font-semibold',
-  suspended: 'text-gray-400 font-semibold',
+  suspended: 'text-text-tertiary font-semibold',
   at_risk: 'text-warning font-semibold',
   achieved: 'text-success font-semibold',
-  pending: 'text-gray-400 font-semibold',
+  pending: 'text-text-tertiary font-semibold',
 };
 
 /**
@@ -76,9 +76,9 @@ interface NarrativeTextProps {
 export function NarrativeText({ summary, detail, className = '' }: NarrativeTextProps) {
   return (
     <div className={`text-sm ${className}`}>
-      <p className="text-gray-300">{highlightStatus(summary)}</p>
+      <p className="text-text-secondary">{highlightStatus(summary)}</p>
       {detail && (
-        <p className="text-gray-500 mt-0.5">{highlightStatus(detail)}</p>
+        <p className="text-text-muted mt-0.5">{highlightStatus(detail)}</p>
       )}
     </div>
   );
@@ -113,15 +113,15 @@ export function CollapsibleNarrative({
         onClick={() => setExpanded(!expanded)}
         className="flex items-start gap-1 text-left w-full group"
       >
-        <span className="text-gray-300 flex-1">{highlightStatus(summary)}</span>
+        <span className="text-text-secondary flex-1">{highlightStatus(summary)}</span>
         {expanded ? (
-          <ChevronUp className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5 group-hover:text-gray-400" />
+          <ChevronUp className="w-4 h-4 text-text-muted flex-shrink-0 mt-0.5 group-hover:text-text-tertiary" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5 group-hover:text-gray-400" />
+          <ChevronDown className="w-4 h-4 text-text-muted flex-shrink-0 mt-0.5 group-hover:text-text-tertiary" />
         )}
       </button>
       {expanded && (
-        <p className="text-gray-500 mt-1 pl-0">{highlightStatus(detail)}</p>
+        <p className="text-text-muted mt-1 pl-0">{highlightStatus(detail)}</p>
       )}
     </div>
   );
@@ -327,7 +327,7 @@ export function SummaryWithIcon({
       <div className="flex-1 min-w-0">
         <p className="text-sm text-gray-200">{highlightStatus(summary)}</p>
         {detail && (
-          <p className="text-xs text-gray-400 mt-1">{highlightStatus(detail)}</p>
+          <p className="text-xs text-text-tertiary mt-1">{highlightStatus(detail)}</p>
         )}
       </div>
     </div>

@@ -30,8 +30,8 @@ export function ClosingDemo() {
       {/* Main content: Code + Checklist */}
       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 min-h-0">
         {/* ProViso Code */}
-        <div className="flex flex-col rounded-xl border border-border-DEFAULT overflow-hidden">
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-border-DEFAULT bg-surface-3/50">
+        <div className="flex flex-col rounded-xl border border-border-default overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-border-default bg-surface-3/50">
             <Code className="w-4 h-4 text-gold-400" />
             <span className="text-sm font-medium text-text-secondary">Source Code</span>
             <span className="text-xs text-text-muted ml-auto">.proviso</span>
@@ -42,8 +42,8 @@ export function ClosingDemo() {
         </div>
 
         {/* Generated Checklist */}
-        <div className="flex flex-col rounded-xl border border-border-DEFAULT overflow-hidden">
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-border-DEFAULT bg-surface-3/50">
+        <div className="flex flex-col rounded-xl border border-border-default overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-border-default bg-surface-3/50">
             <CheckSquare className="w-4 h-4 text-gold-400" />
             <span className="text-sm font-medium text-text-secondary">Generated Checklist</span>
           </div>
@@ -137,7 +137,7 @@ function CPItem({ cp }: CPItemProps) {
         flex items-start gap-3 p-3 mb-2 rounded-lg border transition-colors
         ${isSatisfied
           ? 'border-success/30 bg-success/5'
-          : 'border-border-DEFAULT bg-surface-3/30'
+          : 'border-border-default bg-surface-3/30'
         }
       `}
     >

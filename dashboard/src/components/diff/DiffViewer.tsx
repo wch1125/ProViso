@@ -361,7 +361,7 @@ function CollapsedSection({ section, onExpand }: CollapsedSectionProps) {
   return (
     <button
       onClick={onExpand}
-      className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-surface-2/50 hover:bg-surface-2 text-text-muted hover:text-text-secondary text-sm transition-colors border-y border-border-DEFAULT/50"
+      className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-surface-2/50 hover:bg-surface-2 text-text-muted hover:text-text-secondary text-sm transition-colors border-y border-border-default/50"
     >
       <ChevronRight className="w-4 h-4" />
       <span>{lineCount} unchanged lines</span>
@@ -482,9 +482,9 @@ export function DiffViewer({
   const removedCount = fromLines.filter((l) => l.type === 'removed').length;
 
   return (
-    <div className="rounded-lg border border-border-DEFAULT overflow-hidden bg-surface-2">
+    <div className="rounded-lg border border-border-default overflow-hidden bg-surface-2">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-surface-3 border-b border-border-DEFAULT">
+      <div className="flex items-center justify-between px-4 py-2 bg-surface-3 border-b border-border-default">
         <div className="flex items-center gap-4">
           <span className="text-sm text-text-tertiary">
             <span className="text-success">+{addedCount}</span>
@@ -515,7 +515,7 @@ export function DiffViewer({
           >
             <ArrowDown className="w-4 h-4" />
           </button>
-          <div className="w-px h-4 bg-border-DEFAULT mx-1" />
+          <div className="w-px h-4 bg-border-default mx-1" />
           <button
             onClick={expandAll}
             className="p-1.5 rounded hover:bg-surface-3 text-text-tertiary hover:text-text-primary transition-colors"
@@ -534,8 +534,8 @@ export function DiffViewer({
       </div>
 
       {/* Column Headers */}
-      <div className="grid grid-cols-2 border-b border-border-DEFAULT">
-        <div className="px-4 py-2 bg-danger/5 border-r border-border-DEFAULT">
+      <div className="grid grid-cols-2 border-b border-border-default">
+        <div className="px-4 py-2 bg-danger/5 border-r border-border-default">
           <span className="text-sm font-medium text-danger">{fromLabel}</span>
         </div>
         <div className="px-4 py-2 bg-success/5">
@@ -550,7 +550,7 @@ export function DiffViewer({
       >
         <div className="grid grid-cols-2">
           {/* Left (From) Side */}
-          <div className="border-r border-border-DEFAULT bg-surface-2">
+          <div className="border-r border-border-default bg-surface-2">
             {sections.map((section, sectionIdx) => {
               if (collapsedSections.has(sectionIdx) && section.type === 'unchanged') {
                 return (

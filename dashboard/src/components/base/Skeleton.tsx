@@ -91,7 +91,7 @@ export function SkeletonTable({ rows = 5, columns = 4 }: { rows?: number; column
   return (
     <div className="space-y-3">
       {/* Header */}
-      <div className="flex gap-4 pb-3 border-b border-border-DEFAULT">
+      <div className="flex gap-4 pb-3 border-b border-border-default">
         {Array.from({ length: columns }, (_, i) => (
           <Skeleton key={i} width={`${100 / columns}%`} height="14px" />
         ))}

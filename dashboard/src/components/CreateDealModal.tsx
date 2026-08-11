@@ -254,7 +254,7 @@ export function CreateDealModal({ isOpen, onClose, onSubmit }: CreateDealModalPr
           {/* Deal Type and Amount Row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">
                 Facility Type
               </label>
               <Select
@@ -266,7 +266,7 @@ export function CreateDealModal({ isOpen, onClose, onSubmit }: CreateDealModalPr
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">
                 Facility Amount
               </label>
               <Select
@@ -323,19 +323,19 @@ export function CreateDealModal({ isOpen, onClose, onSubmit }: CreateDealModalPr
           </div>
 
           {/* Template Suggestion */}
-          <div className="bg-slate-900/50 border border-slate-700 rounded-lg p-4">
+          <div className="bg-surface-2/50 border border-border-default rounded-lg p-4">
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-full bg-gold-500/10 flex items-center justify-center flex-shrink-0">
                 <Briefcase className="w-4 h-4 text-gold-500" />
               </div>
               <div>
-                <h4 className="text-sm font-medium text-white">
+                <h4 className="text-sm font-medium text-text-primary">
                   {dealType === 'corporate'
                     ? 'Corporate Facility'
                     : 'Project Finance'}{' '}
                   Template
                 </h4>
-                <p className="text-sm text-slate-400 mt-1">
+                <p className="text-sm text-text-tertiary mt-1">
                   {dealType === 'corporate'
                     ? 'Starts with standard corporate covenants: leverage ratio, interest coverage, and investment baskets.'
                     : 'Starts with project finance structure: phases, milestones, reserves, and waterfall distribution.'}

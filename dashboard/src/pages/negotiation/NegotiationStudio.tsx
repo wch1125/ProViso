@@ -438,7 +438,7 @@ export function NegotiationStudio() {
             </div>
           </div>
 
-          <div className="border-t border-border-DEFAULT pt-4">
+          <div className="border-t border-border-default pt-4">
             <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
               Sections
             </h3>
@@ -663,8 +663,8 @@ export function NegotiationStudio() {
         title={`ProViso Code - ${effectiveSelectedVersion?.versionLabel}`}
         size="lg"
       >
-        <div className="rounded-lg border border-border-DEFAULT bg-surface-2 overflow-hidden">
-          <div className="px-4 py-2 bg-surface-3 border-b border-border-DEFAULT flex items-center justify-between">
+        <div className="rounded-lg border border-border-default bg-surface-2 overflow-hidden">
+          <div className="px-4 py-2 bg-surface-3 border-b border-border-default flex items-center justify-between">
             <span className="text-sm text-text-tertiary">
               {effectiveSelectedVersion?.authorParty} &middot; v{effectiveSelectedVersion?.versionNumber}
               {addedElements.length > 0 && (
@@ -720,7 +720,7 @@ export function NegotiationStudio() {
               </TabList>
 
               <TabPanel id="full">
-                <div className="rounded-lg border border-border-DEFAULT bg-surface-2 overflow-hidden">
+                <div className="rounded-lg border border-border-default bg-surface-2 overflow-hidden">
                   <pre className="p-4 text-sm text-text-secondary overflow-auto max-h-[500px] whitespace-pre-wrap font-serif leading-relaxed">
                     {generatedDocument.fullText}
                   </pre>
@@ -732,7 +732,7 @@ export function NegotiationStudio() {
                   {generatedDocument.sections.map((section, idx) => (
                     <div
                       key={idx}
-                      className="rounded-lg border border-border-DEFAULT bg-surface-1 p-4"
+                      className="rounded-lg border border-border-default bg-surface-1 p-4"
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <Badge variant="muted" size="sm">
@@ -757,7 +757,7 @@ export function NegotiationStudio() {
             </div>
           )}
 
-          <div className="pt-4 border-t border-border-DEFAULT">
+          <div className="pt-4 border-t border-border-default">
             <p className="text-xs text-text-muted">
               This is a text-based preview. Full .docx export with formatting will be available in a future release.
             </p>
@@ -978,7 +978,7 @@ function AddedElementCard({
       </p>
 
       {showCode && (
-        <div className="mt-3 rounded border border-border-DEFAULT bg-surface-2 p-3">
+        <div className="mt-3 rounded border border-border-default bg-surface-2 p-3">
           <pre className="text-xs font-mono text-text-tertiary whitespace-pre-wrap">
             {element.code}
           </pre>

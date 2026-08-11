@@ -77,7 +77,7 @@ export function ReadinessMeter({
   return (
     <div className="space-y-6">
       {/* Main Progress Bar */}
-      <div className="bg-surface-1 border border-border-DEFAULT rounded-lg p-6">
+      <div className="bg-surface-1 border border-border-default rounded-lg p-6">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-display text-xl font-semibold text-text-primary">Ready to Close</h3>
           <span className="text-2xl font-bold text-text-primary tabular-nums">{displayPercentage}%</span>
@@ -171,7 +171,7 @@ export function ReadinessMeter({
       {/* KPI Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Conditions Card */}
-        <div className="bg-surface-1 border border-border-DEFAULT rounded-lg p-5">
+        <div className="bg-surface-1 border border-border-default rounded-lg p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 bg-success/10 rounded-lg">
               <FileCheck className="w-5 h-5 text-success" />
@@ -190,7 +190,7 @@ export function ReadinessMeter({
         </div>
 
         {/* Documents Card */}
-        <div className="bg-surface-1 border border-border-DEFAULT rounded-lg p-5">
+        <div className="bg-surface-1 border border-border-default rounded-lg p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 bg-info/10 rounded-lg">
               <FileText className="w-5 h-5 text-info" />
@@ -209,7 +209,7 @@ export function ReadinessMeter({
         </div>
 
         {/* Signatures Card */}
-        <div className="bg-surface-1 border border-border-DEFAULT rounded-lg p-5">
+        <div className="bg-surface-1 border border-border-default rounded-lg p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 bg-gold-500/10 rounded-lg">
               <PenTool className="w-5 h-5 text-gold-500" />
@@ -228,7 +228,7 @@ export function ReadinessMeter({
         </div>
 
         {/* Days Left Card */}
-        <div className="bg-surface-1 border border-border-DEFAULT rounded-lg p-5">
+        <div className="bg-surface-1 border border-border-default rounded-lg p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 bg-warning/10 rounded-lg">
               <Calendar className="w-5 h-5 text-warning" />

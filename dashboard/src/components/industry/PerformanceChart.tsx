@@ -73,7 +73,7 @@ export function PerformanceChart({ guarantees, degradation, title = "Performance
     const data = payload[0].payload;
 
     return (
-      <div className="bg-surface-2 border border-border-DEFAULT rounded-lg px-3 py-2 shadow-lg">
+      <div className="bg-surface-2 border border-border-default rounded-lg px-3 py-2 shadow-lg">
         <p className="text-sm font-medium text-text-primary">{data.name} Threshold</p>
         <p className="text-sm text-text-tertiary">
           {data.value.toLocaleString()} {primaryGuarantee.unit || 'GWh'}
@@ -196,7 +196,7 @@ export function PerformanceChart({ guarantees, degradation, title = "Performance
 
         {/* Degradation overlay if available */}
         {degradation && degradation.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-border-DEFAULT">
+          <div className="mt-4 pt-4 border-t border-border-default">
             <p className="text-sm font-medium text-text-secondary mb-2">Degradation Impact</p>
             <div className="grid grid-cols-2 gap-3">
               {degradation.slice(0, 2).map((d) => (

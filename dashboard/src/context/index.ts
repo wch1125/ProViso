@@ -39,3 +39,11 @@ export {
   IndustryThemeProvider,
   useIndustryTheme,
 } from './IndustryThemeContext';
+
+export {
+  ThemeModeProvider,
+  useThemeMode,
+  readStoredMode,
+  THEME_STORAGE_KEY,
+  type ThemeMode,
+} from './ThemeModeContext';

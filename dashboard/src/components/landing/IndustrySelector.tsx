@@ -74,7 +74,7 @@ export function IndustrySelector({ onSelect }: IndustrySelectorProps) {
                 }}
                 className="
                   group relative overflow-hidden text-left
-                  bg-surface-2 border-2 border-border-DEFAULT rounded-2xl
+                  bg-surface-2 border-2 border-border-default rounded-2xl
                   p-8
                   hover:border-gold-600
                   focus:outline-none focus:ring-2 focus:ring-gold-600 focus:ring-offset-2 focus:ring-offset-surface-1

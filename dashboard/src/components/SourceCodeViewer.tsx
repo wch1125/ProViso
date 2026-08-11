@@ -227,7 +227,7 @@ export function SourceCodeViewer({
               <Code className="w-5 h-5 text-purple-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-lg font-semibold text-text-primary">
                 {elementName}
               </h3>
               <p className="text-sm text-gray-400">
@@ -237,20 +237,20 @@ export function SourceCodeViewer({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+            className="p-2 hover:bg-code-surface rounded-lg transition-colors"
           >
             <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
 
         {/* Code Block */}
-        <div className="bg-slate-900 rounded-lg border border-slate-700 overflow-hidden">
+        <div className="bg-code-bg rounded-lg border border-code-border overflow-hidden">
           {/* Toolbar */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-slate-700 bg-slate-800/50">
+          <div className="flex items-center justify-between px-4 py-2 border-b border-code-border bg-code-surface">
             <span className="text-xs text-gray-400 font-mono">.proviso</span>
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 px-2 py-1 text-xs text-gray-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
+              className="flex items-center gap-1.5 px-2 py-1 text-xs text-gray-400 hover:text-white hover:bg-code-surface rounded transition-colors"
             >
               {copied ? (
                 <>
@@ -326,7 +326,7 @@ export function InlineCodePreview({ code, maxLines = 3, className = '' }: Inline
   const hasMore = lines.length > maxLines;
 
   return (
-    <div className={`bg-slate-900/50 rounded border border-slate-700/50 p-2 ${className}`}>
+    <div className={`bg-code-surface/50 rounded border border-code-border p-2 ${className}`}>
       <pre className="font-mono text-xs overflow-x-auto">
         <code>
           {displayLines.map((line, i) => (

@@ -283,7 +283,7 @@ export function CureRightsOptimizer({
 
         {/* No Cures Available */}
         {cureOptions.length === 0 && !applied && (
-          <div className="rounded-lg border border-border-DEFAULT bg-surface-1 p-6 text-center">
+          <div className="rounded-lg border border-border-default bg-surface-1 p-6 text-center">
             <XCircle className="w-8 h-8 text-text-muted mx-auto mb-3" />
             <p className="text-text-primary font-medium mb-1">No Cure Mechanisms Available</p>
             <p className="text-sm text-text-tertiary">
@@ -310,8 +310,8 @@ export function CureRightsOptimizer({
                       selectedMechanism === option.mechanism
                         ? 'border-gold-500/50 bg-gold-500/5 ring-1 ring-gold-500/20'
                         : option.available
-                        ? 'border-border-DEFAULT bg-surface-1 hover:bg-surface-2'
-                        : 'border-border-DEFAULT bg-surface-1 opacity-50 cursor-not-allowed'
+                        ? 'border-border-default bg-surface-1 hover:bg-surface-2'
+                        : 'border-border-default bg-surface-1 opacity-50 cursor-not-allowed'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">

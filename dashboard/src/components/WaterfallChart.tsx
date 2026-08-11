@@ -1,4 +1,4 @@
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { AlertTriangle, Lock } from 'lucide-react';
 import { Card, CardHeader, CardBody } from './Card';
 import { useIndustryTheme } from '../context';
@@ -18,7 +18,7 @@ interface ChartDataItem {
 
 export function WaterfallChart({ waterfall }: WaterfallChartProps) {
   const { revenue, tiers } = waterfall;
-  const { chartColors } = useIndustryTheme();
+  const { chartColors, colors } = useIndustryTheme();
 
   // Note: ChartDataItem interface is used for CustomTooltip typing
 
@@ -27,10 +27,37 @@ export function WaterfallChart({ waterfall }: WaterfallChartProps) {
   const blockedAmount = tiers.filter(t => t.blocked).reduce((sum, t) => sum + t.amount, 0);
   const remainder = revenue - totalDistributed - blockedAmount;
 
-  // Colors for the bars - use theme colors
+  // Tier colours come from the theme's categorical set — never the brand gold
+  // or the status ramp, so a cash cascade cannot read as a row of warnings.
+  // A blocked tier drops to the muted ink instead, reading as inactive.
   const getBarColor = (index: number, blocked: boolean) => {
-    if (blocked) return '#4b5563'; // gray-600
+    if (blocked) return colors.textMuted;
     return chartColors[index % chartColors.length];
+  };
+
+  /**
+   * Amount printed inside each segment.
+   *
+   * This is a requirement rather than a flourish: the categorical palette is
+   * separable for normal vision, but its tritan separation is narrow enough
+   * that colour alone should not be the only thing distinguishing segments.
+   * Skipped where the segment is too narrow to hold the text legibly.
+   */
+  const SegmentLabel = (props: { x?: number; y?: number; width?: number; height?: number; value?: number }) => {
+    const { x = 0, y = 0, width = 0, height = 0, value = 0 } = props;
+    if (width < 52) return null;
+
+    return (
+      <text
+        x={x + width / 2}
+        y={y + height / 2}
+        textAnchor="middle"
+        dominantBaseline="central"
+        className="fill-white text-[11px] font-medium tabular-nums"
+      >
+        ${(value / 1_000_000).toFixed(1)}M
+      </text>
+    );
   };
 
   // Custom tooltip
@@ -83,15 +110,19 @@ export function WaterfallChart({ waterfall }: WaterfallChartProps) {
                   fill={getBarColor(index, !!tier.blocked)}
                   radius={index === 0 ? [4, 0, 0, 4] : index === tiers.length - 1 ? [0, 4, 4, 0] : 0}
                 >
+                  {/* The dashed caution outline on a gated tier is semantic,
+                      not decorative — blocked cash IS a caution state — so it
+                      is bound to the token and follows the active mode. */}
                   {tier.blocked && (
                     <Cell
                       key={`cell-${index}`}
-                      fill="#4b5563"
-                      stroke="#f59e0b"
+                      className="stroke-status-caution"
+                      fill={colors.textMuted}
                       strokeWidth={2}
                       strokeDasharray="4 2"
                     />
                   )}
+                  <LabelList dataKey={`tier${index}`} content={<SegmentLabel />} />
                 </Bar>
               ))}
             </BarChart>

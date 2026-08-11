@@ -15,7 +15,7 @@ export function FeatureCard({ icon: Icon, title, description, delay = 0 }: Featu
     <div
       className="
         group relative overflow-hidden
-        bg-surface-1 border border-border-DEFAULT rounded-xl
+        bg-surface-1 border border-border-default rounded-xl
         p-6 md:p-8
         shadow-sm hover:shadow-elevation-2
         transform hover:-translate-y-1

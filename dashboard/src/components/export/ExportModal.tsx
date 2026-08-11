@@ -192,7 +192,7 @@ export function ExportModal({
                 className="
                   group flex items-center gap-4 p-4
                   bg-surface-2 border border-border-subtle rounded-xl
-                  hover:border-border-DEFAULT hover:bg-surface-3
+                  hover:border-border-default hover:bg-surface-3
                   transition-all duration-150
                 "
               >

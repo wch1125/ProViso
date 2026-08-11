@@ -1,63 +1,42 @@
-import { useState, useEffect } from 'react';
-import { Sun, Moon } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
+import { useThemeMode } from '../../context';
+
+interface ThemeToggleProps {
+  /** Extra classes for the host layout. */
+  className?: string;
+}
 
 /**
- * Theme toggle button for light/dark mode.
- * Persists preference to localStorage.
+ * Light/dark toggle.
+ *
+ * Mode state and persistence live in ThemeModeContext; this is only the
+ * control. It is styled for the navy top bar, which stays dark in both
+ * modes — hence the fixed light-on-navy treatment rather than surface tokens.
  */
-export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(true);
+export function ThemeToggle({ className = '' }: ThemeToggleProps) {
+  const { isDark, toggleMode } = useThemeMode();
 
-  useEffect(() => {
-    // Check initial theme
-    const saved = localStorage.getItem('proviso-theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    if (saved === 'light') {
-      setIsDark(false);
-      document.documentElement.classList.remove('dark');
-    } else if (saved === 'dark' || (!saved && prefersDark)) {
-      setIsDark(true);
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newIsDark = !isDark;
-    setIsDark(newIsDark);
-
-    if (newIsDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('proviso-theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('proviso-theme', 'light');
-    }
-  };
+  const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
 
   return (
     <button
-      onClick={toggleTheme}
-      className="
-        fixed top-6 right-6 z-50
-        w-10 h-10
-        bg-white/10 backdrop-blur-sm
-        border border-white/20
-        hover:border-gold-600 hover:bg-white/20
-        rounded-full
+      type="button"
+      onClick={toggleMode}
+      className={`
+        w-9 h-9 shrink-0
         flex items-center justify-center
-        text-white hover:text-gold-500
-        transition-all duration-150
-        focus:outline-none focus:ring-2 focus:ring-gold-600 focus:ring-offset-2 focus:ring-offset-surface-0
-      "
-      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        rounded-full
+        bg-white/10 hover:bg-white/20
+        border border-white/20 hover:border-gold-500
+        text-navy-50 hover:text-gold-400
+        transition-colors duration-150
+        focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 focus:ring-offset-navy-900
+        ${className}
+      `}
+      title={label}
+      aria-label={label}
     >
-      {isDark ? (
-        <Sun className="w-5 h-5" />
-      ) : (
-        <Moon className="w-5 h-5" />
-      )}
+      {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
     </button>
   );
 }
