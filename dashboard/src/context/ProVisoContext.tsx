@@ -60,6 +60,7 @@ import type {
   TaxCreditData,
   DepreciationData,
   FlipEventData,
+  FacilityData,
 } from '../types';
 
 // =============================================================================
@@ -300,6 +301,9 @@ interface ProVisoState {
   waterfall: WaterfallData | null;
   conditionsPrecedent: CPChecklistData[];
 
+  // Credit facilities (v2.7) — empty when the deal declares none
+  facilities: FacilityData[];
+
   // Industry data (v2.1)
   industry: IndustryData | null;
 
@@ -351,6 +355,7 @@ const defaultState: ProVisoState = {
   baskets: [],
   milestones: [],
   reserves: [],
+  facilities: [],
   waterfall: null,
   conditionsPrecedent: [],
   industry: null,
@@ -400,6 +405,7 @@ export function ProVisoProvider({
   const [basketStatuses, setBasketStatuses] = useState<BasketStatus[]>([]);
   const [milestones, setMilestones] = useState<MilestoneData[]>([]);
   const [reserves, setReserves] = useState<ReserveData[]>([]);
+  const [facilities, setFacilities] = useState<FacilityData[]>([]);
   const [waterfall, setWaterfall] = useState<WaterfallData | null>(null);
   const [conditionsPrecedent, setConditionsPrecedent] = useState<CPChecklistData[]>([]);
   const [industry, setIndustry] = useState<IndustryData | null>(null);
@@ -435,6 +441,24 @@ export function ProVisoProvider({
       // Transform reserves
       const reserveResults = interpreter.getAllReserveStatuses();
       setReserves(reserveResults.map(transformReserve));
+
+      // Transform facilities. Pricing grids attach to the first facility for
+      // display: grids are deal-level, not facility-level, and a deal with two
+      // facilities sharing one grid should not show it twice.
+      if (interpreter.hasFacilities()) {
+        const facilityResults = interpreter.getAllFacilityStatuses();
+        const grids = interpreter.hasPricingGrids()
+          ? interpreter.getAllPricingGridStatuses()
+          : [];
+        setFacilities(
+          facilityResults.map((f, index) => ({
+            ...f,
+            pricingGrids: index === 0 && grids.length > 0 ? grids : undefined,
+          }))
+        );
+      } else {
+        setFacilities([]);
+      }
 
       // Transform CPs
       const cpNames = interpreter.getCPChecklistNames();
@@ -727,6 +751,7 @@ export function ProVisoProvider({
       waterfall: waterfall ?? { revenue: 0, tiers: [] },
       conditionsPrecedent,
       industry: industry ?? undefined,
+      facilities: facilities.length > 0 ? facilities : undefined,
     };
   }, [isLoaded, projectName, currentPhase, financials, covenants, basketStatuses, milestones, reserves, waterfall, conditionsPrecedent, industry]);
 
@@ -751,6 +776,7 @@ export function ProVisoProvider({
     waterfall,
     conditionsPrecedent,
     industry,
+    facilities,
     isMultiPeriod,
     complianceHistory,
     projectName,

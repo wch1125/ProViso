@@ -5,6 +5,7 @@ export { StatusBadge } from './StatusBadge';
 export { ExecutiveSummary } from './ExecutiveSummary';
 export { PhaseTimeline } from './PhaseTimeline';
 export { CovenantPanel } from './CovenantPanel';
+export { FacilityPanel } from './FacilityPanel';
 export { WaterfallChart } from './WaterfallChart';
 export { ReserveStatus } from './ReserveStatus';
 export { MilestoneTracker } from './MilestoneTracker';

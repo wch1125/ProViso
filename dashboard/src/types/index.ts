@@ -232,4 +232,61 @@ export interface DashboardData {
   conditionsPrecedent: CPChecklistData[];
   // v2.1 Industry data
   industry?: IndustryData;
+  /** v2.7 Credit facilities — absent when the deal declares none. */
+  facilities?: FacilityData[];
+}
+
+// =============================================================================
+// FACILITY (v2.7)
+// =============================================================================
+
+export interface TrancheData {
+  name: string;
+  trancheType: string;
+  commitment: number;
+  drawn: number;
+  undrawn: number;
+  /** Spread over the benchmark, in percentage points. */
+  margin: number;
+  /** Benchmark + margin, in percentage points. */
+  allInRate: number;
+  annualInterest: number;
+  scheduledAmortization: number;
+  maturity: string | null;
+  lcOutstanding: number;
+  /** Revolvers only. */
+  availability: number | null;
+  /** Revolvers only, as a percentage. */
+  utilization: number | null;
+  /** Name of the pricing grid supplying the margin, if any. */
+  pricingGrid: string | null;
+}
+
+export interface FacilityData {
+  name: string;
+  /** Reference rate, in percentage points. */
+  benchmark: number;
+  totalCommitment: number;
+  totalDrawn: number;
+  totalUndrawn: number;
+  weightedRate: number;
+  annualInterest: number;
+  scheduledAmortization: number;
+  fees: number;
+  debtService: number;
+  revolverUtilization: number | null;
+  tranches: TrancheData[];
+  /** Pricing grid levels in effect, if the deal declares any. */
+  pricingGrids?: PricingGridData[];
+}
+
+export interface PricingGridData {
+  name: string;
+  /** Name of the ratio the grid is read against. */
+  basedOn: string;
+  basisValue: number | null;
+  activeLevel: number;
+  /** Applicable margin in percentage points. */
+  margin: number;
+  levelDescription: string;
 }

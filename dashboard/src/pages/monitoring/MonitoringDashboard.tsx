@@ -20,6 +20,7 @@ import {
   ExecutiveSummary,
   PhaseTimeline,
   CovenantPanel,
+  FacilityPanel,
   WaterfallChart,
   ReserveStatus,
   MilestoneTracker,
@@ -552,8 +553,11 @@ export function MonitoringDashboard() {
             )}
           </div>
 
-          {/* Middle Column - Waterfall + Reserves */}
+          {/* Middle Column - Facilities + Waterfall + Reserves */}
           <div className="min-w-[280px] space-y-4 lg:space-y-6">
+            {data.facilities && data.facilities.length > 0 && (
+              <FacilityPanel facilities={data.facilities} />
+            )}
             <WaterfallChart waterfall={data.waterfall} />
             <ReserveStatus reserves={data.reserves} />
           </div>
