@@ -11,7 +11,11 @@ import { parseOrThrow } from '../src/parser.js';
 import { ProVisoInterpreter } from '../src/interpreter.js';
 import { executeCommand } from '../dashboard/src/utils/commandRunner.js';
 import { generateComplianceReport } from '../dashboard/src/utils/complianceExport.js';
-import { getThresholdZone, deriveOverallStatus } from '../dashboard/src/utils/thresholds.js';
+import {
+  getThresholdZone,
+  deriveOverallStatus,
+  getZonePresentation,
+} from '../dashboard/src/utils/thresholds.js';
 import type { DashboardData, CovenantData, ReserveData } from '../dashboard/src/types/index.js';
 
 // =============================================================================
@@ -461,5 +465,58 @@ describe('Overall deal status', () => {
       expect(result.reason).toBeTruthy();
       expect(result.reason?.length).toBeGreaterThan(0);
     }
+  });
+});
+
+// =============================================================================
+// THE "NO HEADROOM" ZONE
+// =============================================================================
+
+describe('Threshold zones — compliant but at the line', () => {
+  it('should distinguish sitting exactly on the threshold from breaching it', () => {
+    // The defect: a covenant at its floor wore breach-red while the panel
+    // header read "3/3 passing".
+    expect(getThresholdZone(4.5, 4.5, '<=')).toBe('at_the_line');
+    expect(getThresholdZone(1.25, 1.25, '>=')).toBe('at_the_line');
+  });
+
+  it('should still call it a breach under a strict operator', () => {
+    // Under `< 4.5x`, exactly 4.5x is non-compliant.
+    expect(getThresholdZone(4.5, 4.5, '<')).toBe('breach');
+    expect(getThresholdZone(1.25, 1.25, '>')).toBe('breach');
+  });
+
+  it('should not use breach colouring for a compliant covenant', () => {
+    const atLine = getZonePresentation('at_the_line');
+    const breach = getZonePresentation('breach');
+
+    expect(atLine.barClass).not.toBe(breach.barClass);
+    expect(atLine.textClass).not.toBe(breach.textClass);
+  });
+
+  it('should escalate past caution so it does not read as routine', () => {
+    const atLine = getZonePresentation('at_the_line');
+    const caution = getZonePresentation('caution');
+
+    expect(atLine.barClass).not.toBe(caution.barClass);
+  });
+
+  it('should label every zone, so meaning never rests on colour alone', () => {
+    const zones = ['safe', 'caution', 'danger', 'at_the_line', 'breach'] as const;
+
+    for (const zone of zones) {
+      const presentation = getZonePresentation(zone);
+      expect(presentation.label.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('should name the at-the-line state as a cushion, not a breach', () => {
+    expect(getZonePresentation('at_the_line').label).toMatch(/headroom/i);
+  });
+
+  it('should keep the surrounding zones unchanged', () => {
+    expect(getThresholdZone(2.0, 4.5, '<=')).toBe('safe');
+    expect(getThresholdZone(4.4, 4.5, '<=')).toBe('danger');
+    expect(getThresholdZone(5.0, 4.5, '<=')).toBe('breach');
   });
 });

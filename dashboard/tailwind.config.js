@@ -26,6 +26,38 @@ export default {
       // Navy/Gold core palette with semantic colors
       // =================================================================
       colors: {
+        // =================================================================
+        // SEMANTIC TOKENS — v2.7
+        // Meaning is separable from brand: amber is caution only, gold is
+        // brand only, charts draw from the validated categorical set.
+        // =================================================================
+        status: {
+          safe: 'var(--status-safe)',
+          safeTint: 'var(--status-safe-tint)',
+          caution: 'var(--status-caution)',
+          cautionTint: 'var(--status-caution-tint)',
+          // Compliant but with no cushion left — not a breach.
+          attention: 'var(--status-attention)',
+          attentionTint: 'var(--status-attention-tint)',
+          breach: 'var(--status-breach)',
+          breachTint: 'var(--status-breach-tint)',
+        },
+
+        brand: {
+          gold: 'var(--brand-gold)',
+          goldHover: 'var(--brand-gold-hover)',
+          goldTint: 'var(--brand-gold-tint)',
+        },
+
+        // Categorical chart series — fixed order, never cycled.
+        viz: {
+          cat1: 'var(--viz-cat-1)',
+          cat2: 'var(--viz-cat-2)',
+          cat3: 'var(--viz-cat-3)',
+          cat4: 'var(--viz-cat-4)',
+          cat5: 'var(--viz-cat-5)',
+        },
+
         // Industry Theme Colors (CSS variable-based, set by IndustryThemeProvider)
         industry: {
           pageBg: 'var(--industry-page-bg)',

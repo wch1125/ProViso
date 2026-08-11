@@ -7,41 +7,109 @@
    Default values (Corporate steel gray theme) - overridden by IndustryThemeProvider
    ============================================================================= */
 :root {
-  /* Page and layout backgrounds — v2.4 navy palette */
-  --industry-page-bg: #0A1628;
-  --industry-header-bg: #152238;
-  --industry-card-bg: #152238;
-  --industry-card-bg-hover: #1E2F47;
+  /* Page and layout surfaces — light default.
+     Cards sit on a subtly tinted page rather than pure white on white, so the
+     layout has depth without borders doing all the work. */
+  --industry-page-bg: #F5F6F8;
+  --industry-header-bg: #FFFFFF;
+  --industry-card-bg: #FFFFFF;
+  --industry-card-bg-hover: #FAFBFC;
 
-  /* Primary accent colors */
-  --industry-primary: #D4AF37;
-  --industry-primary-hover: #BF9B30;
-  --industry-primary-light: rgba(212, 175, 55, 0.15);
+  /* Primary accent — brand gold, darkened for contrast on light surfaces */
+  --industry-primary: #8B7028;
+  --industry-primary-hover: #6F5A20;
+  --industry-primary-light: rgba(139, 112, 40, 0.12);
 
   /* Secondary accent */
-  --industry-secondary: #9CA3AF;
+  --industry-secondary: #506894;
 
-  /* Border colors */
-  --industry-border-default: #1E2F47;
-  --industry-border-strong: #2D4260;
+  /* Borders — navy-derived rather than neutral grey, so the brand carries
+     through the structure of the page and not only its accents. */
+  --industry-border-default: #E2E6EE;
+  --industry-border-strong: #C5CCD9;
 
-  /* Text colors */
-  --industry-text-primary: #F9FAFB;
-  --industry-text-secondary: #D1D5DB;
-  --industry-text-muted: #6B7280;
+  /* Text — a navy scale, not black, keeping the brand in the ink */
+  --industry-text-primary: #0A1628;
+  --industry-text-secondary: #2D3F5F;
+  --industry-text-muted: #506894;
 
-  /* Chart colors */
-  --industry-chart-1: #D4AF37;
-  --industry-chart-2: #06B6D4;
-  --industry-chart-3: #10B981;
-  --industry-chart-4: #F59E0B;
-  --industry-chart-5: #3B82F6;
+  /* Chart colors — categorical set, no gold: a cash cascade must never read
+     as a row of warnings. */
+  --industry-chart-1: #2563EB;
+  --industry-chart-2: #0D9488;
+  --industry-chart-3: #7C3AED;
+  --industry-chart-4: #0891B2;
+  --industry-chart-5: #4338CA;
 
   /* Phase-aware styling (default to construction) */
-  --phase-accent: #3b82f6;
-  --phase-badge-bg: rgba(59, 130, 246, 0.1);
-  --phase-badge-text: #60a5fa;
+  --phase-accent: #2563EB;
+  --phase-badge-bg: rgba(37, 99, 235, 0.10);
+  --phase-badge-text: #1D4ED8;
+  /* ==========================================================================
+     SEMANTIC STATUS + VISUALIZATION TOKENS (v2.7)
+
+     Layered over the brand palette so meaning is separable from brand:
+       - amber is reserved strictly for caution; nothing decorative may use it
+       - gold is BRAND ONLY (primary CTA and small accents), never a status
+       - charts draw from --viz-cat-*, a categorical set validated for
+         colorblind separation and contrast against the chart surface
+
+     Light is the default surface, so these are the light steps. The dark
+     steps live under .dark and are a SELECTED palette, not an inversion —
+     each set was validated separately against its own surface.
+     ========================================================================== */
+
+  /* Status — always paired with an icon and a label, never colour alone */
+  --status-safe: #059669;
+  --status-safe-tint: rgba(5, 150, 105, 0.10);
+  --status-caution: #B45309;
+  --status-caution-tint: rgba(180, 83, 9, 0.10);
+  /* Compliant, but sitting on the line with no cushion left. Distinct from
+     breach: the covenant is met. Escalates amber -> orange -> red. */
+  --status-attention: #C2410C;
+  --status-attention-tint: rgba(194, 65, 12, 0.12);
+  --status-breach: #DC2626;
+  --status-breach-tint: rgba(220, 38, 38, 0.09);
+
+  /* Brand — CTA and accents only. Never a status, never a chart series. */
+  --brand-gold: #8B7028;
+  --brand-gold-hover: #6F5A20;
+  --brand-gold-tint: rgba(139, 112, 40, 0.14);
+
+  /* Categorical chart series, assigned in fixed order and never cycled.
+     Validated: chroma floor, CVD separation, contrast vs the dark surface. */
+  --viz-cat-1: #2563EB;
+  --viz-cat-2: #0D9488;
+  --viz-cat-3: #7C3AED;
+  --viz-cat-4: #0891B2;
+  --viz-cat-5: #4338CA;
+
 }
+
+/* Dark-theme steps. Lighter steps are required for contrast against a dark
+   surface; this is a selected palette, not an inversion of the light one, and
+   each set was validated separately against its own surface. */
+.dark {
+  --status-safe: #10B981;
+  --status-safe-tint: rgba(16, 185, 129, 0.12);
+  --status-caution: #F59E0B;
+  --status-caution-tint: rgba(245, 158, 11, 0.12);
+  --status-attention: #F97316;
+  --status-attention-tint: rgba(249, 115, 22, 0.14);
+  --status-breach: #EF4444;
+  --status-breach-tint: rgba(239, 68, 68, 0.12);
+
+  --brand-gold: #D4AF37;
+  --brand-gold-hover: #BF9B30;
+  --brand-gold-tint: rgba(212, 175, 55, 0.16);
+
+  --viz-cat-1: #3B82F6;
+  --viz-cat-2: #0D9488;
+  --viz-cat-3: #8B5CF6;
+  --viz-cat-4: #0891B2;
+  --viz-cat-5: #6366F1;
+}
+
 
 /* Phase-specific color overrides */
 [data-phase="construction"] {

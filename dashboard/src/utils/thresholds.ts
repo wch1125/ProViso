@@ -9,7 +9,16 @@
 // THRESHOLD ZONES
 // =============================================================================
 
-export type ThresholdZone = 'safe' | 'caution' | 'danger' | 'breach';
+/**
+ * Covenant zones.
+ *
+ * `at_the_line` is compliant with no cushion left — the covenant is met, but
+ * exactly. It exists because a covenant sitting on its floor previously wore
+ * breach-red while the panel header said "3/3 passing", which reads as a
+ * contradiction. It is a genuinely different state from a breach and gets its
+ * own treatment and label rather than being rounded to either neighbour.
+ */
+export type ThresholdZone = 'safe' | 'caution' | 'danger' | 'at_the_line' | 'breach';
 
 export interface ZoneThresholds {
   cautionAt: number;  // % of threshold (e.g., 0.80 = 80%)
@@ -55,9 +64,45 @@ export function getThresholdZone(
   // for a covenant the engine reports as breached.
   const isStrict = operator === '<' || operator === '>';
   if (utilization > 1 || (isStrict && utilization === 1)) return 'breach';
+
+  // Exactly at the threshold under an inclusive operator: still compliant, but
+  // with zero cushion. Distinct from breach, and distinct from "close to" it.
+  if (utilization === 1) return 'at_the_line';
+
   if (utilization >= config.dangerAt) return 'danger';
   if (utilization >= config.cautionAt) return 'caution';
   return 'safe';
+}
+
+/**
+ * Presentation for a zone: the token it wears and how it is labelled.
+ *
+ * Status is never carried by colour alone — every zone ships a label, so the
+ * meaning survives a colourblind reader, a greyscale print, and a squint.
+ */
+export interface ZonePresentation {
+  /** Tailwind text colour class, bound to a semantic token. */
+  textClass: string;
+  /** Tailwind background class for bars and fills. */
+  barClass: string;
+  /** Short label shown beside the value. */
+  label: string;
+}
+
+const ZONE_PRESENTATION: Record<ThresholdZone, ZonePresentation> = {
+  safe: { textClass: 'text-status-safe', barClass: 'bg-status-safe', label: 'Compliant' },
+  caution: { textClass: 'text-status-caution', barClass: 'bg-status-caution', label: 'Approaching' },
+  danger: { textClass: 'text-status-caution', barClass: 'bg-status-caution', label: 'Close to breach' },
+  at_the_line: {
+    textClass: 'text-status-attention',
+    barClass: 'bg-status-attention',
+    label: 'No headroom',
+  },
+  breach: { textClass: 'text-status-breach', barClass: 'bg-status-breach', label: 'Breach' },
+};
+
+export function getZonePresentation(zone: ThresholdZone): ZonePresentation {
+  return ZONE_PRESENTATION[zone];
 }
 
 /**
@@ -161,6 +206,16 @@ export const zoneStyles: Record<ThresholdZone, ZoneStyle> = {
     pulseAnimation: true,
     icon: 'alert',
   },
+  // Compliant with zero cushion. Deliberately NOT breach-red — the covenant
+  // is met — but escalated past caution-amber so it does not read as routine.
+  at_the_line: {
+    bgColor: 'bg-status-attentionTint',
+    textColor: 'text-status-attention',
+    borderColor: 'border-status-attention/30',
+    progressColor: 'bg-status-attention',
+    pulseAnimation: false,
+    icon: 'alert',
+  },
   breach: {
     bgColor: 'bg-danger/10',
     textColor: 'text-danger',
@@ -261,7 +316,10 @@ export function generateAlerts(
 
   // Sort by severity (breach > danger > caution) then by utilization
   alerts.sort((a, b) => {
-    const zonePriority: Record<ThresholdZone, number> = { breach: 0, danger: 1, caution: 2, safe: 3 };
+    // At-the-line ranks just below a breach: compliant, but nothing left.
+    const zonePriority: Record<ThresholdZone, number> = {
+      breach: 0, at_the_line: 1, danger: 2, caution: 3, safe: 4,
+    };
     if (zonePriority[a.zone] !== zonePriority[b.zone]) {
       return zonePriority[a.zone] - zonePriority[b.zone];
     }

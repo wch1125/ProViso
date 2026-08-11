@@ -52,30 +52,30 @@ export const solarTheme: IndustryTheme = {
   id: 'solar',
   name: 'Solar',
   colors: {
-    // Dark green backgrounds
-    pageBg: '#0a1610',
-    headerBg: '#0d1f14',
-    cardBg: '#101f16',
-    cardBgHover: '#152a1d',
+    // Light surfaces with a faint emerald cast — the industry reads through
+    // the accent and a tint, not through a dark ground.
+    pageBg: '#F4F8F5',
+    headerBg: '#FFFFFF',
+    cardBg: '#FFFFFF',
+    cardBgHover: '#F7FBF8',
 
-    // Emerald accents
-    primary: '#10b981',
-    primaryHover: '#059669',
-    primaryLight: 'rgba(16, 185, 129, 0.15)',
+    // Emerald accents, darkened for contrast on light
+    primary: '#047857',
+    primaryHover: '#065F46',
+    primaryLight: 'rgba(4, 120, 87, 0.10)',
 
-    secondary: '#34d399',
+    secondary: '#0F766E',
 
-    // Green borders
-    borderDefault: '#1e4d3a',
-    borderStrong: '#2a6b4f',
+    // Green-tinted borders
+    borderDefault: '#DCEAE1',
+    borderStrong: '#B9D6C4',
 
-    // Green-tinted white text
-    textPrimary: '#ecfdf5',
-    textSecondary: '#a7d4c2',
-    textMuted: '#6b9e8a',
+    // Navy ink keeps the brand in the text across every industry
+    textPrimary: '#0A1628',
+    textSecondary: '#2D3F5F',
+    textMuted: '#506894',
 
-    // Chart palette - greens
-    chartColors: ['#10b981', '#34d399', '#059669', '#22c55e', '#4ade80'],
+    chartColors: ['#2563EB', '#0D9488', '#7C3AED', '#0891B2', '#4338CA'],
   },
 };
 
@@ -87,30 +87,27 @@ export const windTheme: IndustryTheme = {
   id: 'wind',
   name: 'Wind',
   colors: {
-    // Deep teal-blue backgrounds
-    pageBg: '#0a1520',
-    headerBg: '#0d1a27',
-    cardBg: '#0f1c2a',
-    cardBgHover: '#142533',
+    // Light surfaces with a faint cyan cast
+    pageBg: '#F3F8FA',
+    headerBg: '#FFFFFF',
+    cardBg: '#FFFFFF',
+    cardBgHover: '#F6FBFC',
 
-    // Cyan accents
-    primary: '#06b6d4',
-    primaryHover: '#0891b2',
-    primaryLight: 'rgba(6, 182, 212, 0.15)',
+    // Cyan accents, darkened for contrast on light
+    primary: '#0E7490',
+    primaryHover: '#155E75',
+    primaryLight: 'rgba(14, 116, 144, 0.10)',
 
-    secondary: '#22d3ee',
+    secondary: '#0891B2',
 
-    // Teal borders
-    borderDefault: '#155e75',
-    borderStrong: '#0e7490',
+    borderDefault: '#DBE9EE',
+    borderStrong: '#B6D2DB',
 
-    // Cool white text
-    textPrimary: '#ecfeff',
-    textSecondary: '#a5d8e6',
-    textMuted: '#5b99ad',
+    textPrimary: '#0A1628',
+    textSecondary: '#2D3F5F',
+    textMuted: '#506894',
 
-    // Chart palette - cool cyans/teals
-    chartColors: ['#06b6d4', '#22d3ee', '#0891b2', '#14b8a6', '#2dd4bf'],
+    chartColors: ['#2563EB', '#0D9488', '#7C3AED', '#0891B2', '#4338CA'],
   },
 };
 
@@ -122,30 +119,27 @@ export const corporateTheme: IndustryTheme = {
   id: 'corporate',
   name: 'Corporate',
   colors: {
-    // Steel gray backgrounds
-    pageBg: '#111214',
-    headerBg: '#18191c',
-    cardBg: '#1e2024',
-    cardBgHover: '#26282d',
+    // Neutral light surfaces — the default brand ground
+    pageBg: '#F5F6F8',
+    headerBg: '#FFFFFF',
+    cardBg: '#FFFFFF',
+    cardBgHover: '#FAFBFC',
 
-    // Steel blue accents
-    primary: '#64748b',
-    primaryHover: '#475569',
-    primaryLight: 'rgba(100, 116, 139, 0.15)',
+    // Navy accents rather than steel grey, so the accent is actually visible
+    primary: '#1E3A5F',
+    primaryHover: '#152B47',
+    primaryLight: 'rgba(30, 58, 95, 0.10)',
 
-    secondary: '#94a3b8',
+    secondary: '#506894',
 
-    // Gray borders
-    borderDefault: '#2e3138',
-    borderStrong: '#3f434b',
+    borderDefault: '#E2E6EE',
+    borderStrong: '#C5CCD9',
 
-    // Cool gray text
-    textPrimary: '#f1f3f5',
-    textSecondary: '#9ca3af',
-    textMuted: '#6b7280',
+    textPrimary: '#0A1628',
+    textSecondary: '#2D3F5F',
+    textMuted: '#506894',
 
-    // Chart palette - steel grays with blue hints
-    chartColors: ['#64748b', '#94a3b8', '#475569', '#78909c', '#90a4ae'],
+    chartColors: ['#2563EB', '#0D9488', '#7C3AED', '#0891B2', '#4338CA'],
   },
 };
 
