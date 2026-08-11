@@ -5,8 +5,8 @@ const industryData: IndustryData = {
   technicalMilestones: [
     {
       name: "MW Installed",
-      target: "2026-09-15",
-      longstop: "2026-11-15",
+      target: "2028-09-15",
+      longstop: "2028-11-15",
       measurement: "MW",
       targetValue: 200,
       currentValue: 145,
@@ -15,8 +15,8 @@ const industryData: IndustryData = {
     },
     {
       name: "Interconnection",
-      target: "2026-07-01",
-      longstop: "2026-09-01",
+      target: "2028-07-01",
+      longstop: "2028-09-01",
       measurement: "MW Connected",
       targetValue: 200,
       currentValue: 80,
@@ -25,8 +25,8 @@ const industryData: IndustryData = {
     },
     {
       name: "Panel Testing",
-      target: "2026-04-15",
-      longstop: "2026-05-15",
+      target: "2028-04-15",
+      longstop: "2028-05-15",
       measurement: "Panels Tested",
       targetValue: 50000,
       currentValue: 50000,
@@ -35,8 +35,8 @@ const industryData: IndustryData = {
     },
     {
       name: "Inverter Commissioning",
-      target: "2026-06-01",
-      longstop: "2026-07-01",
+      target: "2028-06-01",
+      longstop: "2028-07-01",
       measurement: "Units",
       targetValue: 25,
       currentValue: 18,
@@ -45,8 +45,8 @@ const industryData: IndustryData = {
     },
     {
       name: "Grid Sync",
-      target: "2026-08-01",
-      longstop: "2026-09-15",
+      target: "2028-08-01",
+      longstop: "2028-09-15",
       measurement: "MW Synced",
       targetValue: 200,
       currentValue: 0,
@@ -77,7 +77,7 @@ const industryData: IndustryData = {
       type: "Interconnection Agreement",
       requiredFor: "Operations",
       status: "submitted",
-      dueDate: "2026-03-01",
+      dueDate: "2028-03-01",
     },
     {
       name: "Conditional Use Permit",
@@ -117,7 +117,7 @@ const industryData: IndustryData = {
       type: "Land Use",
       requiredFor: "Operations",
       status: "pending",
-      dueDate: "2026-06-01",
+      dueDate: "2028-06-01",
     },
   ],
   performanceGuarantees: [
@@ -240,7 +240,7 @@ const industryData: IndustryData = {
         trigger: "target_return",
         targetValue: 8.0,
         currentValue: 6.2,
-        projectedFlipDate: "2032-06-30",
+        projectedFlipDate: "2034-06-30",
         hasTriggered: false,
         preFlipAllocation: { investor: 99, sponsor: 1 },
         postFlipAllocation: { investor: 5, sponsor: 95 },
@@ -248,7 +248,7 @@ const industryData: IndustryData = {
       {
         name: "Date Certain Flip",
         trigger: "date_certain",
-        projectedFlipDate: "2035-12-31",
+        projectedFlipDate: "2037-12-31",
         hasTriggered: false,
         preFlipAllocation: { investor: 99, sponsor: 1 },
         postFlipAllocation: { investor: 5, sponsor: 95 },
@@ -267,9 +267,9 @@ export const demoData: DashboardData = {
   },
   phase: {
     current: "construction",
-    constructionStart: "2025-06-01",
-    codTarget: "2026-09-15",
-    maturity: "2041-09-15"
+    constructionStart: "2027-06-01",
+    codTarget: "2028-09-15",
+    maturity: "2043-09-15"
   },
   financials: {
     net_income: 8_000_000,
@@ -338,35 +338,35 @@ export const demoData: DashboardData = {
   milestones: [
     {
       name: "Foundation Complete",
-      target: "2025-09-30",
-      longstop: "2025-12-31",
+      target: "2027-09-30",
+      longstop: "2027-12-31",
       status: "achieved",
-      achievedDate: "2025-09-22"
+      achievedDate: "2027-09-22"
     },
     {
       name: "Steel Erection",
-      target: "2025-12-31",
-      longstop: "2026-03-31",
+      target: "2027-12-31",
+      longstop: "2028-03-31",
       status: "achieved",
-      achievedDate: "2026-01-15"
+      achievedDate: "2028-01-15"
     },
     {
       name: "Roof Complete",
-      target: "2026-04-15",
-      longstop: "2026-06-15",
+      target: "2028-04-15",
+      longstop: "2028-06-15",
       status: "in_progress",
       percentComplete: 65
     },
     {
       name: "MEP Complete",
-      target: "2026-07-01",
-      longstop: "2026-09-01",
+      target: "2028-07-01",
+      longstop: "2028-09-01",
       status: "pending"
     },
     {
       name: "Substantial Completion",
-      target: "2026-09-15",
-      longstop: "2026-11-15",
+      target: "2028-09-15",
+      longstop: "2028-11-15",
       status: "pending"
     }
   ],

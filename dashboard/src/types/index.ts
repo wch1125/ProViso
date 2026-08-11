@@ -41,6 +41,12 @@ export interface PhaseInfo {
   maturity: string;
 }
 
+/**
+ * Unit of a covenant's actual/threshold/headroom, derived by the engine from
+ * the threshold literal in the source. Mirrors `CovenantUnit` in src/types.ts.
+ */
+export type CovenantValueUnit = 'ratio' | 'currency' | 'percentage' | 'number';
+
 export interface CovenantData {
   name: string;
   actual: number;
@@ -48,6 +54,8 @@ export interface CovenantData {
   operator: '<=' | '>=' | '<' | '>' | '=' | '!=';
   compliant: boolean;
   headroom?: number;
+  /** Supplied by the engine. Absent means the unit could not be determined. */
+  unit?: CovenantValueUnit;
   suspended?: boolean;
   /** If covenant has step-down, the original (initial) threshold */
   originalThreshold?: number;

@@ -12,6 +12,21 @@ interface PhaseNode {
   status: 'completed' | 'current' | 'upcoming';
 }
 
+/**
+ * Format a date the file may not have declared.
+ *
+ * `new Date('')` is an Invalid Date, and `toLocaleDateString` on one renders
+ * the literal string "Invalid Date" — which is how every node on this timeline
+ * came to read that way. An absent date is a legitimate state (not every deal
+ * declares milestones or a facility), so it gets a placeholder instead.
+ */
+function formatPhaseDate(value: string, opts: Intl.DateTimeFormatOptions): string {
+  if (!value) return 'Not set';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Not set';
+  return date.toLocaleDateString('en-US', opts);
+}
+
 export function PhaseTimeline({ phase }: PhaseTimelineProps) {
   const phases: PhaseNode[] = [
     {
@@ -47,15 +62,21 @@ export function PhaseTimeline({ phase }: PhaseTimelineProps) {
   const maturityDate = new Date(phase.maturity);
   const now = new Date();
 
+  // Guarded because any of these dates may be absent: an Invalid Date yields
+  // NaN here, and `width: NaN%` silently drops the fill rather than erroring.
+  const spanFraction = (from: Date, to: Date): number => {
+    const total = to.getTime() - from.getTime();
+    if (!Number.isFinite(total) || total <= 0) return 0;
+    const elapsed = now.getTime() - from.getTime();
+    if (!Number.isFinite(elapsed)) return 0;
+    return Math.max(0, Math.min(1, elapsed / total));
+  };
+
   let progressPercent = 0;
   if (phase.current === 'construction') {
-    const totalConstruction = codDate.getTime() - startDate.getTime();
-    const elapsedConstruction = now.getTime() - startDate.getTime();
-    progressPercent = Math.min(50, (elapsedConstruction / totalConstruction) * 50);
+    progressPercent = spanFraction(startDate, codDate) * 50;
   } else if (phase.current === 'operations') {
-    const totalOps = maturityDate.getTime() - codDate.getTime();
-    const elapsedOps = now.getTime() - codDate.getTime();
-    progressPercent = 50 + Math.min(50, (elapsedOps / totalOps) * 50);
+    progressPercent = 50 + spanFraction(codDate, maturityDate) * 50;
   }
 
   return (
@@ -110,10 +131,7 @@ export function PhaseTimeline({ phase }: PhaseTimelineProps) {
                     {p.name}
                   </p>
                   <p className="text-xs text-text-muted mt-0.5">
-                    {new Date(p.date).toLocaleDateString('en-US', {
-                      month: 'short',
-                      year: 'numeric',
-                    })}
+                    {formatPhaseDate(p.date, { month: 'short', year: 'numeric' })}
                   </p>
                 </div>
               </div>
@@ -132,7 +150,7 @@ export function PhaseTimeline({ phase }: PhaseTimelineProps) {
               <p className="text-sm text-text-tertiary">Next Milestone</p>
               <p className="text-lg font-medium text-gold-500">
                 COD -{' '}
-                {new Date(phase.codTarget).toLocaleDateString('en-US', {
+                {formatPhaseDate(phase.codTarget, {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric',

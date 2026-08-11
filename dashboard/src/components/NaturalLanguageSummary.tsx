@@ -7,6 +7,8 @@
 
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
+import { formatCovenantValue } from '../utils/covenantValue';
+import type { CovenantValueUnit } from '../types';
 
 // =============================================================================
 // STATUS HIGHLIGHT COMPONENT
@@ -138,6 +140,8 @@ interface CovenantSummaryProps {
   operator: string;
   compliant: boolean;
   headroom?: number;
+  /** Unit the covenant's values are expressed in, supplied by the engine. */
+  unit?: CovenantValueUnit;
   suspended?: boolean;
   className?: string;
 }
@@ -149,10 +153,13 @@ export function CovenantSummary({
   operator,
   compliant,
   headroom,
+  unit,
   suspended,
   className = '',
 }: CovenantSummaryProps) {
-  const formatValue = (v: number) => (v > 10 ? v.toFixed(1) : `${v.toFixed(2)}x`);
+  // Was `v > 10 ? toFixed(1) : toFixed(2) + 'x'`, which put two different
+  // units in one sentence: "COMPLIANT at 84000000.0 ... 0.00x headroom".
+  const formatValue = (v: number) => formatCovenantValue(v, unit);
   const displayName = name.replace(/([A-Z])/g, ' $1').trim();
 
   if (suspended) {

@@ -20,7 +20,7 @@ npm run dev -- status examples/corporate_revolver.proviso -d examples/q3_2024_fi
 - `src/` - TypeScript source code
 - `examples/` - Sample .proviso files and financial data
 - `tests/` - Vitest test suite
-- `.claude/` - Workflow system (prompts, logs, status)
+- `.claude/` - Workflow system (commands, context, plans, logs, status, archive)
 
 ### Tech Stack
 - **Parser:** Peggy (PEG parser generator)
@@ -75,6 +75,14 @@ npm run dev -- status examples/corporate_revolver.proviso -d examples/q3_2024_fi
 - `DEPRECIATION_SCHEDULE` - MACRS 5yr/7yr with bonus depreciation
 - `FLIP_EVENT` - Target return triggers with allocation changes
 
+#### Facility & Cash Mechanics (in progress)
+Implements `docs/ProViso_implementation_plan.md` — Phases 1-2 have landed.
+- `FACILITY` - A debt tranche (revolver, term loan). The authoritative source of
+  debt metrics; other constructs derive from it rather than keeping parallel copies
+- `PRICING_GRID` - Margin ratchet stepping with a leverage or ratings test, plus facility fees
+- `EXCESS_CASH_FLOW` / `SWEEP` - Cash remaining after the waterfall, and its mandatory prepayment
+- `DISTRIBUTION_LOCKUP` - The project-finance cash trap: blocks distributions when tests fail
+
 ## Development Patterns
 
 ### Adding a New Language Feature
@@ -102,7 +110,9 @@ npm run format           # Prettier formatting
 
 ## Current Status
 
-**Version:** 2.6.0
+**Version:** 2.6.2 (note: `package.json` still reads 2.6.0 — bump it or correct this)
+**Tests:** run `npm test` for the count; do not trust a number written in a doc
+**Live demo:** [proviso.finance](https://proviso.finance)
 
 **Working:**
 - Core parser for all MVP constructs
@@ -146,7 +156,9 @@ npm run dashboard:build  # Production build to dashboard/dist/
 npm run dashboard:preview # Preview production build
 ```
 
-## CLI Commands (16 total)
+## CLI Commands (20 total)
+
+Verify with `node dist/cli.js --help` — this table has drifted before.
 
 | Command | Description |
 |---------|-------------|
@@ -167,10 +179,14 @@ npm run dashboard:preview # Preview production build
 | `reserves` | Reserve account status |
 | `waterfall` | Execute waterfall distribution |
 | `draw` | Check conditions precedent |
+| `facility` | Credit facility positions and derived debt metrics |
+| `lockup` | Distribution lockup test status |
+| `settle` | Run the period settlement engine |
 
 ## Workflow System
 
-This project uses a multi-role Claude workflow. See `.claude/prompts/` for role definitions:
+This project uses a multi-role Claude workflow. See `.claude/commands/` for role definitions
+(each is also invocable as a slash command, e.g. `/scout`, `/builder`):
 - **Scout** - Reconnaissance before building
 - **Builder** - Implementation
 - **Tester** - Test coverage
@@ -179,7 +195,24 @@ This project uses a multi-role Claude workflow. See `.claude/prompts/` for role 
 - **Refactorer** - Code improvement
 - **Documentarian** - Documentation
 
-Session logs go in `.claude/logs/`, current status in `.claude/status/`.
+Session logs go in `.claude/logs/`, current status in `.claude/status/`, shared
+context in `.claude/context/project-context.md`, build plans in `.claude/plans/`.
+
+### Document Hygiene
+
+Stale docs are the main way a new instance wastes a day. The rules:
+
+- **`.claude/archive/` is history, never instructions.** Every file in it carries an
+  `ARCHIVED` stamp on line 1. Do not act on one, and do not trust a fact inside one.
+- **When a version ships, archive its build plan** — move it to `.claude/archive/`
+  and add the stamp. Don't leave completed plans where they read as active work.
+- **Never write a test count into a doc as fact.** Point at `npm test`. Test-count
+  claims in this repo have been wrong by 250+ before.
+- **Verify before you cite.** The authoritative sources are `grammar/proviso.pegjs`
+  for syntax, `node dist/cli.js --help` for commands, `package.json` for version,
+  and `dashboard/dist/CNAME` for the live URL.
+- Give planning docs a `**Status:** ACTIVE | SUPERSEDED | REFERENCE` header and a
+  `**Verified:**` date, so the next reader knows whether to trust it.
 
 ## Domain Context
 

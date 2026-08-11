@@ -75,6 +75,9 @@ function transformCovenant(result: CovenantResult, suspended: boolean = false): 
     operator: result.operator as CovenantData['operator'],
     compliant: result.compliant,
     headroom: result.headroom,
+    // Without this the panel has to guess, and it guessed "ratio" for
+    // everything — rendering an $84M equity floor as "84000000x".
+    unit: result.unit,
     suspended,
   };
 
@@ -720,6 +723,38 @@ export function ProVisoProvider({
     }
   }, [interpreter, refresh]);
 
+  /**
+   * Project timeline, derived from the schedule the file already declares.
+   *
+   * These were previously hardcoded to empty strings, which reached
+   * `new Date('')` and rendered "Invalid Date" across the whole timeline.
+   *
+   * The derivation is deliberately simple and explained rather than clever:
+   * construction runs from the first milestone to the last, and the loan
+   * matures at the latest tranche maturity. A file that declares no milestones
+   * or no facility yields empty strings, and the timeline renders a placeholder
+   * rather than a broken date.
+   */
+  const phaseDates = useMemo(() => {
+    const milestoneTargets = milestones
+      .map((m) => m.target)
+      .filter((d): d is string => Boolean(d))
+      .sort();
+
+    const trancheMaturities = facilities
+      .flatMap((f) => f.tranches ?? [])
+      .map((t) => t.maturity)
+      .filter((d): d is string => Boolean(d))
+      .sort();
+
+    return {
+      constructionStart: milestoneTargets[0] ?? '',
+      // COD is the end of construction: the last scheduled milestone.
+      codTarget: milestoneTargets[milestoneTargets.length - 1] ?? '',
+      maturity: trancheMaturities[trancheMaturities.length - 1] ?? '',
+    };
+  }, [milestones, facilities]);
+
   // Build full dashboard data object for convenience
   const dashboardData = useMemo((): DashboardData | null => {
     if (!isLoaded) return null;
@@ -733,9 +768,7 @@ export function ProVisoProvider({
       },
       phase: {
         current: currentPhase ?? 'Unknown',
-        constructionStart: '',
-        codTarget: '',
-        maturity: '',
+        ...phaseDates,
       },
       financials,
       covenants,
@@ -753,7 +786,7 @@ export function ProVisoProvider({
       industry: industry ?? undefined,
       facilities: facilities.length > 0 ? facilities : undefined,
     };
-  }, [isLoaded, projectName, currentPhase, financials, covenants, basketStatuses, milestones, reserves, waterfall, conditionsPrecedent, industry]);
+  }, [isLoaded, projectName, currentPhase, phaseDates, financials, covenants, basketStatuses, milestones, reserves, waterfall, conditionsPrecedent, industry]);
 
   // Load initial code if provided
   useEffect(() => {

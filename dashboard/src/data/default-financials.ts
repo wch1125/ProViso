@@ -55,9 +55,9 @@ export const DEFAULT_PROJECT_INFO = {
  */
 export const DEFAULT_PHASE_INFO = {
   current: 'Construction',
-  constructionStart: '2025-01-15',
-  codTarget: '2026-04-30',
-  maturity: '2046-06-30',
+  constructionStart: '2027-01-15',
+  codTarget: '2028-04-30',
+  maturity: '2048-06-30',
 };
 
 /**

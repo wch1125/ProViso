@@ -2,7 +2,7 @@
 
 Quick-reference guide to the repository structure. For detailed documentation, see `docs/GETTING_STARTED.md`.
 
-**Version:** 2.6.0 | **Tests:** 679 | **Live Demo:** [proviso.finance](https://proviso.finance)
+**Version:** 2.6.2 | **Tests:** 945 | **Live Demo:** [proviso.finance](https://proviso.finance)
 
 ---
 
@@ -57,7 +57,7 @@ ProViso/
 │   ├── dist/                   #   Production build (deployed to GitHub Pages)
 │   └── READ-ME-DASHBOARD.md    #   Dashboard-specific documentation
 │
-├── tests/                      # Vitest test suite (679 tests across 12 files)
+├── tests/                      # Vitest test suite (945 tests across 19 files)
 │   ├── proviso.test.ts         #   Core language tests (239 tests)
 │   ├── hub.test.ts             #   Deal/version/party tests (45 tests)
 │   ├── versioning.test.ts      #   Diff & changelog tests (42 tests)
@@ -99,8 +99,7 @@ ProViso/
 │   ├── logs/                   #   Session logs by date and role
 │   ├── plans/                  #   Build plans and design docs
 │   ├── status/                 #   current-status.md + changelog.md
-│   ├── decisions/              #   Architecture Decision Records
-│   └── precedent/              #   Reference implementations (closing-room-demo)
+│   └── archive/                #   Superseded docs — history only, never instructions
 │
 ├── .github/workflows/          # CI/CD
 │   └── deploy.yml              #   GitHub Pages deployment
@@ -139,7 +138,7 @@ ProViso/
 ```bash
 npm install              # Install dependencies
 npm run build            # Build grammar + TypeScript
-npm test                 # Run 679 tests
+npm test                 # Run the full suite (945 tests)
 npm run dashboard        # Start dashboard dev server (localhost:3000)
 npm run dashboard:build  # Production dashboard build
 npm run dev -- status examples/corporate_revolver.proviso -d examples/q3_2024_financials.json

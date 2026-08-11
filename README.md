@@ -4,7 +4,7 @@
 
 ProViso is an executable DSL that allows credit agreements to be expressed as code. The source files read like legal documents but run like programs—answering compliance questions, tracking basket utilization, and simulating proposed transactions.
 
-**Version 2.6** | **679 Tests Passing** | **Live Demo: [proviso.finance](https://proviso.finance)**
+**Version 2.6** | **945 Tests Passing** | **Live Demo: [proviso.finance](https://proviso.finance)**
 
 ---
 
@@ -321,15 +321,30 @@ npm run format             # Prettier
 
 ## Version History
 
-### v2.1.0 (Current) - Production Ready
+### v2.6 (Current)
+- Facility spine: `FACILITY` as the single source of truth for debt metrics
+- `PRICING_GRID` margin ratchet and facility fees
+- `EXCESS_CASH_FLOW` / `SWEEP` with the period settlement engine
+- `DISTRIBUTION_LOCKUP` — the project-finance cash trap
+- `STEP_DOWN` covenant schedules
+- Golden-file regression gate over every shipped example
+
+### v2.2 - v2.5 - Living Deal, Public Demo, Design System, Polish
+- Calculation drilldowns, natural language summaries, early warning system
+- Public demo at [proviso.finance](https://proviso.finance)
+- Unified navigation and design tokens
+- Live CP pipeline, automated version diff, edit-export round-trip
+
+### v2.1.0 - Industry Constructs
+- Industry-specific constructs (solar, wind, data center)
+- Performance guarantees, regulatory tracking, tax equity
+
+### v2.0.0 - Deal Hub
 - Deal Hub with full lifecycle management
 - Version control with diff and changelog
 - Form-based code generation
 - Word document integration
 - Closing and post-closing dashboards
-- Industry-specific constructs (solar, wind, data center)
-- Performance guarantees, regulatory tracking, tax equity
-- 530 tests passing
 
 ### v1.0.0 - Project Finance
 - Phase state machine

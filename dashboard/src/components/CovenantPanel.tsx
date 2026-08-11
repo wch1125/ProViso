@@ -14,6 +14,7 @@ import {
   type ThresholdZone,
 } from '../utils/thresholds';
 import { generateCovenantCode } from '../utils/codeGenerators';
+import { formatCovenantValue, drilldownValueType } from '../utils/covenantValue';
 import type { CovenantData, CovenantStatus } from '../types';
 import { COVENANT_STATUS_PRIORITY } from '../types';
 
@@ -157,7 +158,7 @@ interface CovenantRowProps {
 }
 
 function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, getCalculationTree, onRequestCure, onRequestWaiver, onRequestAmendment }: CovenantRowProps) {
-  const { name, actual, required, operator, compliant, headroom, suspended } = covenant;
+  const { name, actual, required, operator, compliant, headroom, suspended, unit } = covenant;
   const [showCode, setShowCode] = useState(false);
 
   // Calculate threshold zone for styling
@@ -186,12 +187,8 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
   // Format covenant name for display
   const displayName = name.replace(/([A-Z])/g, ' $1').trim();
 
-  // Format the ratio display
-  const formatValue = (val: number) => {
-    if (val >= 100) return val.toFixed(0);
-    if (val >= 10) return val.toFixed(1);
-    return val.toFixed(2);
-  };
+  // Every value on this row is rendered in the covenant's declared unit.
+  const formatValue = (val: number): string => formatCovenantValue(val, unit);
 
   // Presentation is looked up per zone rather than built from a ternary
   // chain: a chain ends in an `else` that silently claims every zone it does
@@ -238,26 +235,13 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
               {suspended && (
                 <StatusBadge status="suspended" label="Suspended" />
               )}
-              {!suspended && zone === 'caution' && (
-                <span className="text-xs text-status-caution font-medium">80%+</span>
-              )}
-              {!suspended && zone === 'danger' && (
-                <span className="text-xs text-status-caution font-medium animate-pulse">90%+</span>
-              )}
-              {/* Compliant, but with nothing left. Labelled explicitly so the
-                  state does not rest on its colour alone. */}
-              {!suspended && zone === 'at_the_line' && (
-                <span className="text-xs text-status-attention font-semibold">
-                  {presentation.label}
-                </span>
-              )}
             </div>
           </div>
           <div className="text-right">
             <div className="flex items-baseline gap-2">
               <ClickableValue
                 value={actual}
-                valueType="ratio"
+                valueType={drilldownValueType(unit)}
                 calculationNode={calcNode as CalculationNode | null}
                 className={`text-lg font-semibold tabular-nums ${
                   suspended
@@ -267,45 +251,39 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
                     : presentation.textClass
                 }`}
               >
-                {formatValue(actual)}x
+                {formatValue(actual)}
               </ClickableValue>
               <span className="text-sm text-industry-textMuted">
-                {operator} {formatValue(required)}x
+                {operator} {formatValue(required)}
               </span>
             </div>
+            {/* ONE headroom encoding, framed as cushion.
+                This card used to state headroom four ways that did not
+                reconcile: a zone tag ("80%+"), a "% to breach" figure, the bar
+                fill, and the prose beneath. "% to breach" also names the bad
+                outcome, so a compliant covenant sitting on its limit read
+                "0% to breach" — indistinguishable from a breach at a glance.
+                Cushion reads the right way round: more is safer. */}
             {!suspended && (
-              <span
-                className={`text-xs ${presentation.textClass}`}
-                title={headroom !== undefined ? `Headroom: ${formatValue(headroom)}x` : undefined}
-              >
+              <span className={`text-xs ${presentation.textClass}`}>
                 {distanceToBreach.isInBreach
                   ? 'In breach'
                   : zone === 'at_the_line'
-                  ? // "0% to breach" on a compliant covenant reads as a breach.
-                    'At the limit — no headroom'
-                  : `${distanceToBreach.percent.toFixed(0)}% to breach`}
+                  ? 'At the limit — no headroom'
+                  : headroom !== undefined
+                  ? `${formatValue(Math.abs(headroom))} headroom`
+                  : `${distanceToBreach.percent.toFixed(0)}% headroom`}
               </span>
             )}
           </div>
         </div>
 
-        {/* Progress Bar with Zone-based Colors */}
+        {/* One bar, one marker.
+            The two interior lines at 80% and 90% were a third way of saying
+            what the fill colour and the label already say, and they marked
+            zone boundaries rather than the covenant's actual limit — which is
+            the only line on this bar a reader cares about. */}
         <div className="progress-bar relative">
-          {/* Zone markers */}
-          {!suspended && (
-            <>
-              <div
-                className="absolute top-0 bottom-0 w-px bg-warning/30"
-                style={{ left: '80%' }}
-                title="Caution zone (80%)"
-              />
-              <div
-                className="absolute top-0 bottom-0 w-px bg-warning/30"
-                style={{ left: '90%' }}
-                title="Danger zone (90%)"
-              />
-            </>
-          )}
           <div
             className={`progress-bar-fill ${
               suspended
@@ -314,14 +292,14 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
             } ${zoneStyle.pulseAnimation ? 'animate-pulse' : ''}`}
             style={{ width: `${usagePercent}%` }}
           />
-        </div>
-
-        {/* Visual Threshold Marker */}
-        <div className="relative h-0">
-          <div
-            className="absolute -top-2 w-0.5 h-4 bg-text-tertiary"
-            style={{ left: operator === '<=' ? '100%' : '0%' }}
-          />
+          {/* The threshold sits at the full width of the bar: the fill is
+              drawn as a fraction of the limit, so 100% IS the limit. */}
+          {!suspended && (
+            <div
+              className="absolute top-0 bottom-0 right-0 w-0.5 bg-text-secondary"
+              title={`Limit: ${operator} ${formatValue(required)}`}
+            />
+          )}
         </div>
 
         {/* Step-Down Schedule Indicator */}
@@ -329,12 +307,12 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
           <div className="mt-2 flex items-center gap-2 text-xs text-industry-textMuted">
             <TrendingDown className="w-3.5 h-3.5 text-gold-400" />
             <span>
-              Step-down from {formatValue(covenant.originalThreshold)}x
+              Step-down from {formatValue(covenant.originalThreshold)}
               {covenant.activeStep && (
-                <> → <span className="text-gold-400 font-medium">{formatValue(covenant.activeStep.threshold)}x</span> (since {covenant.activeStep.afterDate})</>
+                <> → <span className="text-gold-400 font-medium">{formatValue(covenant.activeStep.threshold)}</span> (since {covenant.activeStep.afterDate})</>
               )}
               {covenant.nextStep && (
-                <> · next: {formatValue(covenant.nextStep.threshold)}x after {covenant.nextStep.afterDate}</>
+                <> · next: {formatValue(covenant.nextStep.threshold)} after {covenant.nextStep.afterDate}</>
               )}
             </span>
           </div>
@@ -350,6 +328,7 @@ function CovenantRow({ covenant, showNarrative = true, showCodeButton = true, ge
               operator={operator}
               compliant={compliant}
               headroom={headroom}
+              unit={unit}
               suspended={suspended}
               className="opacity-80"
             />

@@ -15,8 +15,13 @@ import {
   getThresholdZone,
   getZonePresentation,
   generateAlerts,
+  deriveOverallStatus,
 } from '../dashboard/src/utils/thresholds.js';
 import { COVENANT_STATUS_PRIORITY } from '../dashboard/src/types/index.js';
+import {
+  formatCovenantValue,
+  drilldownValueType,
+} from '../dashboard/src/utils/covenantValue.js';
 import type { DashboardData, CovenantData, ReserveData } from '../dashboard/src/types/index.js';
 
 // =============================================================================
@@ -412,6 +417,137 @@ describe('Alerts — at-the-line covenants', () => {
 // =============================================================================
 // COVENANT SORT PRIORITY
 // =============================================================================
+
+// =============================================================================
+// OVERALL DEAL STATUS
+//
+// The tile previously read "Monitor" — the name of the tab it sits on — and
+// was derived from covenant compliance alone, so a deal with milestones past
+// longstop and starved reserves still read as fine.
+// =============================================================================
+
+describe('Overall deal status', () => {
+  const passing = {
+    name: 'InterestCoverage', actual: 4.5, required: 2.5,
+    operator: '>=' as const, compliant: true,
+  };
+
+  function statusOf(over: Partial<Parameters<typeof deriveOverallStatus>[0]> = {}) {
+    return deriveOverallStatus({
+      covenants: [passing],
+      milestones: [],
+      reserves: [],
+      blockedDistribution: 0,
+      ...over,
+    });
+  }
+
+  it('should never use a label that collides with a navigation tab', () => {
+    const tabs = ['negotiate', 'closing', 'monitor', 'deals', 'demo'];
+    const labels = [
+      statusOf().label,
+      statusOf({ covenants: [{ ...passing, compliant: false }] }).label,
+      statusOf({ milestones: [{ name: 'COD', status: 'breached' }] }).label,
+      statusOf({ milestones: [{ name: 'COD', status: 'at_risk' }] }).label,
+    ];
+    for (const label of labels) {
+      expect(tabs).not.toContain(label.toLowerCase());
+    }
+  });
+
+  it('should read On Track when nothing is wrong, with no reason given', () => {
+    const result = statusOf();
+    expect(result.status).toBe('on_track');
+    expect(result.reason).toBeNull();
+  });
+
+  it('should not read On Track when a milestone is past its longstop', () => {
+    const result = statusOf({ milestones: [{ name: 'GridSync', status: 'breached' }] });
+    expect(result.status).toBe('at_risk');
+    expect(result.reason).toMatch(/GridSync/);
+  });
+
+  it('should not read On Track when a reserve is below its minimum', () => {
+    const result = statusOf({
+      reserves: [{ name: 'Debt Service Reserve', balance: 0, minimum: 3_900_000 }],
+    });
+    expect(result.status).toBe('at_risk');
+    expect(result.reason).toMatch(/Debt Service Reserve/);
+  });
+
+  it('should flag blocked distributions', () => {
+    const result = statusOf({ blockedDistribution: 6_000_000 });
+    expect(result.status).toBe('attention');
+  });
+
+  it('should rank a covenant breach above a missed longstop', () => {
+    const result = statusOf({
+      covenants: [{ ...passing, compliant: false }],
+      milestones: [{ name: 'GridSync', status: 'breached' }],
+    });
+    expect(result.status).toBe('breach');
+    expect(result.reason).toMatch(/InterestCoverage/);
+  });
+
+  it('should name the single worst item rather than only saying something is wrong', () => {
+    const result = statusOf({ milestones: [{ name: 'PileInstallation', status: 'breached' }] });
+    expect(result.reason).toBeTruthy();
+    expect(result.reason).not.toMatch(/^(Issue|Problem|Warning)$/);
+  });
+
+  it('should ignore suspended covenants', () => {
+    const result = statusOf({
+      covenants: [passing, { ...passing, name: 'TotalLeverage', compliant: false, suspended: true }],
+    });
+    expect(result.status).toBe('on_track');
+  });
+});
+
+// =============================================================================
+// COVENANT VALUE FORMATTING
+//
+// The panel suffixed every covenant value with "x", so an $84,000,000 equity
+// floor rendered as "84000000x" and its cushion as "0.00x". The prose summary
+// guessed differently again, putting two units in one sentence.
+// =============================================================================
+
+describe('Covenant value formatting', () => {
+  it('should render a ratio with an x suffix', () => {
+    expect(formatCovenantValue(3.02, 'ratio')).toBe('3.02x');
+  });
+
+  it('should render currency at the scale agreements are written in', () => {
+    expect(formatCovenantValue(84_000_000, 'currency')).toBe('$84.0M');
+    expect(formatCovenantValue(1_500_000_000, 'currency')).toBe('$1.50B');
+    expect(formatCovenantValue(250_000, 'currency')).toBe('$250K');
+  });
+
+  it('should render a percentage with a percent sign, not an x', () => {
+    expect(formatCovenantValue(15, 'percentage')).toBe('15.0%');
+  });
+
+  it('should never suffix a non-ratio value with x', () => {
+    for (const unit of ['currency', 'percentage', 'number'] as const) {
+      expect(formatCovenantValue(84_000_000, unit)).not.toMatch(/x$/);
+    }
+  });
+
+  it('should group an undetermined unit rather than asserting one', () => {
+    // Computed thresholds (0.30 * total_project_cost) carry no literal unit.
+    expect(formatCovenantValue(84_000_000, undefined)).toBe('84,000,000');
+    expect(formatCovenantValue(84_000_000, 'number')).toBe('84,000,000');
+  });
+
+  it('should keep small unitless values precise rather than grouping them', () => {
+    expect(formatCovenantValue(3.02, undefined)).toBe('3.02');
+  });
+
+  it('should map units to the drilldown value type', () => {
+    expect(drilldownValueType('currency')).toBe('currency');
+    expect(drilldownValueType('ratio')).toBe('ratio');
+    expect(drilldownValueType(undefined)).toBe('number');
+  });
+});
 
 describe('Covenant status priority', () => {
   // CovenantPanel derives a status straight from getThresholdZone, so a zone

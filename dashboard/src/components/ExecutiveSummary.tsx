@@ -3,7 +3,7 @@ import { CheckCircle2, AlertTriangle, XCircle, DollarSign, Calendar, TrendingUp,
 import { Card, CardBody } from './Card';
 import { Sparkline } from './charts';
 import { useIndustryTheme } from '../context';
-import { generateAlerts } from '../utils/thresholds';
+import { generateAlerts, deriveOverallStatus } from '../utils/thresholds';
 import type { DashboardData } from '../types';
 
 /**
@@ -83,6 +83,33 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
   // Combine all alert conditions
   const showAlertBanner = !allCompliant || hasWarnings || alertSummary.hasAlerts;
 
+  // Deal status, weighed across every signal on the page rather than covenants
+  // alone — this tile previously read "Compliant" on a deal with milestones
+  // past longstop and reserves below their minimum.
+  const overallStatus = deriveOverallStatus({
+    covenants: data.covenants.map(c => ({
+      name: c.name,
+      actual: c.actual,
+      required: c.required,
+      operator: c.operator,
+      suspended: c.suspended,
+      compliant: c.compliant,
+    })),
+    milestones: data.milestones.map(m => ({ name: m.name, status: m.status })),
+    reserves: data.reserves.map(r => ({ name: r.name, balance: r.balance, minimum: r.minimum })),
+    blockedDistribution,
+  });
+
+  const STATUS_PRESENTATION = {
+    on_track: { icon: CheckCircle2, className: 'text-status-safe', pulse: false },
+    attention: { icon: AlertTriangle, className: 'text-status-caution', pulse: false },
+    at_risk: { icon: AlertCircle, className: 'text-status-attention', pulse: true },
+    breach: { icon: XCircle, className: 'text-status-breach', pulse: false },
+  } as const;
+
+  const statusPresentation = STATUS_PRESENTATION[overallStatus.status];
+  const StatusIcon = statusPresentation.icon;
+
   // Generate trend data for sparklines (simulated - in production this would come from the backend)
   const reserveTrendData = useMemo(
     () => generateTrendData(reserveFunding, 6, 0.08, 'reserve-funding'),
@@ -103,36 +130,25 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
               <div>
                 <p className="metric-label mb-1">Overall Status</p>
                 <div className="flex items-center gap-2">
-                  {!allCompliant ? (
-                    <XCircle className="w-6 h-6 text-danger" />
-                  ) : alertSummary.dangerCount > 0 ? (
-                    <AlertCircle className="w-6 h-6 text-warning animate-pulse" />
-                  ) : alertSummary.cautionCount > 0 ? (
-                    <AlertTriangle className="w-6 h-6 text-warning" />
-                  ) : (
-                    <CheckCircle2 className="w-6 h-6 text-success" />
-                  )}
-                  <span className={`text-xl font-semibold ${
-                    !allCompliant
-                      ? 'text-danger'
-                      : alertSummary.dangerCount > 0
-                      ? 'text-warning'
-                      : alertSummary.cautionCount > 0
-                      ? 'text-warning'
-                      : 'text-success'
-                  }`}>
-                    {!allCompliant
-                      ? 'Breach'
-                      : alertSummary.dangerCount > 0
-                      ? 'At Risk'
-                      : alertSummary.cautionCount > 0
-                      ? 'Monitor'
-                      : 'Compliant'}
+                  <StatusIcon
+                    className={`w-6 h-6 ${statusPresentation.className} ${
+                      statusPresentation.pulse ? 'animate-pulse' : ''
+                    }`}
+                  />
+                  <span className={`text-xl font-semibold ${statusPresentation.className}`}>
+                    {overallStatus.label}
                   </span>
                 </div>
               </div>
             </div>
-            <p className="text-sm text-text-muted mt-3">
+            {/* The worst thing on the page, named. A status word alone tells a
+                reader that something is wrong but not what. */}
+            {overallStatus.reason && (
+              <p className={`text-sm mt-3 font-medium ${statusPresentation.className}`}>
+                {overallStatus.reason}
+              </p>
+            )}
+            <p className="text-sm text-text-muted mt-1">
               {compliantCount}/{activeCount} active covenants passing
               {totalCovenants - activeCount > 0 && (
                 <span className="text-text-muted"> ({totalCovenants - activeCount} suspended)</span>
@@ -181,7 +197,7 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
                   threshold={100}
                   thresholdColor="#10b981"
                 />
-                <span className="text-[9px] text-text-muted/50 leading-none">Simulated</span>
+                <span className="text-[9px] text-text-muted/50 leading-none">Illustrative</span>
               </div>
             </div>
             <p className="text-sm text-text-muted mt-3">
@@ -206,7 +222,7 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
                   width={64}
                   color={blockedDistribution > 0 ? '#f59e0b' : '#10b981'}
                 />
-                <span className="text-[9px] text-text-muted/50 leading-none">Simulated</span>
+                <span className="text-[9px] text-text-muted/50 leading-none">Illustrative</span>
               </div>
             </div>
             <p className="text-sm text-text-muted mt-3">

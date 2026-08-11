@@ -17,8 +17,12 @@ import { parseOrThrow } from '../src/parser.js';
 import { ProVisoInterpreter } from '../src/interpreter.js';
 
 /** Fixed evaluation date. Chosen after every example's milestone longstops so
- *  statuses are settled rather than drifting as the real clock advances. */
-const AS_OF = new Date('2027-01-01T00:00:00Z');
+ *  statuses are settled rather than drifting as the real clock advances.
+ *
+ *  Moved 2027-01-01 -> 2029-01-01 when the demo schedules were pushed forward
+ *  (latest longstop is now 2028-08-15). It has to stay ahead of the last
+ *  longstop or the settled-status invariant above stops holding. */
+const AS_OF = new Date('2029-01-01T00:00:00Z');
 
 /** Example file → optional financial data file. */
 const EXAMPLES: Array<{ proviso: string; data?: string }> = [
