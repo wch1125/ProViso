@@ -20,6 +20,7 @@ import {
   PricingGridStatement,
   SweepStatement,
   ExcessCashFlowStatement,
+  DistributionLockupStatement,
   ReserveStatement,
   WaterfallStatement,
   PhaseStatement,
@@ -53,6 +54,7 @@ interface SymbolTable {
   pricingGrids: Set<string>;
   excessCashFlows: Set<string>;
   sweeps: Set<string>;
+  distributionLockups: Set<string>;
 }
 
 /**
@@ -271,6 +273,64 @@ function collectIdentifiers(expr: Expression, into: Set<string>): void {
 }
 
 /**
+ * Validate a DISTRIBUTION_LOCKUP statement.
+ *
+ * A lock-up naming a reserve that does not exist is the dangerous case: the
+ * test would fail closed forever, or trapped cash would vanish because there
+ * is nowhere to route it.
+ */
+function validateDistributionLockup(
+  stmt: DistributionLockupStatement,
+  symbols: SymbolTable,
+  errors: ValidationIssue[],
+  warnings: ValidationIssue[]
+): void {
+  const context = `DISTRIBUTION_LOCKUP ${stmt.name}`;
+
+  if (stmt.tests.length === 0 && stmt.reservesFunded.length === 0 && !stmt.requiresNoDefault) {
+    warnings.push({
+      severity: 'warning',
+      message: 'Lock-up declares no conditions — distributions are always released',
+      context,
+    });
+  }
+
+  for (const reserve of stmt.reservesFunded) {
+    if (!symbols.reserves.has(reserve)) {
+      errors.push({
+        severity: 'error',
+        message:
+          `RESERVES_FUNDED references '${reserve}', which is not a declared RESERVE — ` +
+          `the test would fail permanently and distributions could never be released`,
+        reference: reserve,
+        context,
+      });
+    }
+  }
+
+  if (stmt.trapTo && !symbols.reserves.has(stmt.trapTo)) {
+    errors.push({
+      severity: 'error',
+      message:
+        `TRAP_TO references '${stmt.trapTo}', which is not a declared RESERVE — ` +
+        `trapped cash would have nowhere to go`,
+      reference: stmt.trapTo,
+      context,
+    });
+  }
+
+  if (!stmt.trapTo) {
+    warnings.push({
+      severity: 'warning',
+      message:
+        'Lock-up has no TRAP_TO reserve — blocked distributions stay in the waterfall ' +
+        'remainder rather than being trapped',
+      context,
+    });
+  }
+}
+
+/**
  * Validate a SWEEP statement.
  *
  * A sweep that names a source or tranche which does not exist silently sweeps
@@ -474,6 +534,7 @@ function buildSymbolTable(ast: Program): SymbolTable {
     pricingGrids: new Set(),
     excessCashFlows: new Set(),
     sweeps: new Set(),
+    distributionLockups: new Set(),
   };
 
   for (const stmt of ast.statements) {
@@ -531,6 +592,9 @@ function buildSymbolTable(ast: Program): SymbolTable {
       case 'Sweep':
         symbols.sweeps.add(stmt.name);
         break;
+      case 'DistributionLockup':
+        symbols.distributionLockups.add(stmt.name);
+        break;
     }
   }
 
@@ -559,7 +623,8 @@ function isKnownSymbol(name: string, symbols: SymbolTable): boolean {
     symbols.tranches.has(name) ||
     symbols.pricingGrids.has(name) ||
     symbols.excessCashFlows.has(name) ||
-    symbols.sweeps.has(name)
+    symbols.sweeps.has(name) ||
+    symbols.distributionLockups.has(name)
   );
 }
 
@@ -630,6 +695,9 @@ function validateStatement(
       break;
     case 'Sweep':
       validateSweep(stmt, symbols, errors, warnings);
+      break;
+    case 'DistributionLockup':
+      validateDistributionLockup(stmt, symbols, errors, warnings);
       break;
     case 'ExcessCashFlow':
       validateExcessCashFlow(stmt, symbols, errors, warnings);
@@ -925,6 +993,14 @@ function validateWaterfall(
 
     if (tier.payAmount) {
       validateExpression(tier.payAmount, symbols, errors, warnings, `${tierContext} PAY`);
+    }
+    if (tier.lockup && !symbols.distributionLockups.has(tier.lockup)) {
+      errors.push({
+        severity: 'error',
+        message: `SUBJECT_TO_LOCKUP references '${tier.lockup}', which is not a declared DISTRIBUTION_LOCKUP`,
+        reference: tier.lockup,
+        context: tierContext,
+      });
     }
     if (tier.condition) {
       validateExpression(tier.condition, symbols, errors, warnings, `${tierContext} IF`);

@@ -1101,6 +1101,10 @@ exports[`Golden files — shipped example deals > project_finance.proviso evalua
       "value": 5.714285714285714,
     },
     {
+      "name": "ProjectedDSCR",
+      "value": 6.571428571428571,
+    },
+    {
       "name": "SeniorDebt",
       "value": 100000000,
     },
@@ -1242,6 +1246,15 @@ exports[`Golden files — shipped example deals > project_finance.proviso evalua
       "minimum": 15000000,
       "name": "DebtServiceReserve",
       "target": 30000000,
+    },
+    {
+      "availableForRelease": 0,
+      "balance": 0,
+      "belowMinimum": false,
+      "fundedPercent": 0,
+      "minimum": 0,
+      "name": "DistributionLockupReserve",
+      "target": 50000000,
     },
     {
       "availableForRelease": 0,

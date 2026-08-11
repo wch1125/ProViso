@@ -60,6 +60,9 @@ import {
   SweepResult,
   PeriodSettlement,
   PeriodSettlementInput,
+  DistributionLockupStatement,
+  DistributionLockupResult,
+  LockupConditionResult,
   CPStatus,
   CPChecklistResult,
   CPItemResult,
@@ -127,6 +130,7 @@ export class ProVisoInterpreter {
   private pricingGrids: Map<string, PricingGridStatement> = new Map();
   private excessCashFlows: Map<string, ExcessCashFlowStatement> = new Map();
   private sweeps: Map<string, SweepStatement> = new Map();
+  private distributionLockups: Map<string, DistributionLockupStatement> = new Map();
   /**
    * Live drawn balances, keyed `facility::tranche`.
    *
@@ -291,6 +295,9 @@ export class ProVisoInterpreter {
         break;
       case 'Sweep':
         this.sweeps.set(stmt.name, stmt);
+        break;
+      case 'DistributionLockup':
+        this.distributionLockups.set(stmt.name, stmt);
         break;
       case 'Amendment':
         // Amendments are processed separately via applyAmendment
@@ -3709,6 +3716,90 @@ export class ProVisoInterpreter {
     }
   }
 
+  // ==================== DISTRIBUTION LOCK-UP ====================
+
+  hasDistributionLockups(): boolean {
+    return this.distributionLockups.size > 0;
+  }
+
+  getDistributionLockupNames(): string[] {
+    return Array.from(this.distributionLockups.keys());
+  }
+
+  /**
+   * Evaluate a distribution lock-up.
+   *
+   * Every condition must hold for cash to be released. All conditions are
+   * evaluated rather than short-circuited, because a sponsor asking "why can't
+   * I take a distribution?" needs the full list, not the first failure.
+   */
+  checkDistributionLockup(name: string): DistributionLockupResult {
+    const lockup = this.distributionLockups.get(name);
+    if (!lockup) {
+      throw new Error(`Unknown distribution lockup: ${name}`);
+    }
+
+    const conditions: LockupConditionResult[] = [];
+
+    // Ratio tests — conventionally historical and projected DSCR.
+    for (const test of lockup.tests) {
+      const description = this.describeCondition(test);
+      if (isComparisonExpression(test)) {
+        const actual = this.tryEvaluate(test.left);
+        const threshold = this.tryEvaluate(test.right);
+        // An unresolvable test fails closed: cash stays trapped rather than
+        // being released on a figure the engine could not compute.
+        const passed =
+          actual !== undefined &&
+          threshold !== undefined &&
+          this.compareValues(actual, test.operator, threshold);
+        conditions.push({ description, passed, actual, threshold });
+      } else {
+        conditions.push({ description, passed: this.evaluateBoolean(test) });
+      }
+    }
+
+    // Reserves must be funded to target.
+    for (const reserveName of lockup.reservesFunded) {
+      if (!this.reserves.has(reserveName)) {
+        conditions.push({
+          description: `${reserveName} funded to target`,
+          passed: false,
+        });
+        continue;
+      }
+      const status = this.getReserveStatus(reserveName);
+      conditions.push({
+        description: `${reserveName} funded to target`,
+        passed: status.balance >= status.target,
+        actual: status.balance,
+        threshold: status.target,
+      });
+    }
+
+    // No event of default subsisting.
+    if (lockup.requiresNoDefault) {
+      conditions.push({
+        description: 'No event of default subsisting',
+        passed: this.eventDefaults.size === 0,
+      });
+    }
+
+    const failedConditions = conditions.filter((c) => !c.passed).map((c) => c.description);
+
+    return {
+      name,
+      released: failedConditions.length === 0,
+      conditions,
+      trapTo: lockup.trapTo,
+      failedConditions,
+    };
+  }
+
+  getAllDistributionLockupStatuses(): DistributionLockupResult[] {
+    return this.getDistributionLockupNames().map((name) => this.checkDistributionLockup(name));
+  }
+
   // ==================== EXCESS CASH FLOW ====================
 
   hasExcessCashFlows(): boolean {
@@ -4086,6 +4177,39 @@ export class ProVisoInterpreter {
         blocked: true,
         blockReason: `Circular reserve: tier both funds and draws from ${tier.payTo}`,
       };
+    }
+
+    // Distribution lock-up. Unlike an ordinary gate, a failed lock-up does not
+    // merely withhold the tier: the cash it would have paid is trapped in a
+    // named reserve. That is the whole distinction between a lock-up and a
+    // conditional tier, and it is why this runs before the plain condition.
+    if (tier.lockup) {
+      const lockup = this.checkDistributionLockup(tier.lockup);
+      if (!lockup.released) {
+        const requested = tier.payAmount ? this.evaluate(tier.payAmount) : 0;
+        const trappable = Math.max(0, Math.min(requested, available));
+        let trapped = 0;
+
+        if (lockup.trapTo && trappable > 0 && this.reserves.has(lockup.trapTo)) {
+          this.fundReserve(lockup.trapTo, trappable);
+          trapped = trappable;
+        }
+
+        return {
+          priority: tier.priority,
+          name: tier.name,
+          requested,
+          // Trapped cash leaves the waterfall, so it counts as paid out of the
+          // remainder — it simply lands in a reserve rather than with sponsors.
+          paid: trapped,
+          shortfall: requested - trapped,
+          reserveDrawn: 0,
+          blocked: true,
+          blockReason: `Distribution lock-up ${tier.lockup}: ${lockup.failedConditions.join('; ')}`,
+          trapped,
+          trappedTo: trapped > 0 ? lockup.trapTo ?? undefined : undefined,
+        };
+      }
     }
 
     // Check gate condition

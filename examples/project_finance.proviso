@@ -68,6 +68,9 @@ DEFINE DebtService AS
 DEFINE DSCR AS
   EBITDA / DebtService
 
+DEFINE ProjectedDSCR AS
+  projected_cfads / DebtService
+
 DEFINE Leverage AS
   TotalDebt / EBITDA
 
@@ -104,11 +107,29 @@ RESERVE DebtServiceReserve
   FUNDED_BY Waterfall, EquityContribution
   RELEASED_TO Waterfall
 
+// Blocked distributions are trapped here rather than released to sponsors.
+RESERVE DistributionLockupReserve
+  TARGET 50_000_000
+  MINIMUM 0
+
 RESERVE MaintenanceReserve
   TARGET annual_capex_budget
   MINIMUM 0.5 * annual_capex_budget
   FUNDED_BY Waterfall
   RELEASED_FOR PermittedCapEx
+
+// ==================== DISTRIBUTION LOCK-UP ====================
+
+// Sponsors receive cash only if the project is performing on both a historical
+// and a forward-looking basis, reserves are funded, and no default subsists.
+// Cash failing the test is trapped, not merely withheld.
+
+DISTRIBUTION_LOCKUP SponsorDistributions
+  TEST DSCR >= 1.50x
+  TEST ProjectedDSCR >= 1.50x
+  RESERVES_FUNDED DebtServiceReserve, MaintenanceReserve
+  NO_DEFAULT
+  TRAP_TO DistributionLockupReserve
 
 // ==================== WATERFALL ====================
 
@@ -135,9 +156,9 @@ WATERFALL OperatingWaterfall
     FROM REMAINDER
 
   TIER 5 "Distributions"
-    IF DSCR >= 1.50
     PAY distributions
     FROM REMAINDER
+    SUBJECT_TO_LOCKUP SponsorDistributions
 
 // ==================== CONDITIONS PRECEDENT ====================
 

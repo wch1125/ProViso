@@ -28,7 +28,8 @@
     "operating_expenses": 3200000,
     "distributions": 5000000,
     "Revenue": 12500000,
-    "total_assets": 180000000
+    "total_assets": 180000000,
+    "projected_cfads": 46000000
   },
   "milestones": [
     {
@@ -68,17 +69,17 @@
   "covenants": {
     "TotalLeverage": {
       "actual": 3.24,
-      "required": 4.50,
+      "required": 4.5,
       "operator": "<="
     },
     "SeniorLeverage": {
       "actual": 2.18,
-      "required": 3.00,
+      "required": 3.0,
       "operator": "<="
     },
     "InterestCoverage": {
       "actual": 4.52,
-      "required": 2.50,
+      "required": 2.5,
       "operator": ">="
     },
     "MinDSCR": {

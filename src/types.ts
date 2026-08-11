@@ -35,7 +35,8 @@ export type Statement =
   | FacilityStatement
   | PricingGridStatement
   | ExcessCashFlowStatement
-  | SweepStatement;
+  | SweepStatement
+  | DistributionLockupStatement;
 
 // ==================== PERIOD SETTLEMENT ====================
 
@@ -1327,6 +1328,50 @@ export interface FlipEventResult {
   buyoutPrice: number | null;
 }
 
+// ==================== DISTRIBUTION LOCK-UP TYPES ====================
+
+/**
+ * The project-finance distribution test.
+ *
+ * Distributions to sponsors are released only if every declared condition
+ * holds. When one fails the cash is *trapped* — routed to a named reserve —
+ * rather than simply withheld, which is the distinction between a lock-up and
+ * an ordinary gated waterfall tier.
+ */
+export interface DistributionLockupStatement {
+  type: 'DistributionLockup';
+  name: string;
+  /** Ratio tests, conventionally historical and projected DSCR. */
+  tests: Expression[];
+  /** Reserves that must be funded to target before cash is released. */
+  reservesFunded: string[];
+  /** Whether an outstanding event of default blocks distributions. */
+  requiresNoDefault: boolean;
+  /** Reserve that trapped cash is routed to. */
+  trapTo: string | null;
+}
+
+/** One condition of a lock-up test and whether it held. */
+export interface LockupConditionResult {
+  description: string;
+  passed: boolean;
+  /** Actual value where the condition is a ratio test. */
+  actual?: number;
+  threshold?: number;
+}
+
+/** Evaluated state of a distribution lock-up. */
+export interface DistributionLockupResult {
+  name: string;
+  /** True when every condition holds and cash may be released. */
+  released: boolean;
+  conditions: LockupConditionResult[];
+  /** Reserve trapped cash is routed to, if declared. */
+  trapTo: string | null;
+  /** The conditions that failed, for a one-line explanation. */
+  failedConditions: string[];
+}
+
 // ==================== EXCESS CASH FLOW & SWEEP TYPES ====================
 
 /** One deduction in an ECF stack. */
@@ -1625,6 +1670,8 @@ export interface WaterfallTier {
   shortfall: string | null;
   /** Gate condition (e.g., IF COMPLIANT) */
   condition: Expression | null;
+  /** Distribution lock-up gating this tier; failing it traps the cash. */
+  lockup: string | null;
 }
 
 /**
@@ -1657,6 +1704,10 @@ export interface WaterfallTierResult {
   shortfall: number;
   /** Amount drawn from reserve to cover shortfall */
   reserveDrawn: number;
+  /** Cash withheld by a distribution lock-up and routed to a reserve. */
+  trapped?: number;
+  /** Reserve the trapped cash was routed to. */
+  trappedTo?: string;
   /** Whether tier was blocked by condition */
   blocked: boolean;
   /** Reason for blocking */

@@ -29,6 +29,7 @@ Program
 
 Statement
   = AmendmentStatement
+  / DistributionLockupStatement
   / ExcessCashFlowStatement
   / SweepStatement
   / PricingGridStatement
@@ -736,6 +737,44 @@ MilestoneRequires
 
 // ==================== RESERVE ====================
 
+// ==================== DISTRIBUTION LOCK-UP ====================
+
+// The project-finance distribution test. Cash is released to sponsors only if
+// every condition holds; otherwise it is trapped in a named reserve rather
+// than merely withheld.
+DistributionLockupStatement
+  = "DISTRIBUTION_LOCKUP" __ name:Identifier _ clauses:LockupClause+ {
+      const result = {
+        type: 'DistributionLockup',
+        name: name,
+        tests: [],
+        reservesFunded: [],
+        requiresNoDefault: false,
+        trapTo: null
+      };
+      clauses.forEach(clause => {
+        if (clause.type === 'test') result.tests.push(clause.condition);
+        if (clause.type === 'reservesFunded') result.reservesFunded = clause.reserves;
+        if (clause.type === 'noDefault') result.requiresNoDefault = true;
+        if (clause.type === 'trapTo') result.trapTo = clause.account;
+      });
+      return result;
+    }
+
+LockupClause
+  = "TEST" __ cond:ComparisonExpression _ {
+      return { type: 'test', condition: cond };
+    }
+  / "RESERVES_FUNDED" __ reserves:IdentifierList _ {
+      return { type: 'reservesFunded', reserves: reserves };
+    }
+  / "NO_DEFAULT" !IdentifierChar _ {
+      return { type: 'noDefault' };
+    }
+  / "TRAP_TO" __ account:Identifier _ {
+      return { type: 'trapTo', account: account };
+    }
+
 // ==================== EXCESS CASH FLOW ====================
 
 // ECF is an ordered deduction stack, not a fixed formula — every deal defines
@@ -1004,7 +1043,8 @@ WaterfallTier
         from: 'REMAINDER',
         until: null,
         shortfall: null,
-        condition: null
+        condition: null,
+        lockup: null
       };
       clauses.forEach(clause => {
         if (clause.type === 'payTo') result.payTo = clause.account;
@@ -1013,12 +1053,18 @@ WaterfallTier
         if (clause.type === 'until') result.until = clause.condition;
         if (clause.type === 'shortfall') result.shortfall = clause.account;
         if (clause.type === 'condition') result.condition = clause.expr;
+        if (clause.type === 'lockup') result.lockup = clause.name;
       });
       return result;
     }
 
 WaterfallTierClause
-  = "PAY" __ "TO" __ account:Identifier _ {
+  // Gate this tier on a distribution lock-up: cash that fails the test is
+  // trapped in the lock-up's reserve rather than left in the remainder.
+  = "SUBJECT_TO_LOCKUP" __ name:Identifier _ {
+      return { type: 'lockup', name: name };
+    }
+  / "PAY" __ "TO" __ account:Identifier _ {
       return { type: 'payTo', account: account };
     }
   / "PAY" __ amount:Expression _ {

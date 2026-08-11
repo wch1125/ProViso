@@ -984,6 +984,75 @@ program
     }
   });
 
+// ==================== LOCKUP COMMAND ====================
+
+program
+  .command('lockup <file>')
+  .description('Check distribution lock-up conditions')
+  .option('-d, --data <file>', 'Financial data JSON file')
+  .option('-a, --amendments <files...>', 'Amendment files to apply in order')
+  .option('--json', 'Output as JSON')
+  .action(async (file: string, options: { data?: string; amendments?: string[]; json?: boolean }) => {
+    try {
+      const interpreter = await loadInterpreter(file, options.data, options.amendments);
+
+      if (!interpreter.hasDistributionLockups()) {
+        console.log('\nNo distribution lock-ups defined in this agreement.');
+        process.exit(0);
+      }
+
+      const lockups = interpreter.getAllDistributionLockupStatuses();
+
+      if (options.json) {
+        console.log(JSON.stringify(lockups, null, 2));
+        // A blocked distribution is the interesting state, so make it readable
+        // from an exit code too.
+        process.exit(lockups.every((l) => l.released) ? 0 : 1);
+      }
+
+      for (const lockup of lockups) {
+        console.log(`\nDISTRIBUTION LOCK-UP: ${lockup.name}`);
+        console.log('─'.repeat(70));
+        console.log(
+          lockup.released
+            ? '  ✓ RELEASED — distributions permitted'
+            : '  ✗ LOCKED — distributions blocked'
+        );
+        console.log('');
+
+        for (const condition of lockup.conditions) {
+          const mark = condition.passed ? '✓' : '✗';
+          let detail = '';
+          if (condition.actual !== undefined && condition.threshold !== undefined) {
+            // Pick the unit from the threshold, which is the reliably non-zero
+            // side, and format both the same way — a balance of zero against a
+            // $30M target must not render as "0.00x vs 30.0M".
+            const asCurrency = Math.abs(condition.threshold) >= 1000;
+            const format = (v: number): string =>
+              asCurrency ? formatMoney(v) : `${v.toFixed(2)}x`;
+            detail = `  (${format(condition.actual)} vs ${format(condition.threshold)})`;
+          }
+          console.log(`  ${mark} ${condition.description}${detail}`);
+        }
+
+        if (!lockup.released && lockup.trapTo) {
+          console.log('');
+          console.log(`  Blocked cash is trapped in ${lockup.trapTo}.`);
+        }
+      }
+      console.log('');
+
+      process.exit(lockups.every((l) => l.released) ? 0 : 1);
+
+    } catch (err) {
+      const msg = (err as Error).message;
+      if (msg !== 'Parse failed') {
+        console.error(`Error: ${msg}`);
+      }
+      process.exit(1);
+    }
+  });
+
 // ==================== SETTLE COMMAND ====================
 
 program

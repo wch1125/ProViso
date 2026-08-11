@@ -25,6 +25,7 @@ import type {
   PricingGridStatement,
   SweepStatement,
   ExcessCashFlowStatement,
+  DistributionLockupStatement,
   Expression,
 } from '../../types.js';
 import type { ElementType, ChangeType } from '../types.js';
@@ -70,6 +71,8 @@ export interface CompiledState {
   sweeps: Map<string, SweepStatement>;
   /** EXCESS_CASH_FLOW statements by name */
   excessCashFlows: Map<string, ExcessCashFlowStatement>;
+  /** DISTRIBUTION_LOCKUP statements by name */
+  distributionLockups: Map<string, DistributionLockupStatement>;
   /** Raw source code */
   sourceCode: string;
   /** Parse errors if any */
@@ -158,6 +161,7 @@ export async function compileToState(code: string): Promise<CompiledState> {
     pricingGrids: new Map(),
     sweeps: new Map(),
     excessCashFlows: new Map(),
+    distributionLockups: new Map(),
     sourceCode: code,
     parseError: null,
   };
@@ -218,6 +222,9 @@ export async function compileToState(code: string): Promise<CompiledState> {
       case 'ExcessCashFlow':
         state.excessCashFlows.set(stmt.name, stmt);
         break;
+      case 'DistributionLockup':
+        state.distributionLockups.set(stmt.name, stmt);
+        break;
       // Skip: Comment, Load, Amendment (amendments are applied separately)
     }
   }
@@ -263,6 +270,7 @@ export function diffStates(fromState: CompiledState, toState: CompiledState): Di
   diffMaps(fromState.pricingGrids, toState.pricingGrids, 'facility', diffs);
   diffMaps(fromState.sweeps, toState.sweeps, 'facility', diffs);
   diffMaps(fromState.excessCashFlows, toState.excessCashFlows, 'facility', diffs);
+  diffMaps(fromState.distributionLockups, toState.distributionLockups, 'waterfall', diffs);
 
   // Compute stats
   const stats = computeStats(diffs);
@@ -368,6 +376,9 @@ function diffElements(fromElement: Statement, toElement: Statement): FieldChange
       break;
     case 'ExcessCashFlow':
       diffExcessCashFlows(fromElement, toElement as ExcessCashFlowStatement, changes);
+      break;
+    case 'DistributionLockup':
+      diffDistributionLockups(fromElement, toElement as DistributionLockupStatement, changes);
       break;
     case 'Waterfall':
       diffWaterfalls(fromElement, toElement as WaterfallStatement, changes);
@@ -590,6 +601,40 @@ function diffMilestones(from: MilestoneStatement, to: MilestoneStatement, change
 
   // REQUIRES may be a bare identifier or a nested ALL_OF/ANY_OF condition.
   compareStructured('requires', from.requires, to.requires, changes);
+}
+
+/**
+ * Compare two distribution lock-ups.
+ *
+ * A tightened DSCR threshold is one of the most consequential changes in a
+ * project financing — it decides whether the sponsor sees cash — so every
+ * test, reserve condition and the trap destination are compared.
+ */
+function diffDistributionLockups(
+  from: DistributionLockupStatement,
+  to: DistributionLockupStatement,
+  changes: FieldChange[]
+): void {
+  const most = Math.max(from.tests.length, to.tests.length);
+  for (let i = 0; i < most; i++) {
+    const before = from.tests[i];
+    const after = to.tests[i];
+    compareScalars(
+      `test.${i + 1}`,
+      before === undefined ? null : expressionToString(before),
+      after === undefined ? null : expressionToString(after),
+      changes
+    );
+  }
+
+  compareLists('reservesFunded', from.reservesFunded, to.reservesFunded, changes);
+  compareScalars('trapTo', from.trapTo, to.trapTo, changes);
+  compareScalars(
+    'requiresNoDefault',
+    String(from.requiresNoDefault),
+    String(to.requiresNoDefault),
+    changes
+  );
 }
 
 /**
