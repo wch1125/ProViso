@@ -360,3 +360,156 @@ export function analyzeTrend(
     projectedBreachPeriod,
   };
 }
+
+// =============================================================================
+// OVERALL DEAL STATUS
+// =============================================================================
+
+/**
+ * The deal-level status vocabulary.
+ *
+ * Deliberately avoids any word used as a navigation tab label — a status tile
+ * reading "Monitor" while sitting on the Monitor tab looks like the page name
+ * leaked into the status slot, even when it is a real status tier.
+ */
+export type OverallStatus = 'on_track' | 'attention' | 'at_risk' | 'breach';
+
+export interface OverallStatusResult {
+  status: OverallStatus;
+  /** Display label. */
+  label: string;
+  /**
+   * The single most severe reason, phrased for a reader who has not looked at
+   * anything else on the page. Null when nothing is wrong.
+   */
+  reason: string | null;
+}
+
+const OVERALL_STATUS_LABELS: Record<OverallStatus, string> = {
+  on_track: 'On Track',
+  attention: 'Attention',
+  at_risk: 'At Risk',
+  breach: 'Breach',
+};
+
+/** Inputs the deal status is derived from. */
+export interface OverallStatusInput {
+  covenants: Array<{
+    name: string;
+    actual: number;
+    required: number;
+    operator: '<=' | '>=' | '<' | '>' | '=' | '!=';
+    suspended?: boolean;
+    compliant: boolean;
+  }>;
+  milestones: Array<{ name: string; status: string }>;
+  reserves: Array<{ name: string; balance: number; target: number; minimum: number }>;
+  blockedDistribution: number;
+}
+
+/**
+ * Derive the deal's overall health from every signal on the page, not just
+ * covenants.
+ *
+ * A deal with a breached milestone and a starved debt service reserve should
+ * not read "On Track" merely because its covenants pass — which is what
+ * happened when this was derived from covenant compliance alone.
+ *
+ * Severity order is fixed: a covenant breach outranks a missed longstop, which
+ * outranks an early warning. The reason returned is always the single most
+ * severe item, so the tile answers "what is the worst thing here?".
+ */
+export function deriveOverallStatus(input: OverallStatusInput): OverallStatusResult {
+  const active = input.covenants.filter((c) => !c.suspended);
+
+  // --- Breach: a covenant is failing ---
+  const breached = active.filter((c) => !c.compliant);
+  if (breached.length > 0) {
+    const names = breached.map((c) => c.name);
+    return {
+      status: 'breach',
+      label: OVERALL_STATUS_LABELS.breach,
+      reason:
+        names.length === 1
+          ? `${names[0]} is in breach`
+          : `${names.length} covenants in breach (${names.slice(0, 2).join(', ')}…)`,
+    };
+  }
+
+  // --- At risk: compliant, but something material has already gone wrong ---
+  const breachedMilestones = input.milestones.filter((m) => m.status === 'breached');
+  if (breachedMilestones.length > 0) {
+    return {
+      status: 'at_risk',
+      label: OVERALL_STATUS_LABELS.at_risk,
+      reason:
+        breachedMilestones.length === 1
+          ? `${breachedMilestones[0]?.name} has passed its longstop date`
+          : `${breachedMilestones.length} milestones past longstop`,
+    };
+  }
+
+  const alerts = generateAlerts(active);
+  if (alerts.dangerCount > 0) {
+    const nearest = alerts.alerts.find((a) => a.zone === 'danger');
+    return {
+      status: 'at_risk',
+      label: OVERALL_STATUS_LABELS.at_risk,
+      reason: nearest
+        ? `${nearest.name} is close to breaching`
+        : 'A covenant is close to breaching',
+    };
+  }
+
+  const belowMinimum = input.reserves.filter((r) => r.minimum > 0 && r.balance < r.minimum);
+  if (belowMinimum.length > 0) {
+    return {
+      status: 'at_risk',
+      label: OVERALL_STATUS_LABELS.at_risk,
+      reason: `${belowMinimum[0]?.name} is below its required minimum`,
+    };
+  }
+
+  // --- Attention: early warnings, and cash the deal could not release ---
+  if (alerts.cautionCount > 0) {
+    const nearest = alerts.alerts.find((a) => a.zone === 'caution');
+    return {
+      status: 'attention',
+      label: OVERALL_STATUS_LABELS.attention,
+      reason: nearest
+        ? `${nearest.name} is approaching its threshold`
+        : 'A covenant is approaching its threshold',
+    };
+  }
+
+  if (input.blockedDistribution > 0) {
+    return {
+      status: 'attention',
+      label: OVERALL_STATUS_LABELS.attention,
+      reason: 'Distributions are blocked this period',
+    };
+  }
+
+  const atRiskMilestones = input.milestones.filter((m) => m.status === 'at_risk');
+  if (atRiskMilestones.length > 0) {
+    return {
+      status: 'attention',
+      label: OVERALL_STATUS_LABELS.attention,
+      reason:
+        atRiskMilestones.length === 1
+          ? `${atRiskMilestones[0]?.name} is past its target date`
+          : `${atRiskMilestones.length} milestones past target`,
+    };
+  }
+
+  const underfunded = input.reserves.filter((r) => r.target > 0 && r.balance < r.target);
+  if (underfunded.length > 0) {
+    return {
+      status: 'attention',
+      label: OVERALL_STATUS_LABELS.attention,
+      reason: `${underfunded[0]?.name} is not yet funded to target`,
+    };
+  }
+
+  return { status: 'on_track', label: OVERALL_STATUS_LABELS.on_track, reason: null };
+}

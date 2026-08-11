@@ -40,6 +40,19 @@ TRANSITION COD_Achieved
 // ==================== TECHNICAL MILESTONES ====================
 // Physical construction progress tracked against targets
 
+// Construction draws unlock as each milestone completes — Section 2.03(b).
+// Declared as transitions so the milestones above have a real target to
+// trigger, rather than dangling references.
+
+TRANSITION Draw2Available
+  WHEN SitePrepComplete
+
+TRANSITION Draw3Available
+  WHEN PileInstallation
+
+TRANSITION Draw4Available
+  WHEN TrackerInstallation
+
 TECHNICAL_MILESTONE SitePrepComplete
   TARGET 2025-03-15
   LONGSTOP 2025-05-15

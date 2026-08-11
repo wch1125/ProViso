@@ -41,6 +41,19 @@ TRANSITION COD_Achieved
 // ==================== TECHNICAL MILESTONES ====================
 // Wind-specific construction milestones
 
+// Construction draws unlock as each milestone completes — Section 2.03(b).
+// Declared as transitions so the milestones above have a real target to
+// trigger, rather than dangling references.
+
+TRANSITION Draw2Available
+  WHEN FoundationsPoured
+
+TRANSITION Draw3Available
+  WHEN TowerErection
+
+TRANSITION Draw4Available
+  WHEN BladeInstallation
+
 TECHNICAL_MILESTONE AccessRoadsComplete
   TARGET 2025-04-15
   LONGSTOP 2025-06-15

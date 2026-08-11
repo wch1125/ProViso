@@ -193,7 +193,7 @@ export function ConnectedComplianceTrendChart({
       <div className="text-xs text-text-muted mt-1 px-2">
         {isRealData
           ? `${trendData.length} periods of actual compliance data`
-          : 'Simulated trend \u2014 upload multi-period financials for real history'}
+          : 'Illustrative trend \u2014 upload multi-period financials for real history'}
       </div>
     </div>
   );

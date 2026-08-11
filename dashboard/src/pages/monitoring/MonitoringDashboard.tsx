@@ -587,7 +587,7 @@ export function MonitoringDashboard() {
             title="Compliance History"
             subtitle={isMultiPeriod
               ? "Covenant trends from multi-period financial data"
-              : "Covenant trends over time (simulated historical data)"
+              : "Covenant trends over time (illustrative historical data)"
             }
             icon={<BarChart3 className="w-5 h-5 text-industry-primary" />}
             defaultExpanded={false}

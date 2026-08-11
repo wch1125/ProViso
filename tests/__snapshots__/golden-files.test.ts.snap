@@ -1718,6 +1718,39 @@ exports[`Golden files — shipped example deals > solar_utility.proviso evaluate
         "targetPhase": "Operations",
         "triggered": false,
       },
+      {
+        "conditions": [
+          {
+            "met": false,
+            "name": "expression",
+          },
+        ],
+        "name": "Draw2Available",
+        "targetPhase": undefined,
+        "triggered": false,
+      },
+      {
+        "conditions": [
+          {
+            "met": false,
+            "name": "expression",
+          },
+        ],
+        "name": "Draw3Available",
+        "targetPhase": undefined,
+        "triggered": false,
+      },
+      {
+        "conditions": [
+          {
+            "met": false,
+            "name": "expression",
+          },
+        ],
+        "name": "Draw4Available",
+        "targetPhase": undefined,
+        "triggered": false,
+      },
     ],
   },
   "regulatoryRequirements": [
@@ -2573,6 +2606,39 @@ exports[`Golden files — shipped example deals > wind_onshore.proviso evaluates
         ],
         "name": "COD_Achieved",
         "targetPhase": "Operations",
+        "triggered": false,
+      },
+      {
+        "conditions": [
+          {
+            "met": false,
+            "name": "expression",
+          },
+        ],
+        "name": "Draw2Available",
+        "targetPhase": undefined,
+        "triggered": false,
+      },
+      {
+        "conditions": [
+          {
+            "met": false,
+            "name": "expression",
+          },
+        ],
+        "name": "Draw3Available",
+        "targetPhase": undefined,
+        "triggered": false,
+      },
+      {
+        "conditions": [
+          {
+            "met": false,
+            "name": "expression",
+          },
+        ],
+        "name": "Draw4Available",
+        "targetPhase": undefined,
         "triggered": false,
       },
     ],

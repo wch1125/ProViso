@@ -11,7 +11,7 @@ import { parseOrThrow } from '../src/parser.js';
 import { ProVisoInterpreter } from '../src/interpreter.js';
 import { executeCommand } from '../dashboard/src/utils/commandRunner.js';
 import { generateComplianceReport } from '../dashboard/src/utils/complianceExport.js';
-import { getThresholdZone } from '../dashboard/src/utils/thresholds.js';
+import { getThresholdZone, deriveOverallStatus } from '../dashboard/src/utils/thresholds.js';
 import type { DashboardData, CovenantData, ReserveData } from '../dashboard/src/types/index.js';
 
 // =============================================================================
@@ -322,5 +322,144 @@ describe('Threshold zones — strict operators', () => {
 
   it('should still report a comfortable covenant as safe', () => {
     expect(getThresholdZone(2.0, 4.5, '<=')).toBe('safe');
+  });
+});
+
+// =============================================================================
+// OVERALL DEAL STATUS
+// =============================================================================
+
+describe('Overall deal status', () => {
+  /** A comfortably compliant covenant — 2.0x against a 4.0x ceiling. */
+  const healthyCovenant = {
+    name: 'MaxLeverage',
+    actual: 2.0,
+    required: 4.0,
+    operator: '<=' as const,
+    compliant: true,
+  };
+
+  function statusOf(over: Partial<Parameters<typeof deriveOverallStatus>[0]> = {}) {
+    return deriveOverallStatus({
+      covenants: [healthyCovenant],
+      milestones: [],
+      reserves: [],
+      blockedDistribution: 0,
+      ...over,
+    });
+  }
+
+  it('should never use a word that doubles as a navigation tab', () => {
+    // A status tile reading "Monitor" on the Monitor tab looks like the page
+    // name leaked into the status slot.
+    const tabNames = ['monitor', 'negotiate', 'closing'];
+    const labels = [
+      statusOf().label,
+      statusOf({ covenants: [{ ...healthyCovenant, compliant: false }] }).label,
+      statusOf({ milestones: [{ name: 'M', status: 'breached' }] }).label,
+      statusOf({ blockedDistribution: 1 }).label,
+    ];
+
+    for (const label of labels) {
+      expect(tabNames).not.toContain(label.toLowerCase());
+    }
+  });
+
+  it('should report On Track when nothing is wrong', () => {
+    const result = statusOf();
+
+    expect(result.status).toBe('on_track');
+    expect(result.label).toBe('On Track');
+    expect(result.reason).toBeNull();
+  });
+
+  it('should report Breach when a covenant fails', () => {
+    const result = statusOf({ covenants: [{ ...healthyCovenant, actual: 5.0, compliant: false }] });
+
+    expect(result.status).toBe('breach');
+    expect(result.reason).toContain('MaxLeverage');
+  });
+
+  it('should not let a suspended covenant drive the status', async () => {
+    const result = statusOf({
+      covenants: [{ ...healthyCovenant, compliant: false, suspended: true }],
+    });
+
+    expect(result.status).toBe('on_track');
+  });
+
+  it('should report At Risk for a breached milestone even when covenants pass', async () => {
+    // The defect this replaces: a deal with a missed longstop read "Compliant"
+    // because the status came from covenant compliance alone.
+    const result = statusOf({ milestones: [{ name: 'SubstationComplete', status: 'breached' }] });
+
+    expect(result.status).toBe('at_risk');
+    expect(result.reason).toContain('SubstationComplete');
+  });
+
+  it('should report At Risk for a reserve below its minimum', () => {
+    const result = statusOf({
+      reserves: [{ name: 'DebtServiceReserve', balance: 1_000_000, target: 30_000_000, minimum: 15_000_000 }],
+    });
+
+    expect(result.status).toBe('at_risk');
+    expect(result.reason).toContain('DebtServiceReserve');
+  });
+
+  it('should report Attention for a reserve merely short of target', () => {
+    // Short of target but above minimum is a softer signal than below minimum.
+    const result = statusOf({
+      reserves: [{ name: 'MaintenanceReserve', balance: 12_000_000, target: 16_000_000, minimum: 8_000_000 }],
+    });
+
+    expect(result.status).toBe('attention');
+  });
+
+  it('should report Attention when distributions are blocked', () => {
+    const result = statusOf({ blockedDistribution: 5_000_000 });
+
+    expect(result.status).toBe('attention');
+    expect(result.reason).toMatch(/distributions/i);
+  });
+
+  it('should report Attention for a milestone past target but not past longstop', () => {
+    const result = statusOf({ milestones: [{ name: 'PileInstallation', status: 'at_risk' }] });
+
+    expect(result.status).toBe('attention');
+  });
+
+  it('should rank a covenant breach above every other signal', () => {
+    const result = statusOf({
+      covenants: [{ ...healthyCovenant, compliant: false }],
+      milestones: [{ name: 'M', status: 'breached' }],
+      reserves: [{ name: 'R', balance: 0, target: 10, minimum: 5 }],
+      blockedDistribution: 1,
+    });
+
+    expect(result.status).toBe('breach');
+  });
+
+  it('should rank a missed longstop above a blocked distribution', () => {
+    const result = statusOf({
+      milestones: [{ name: 'Longstopped', status: 'breached' }],
+      blockedDistribution: 1,
+    });
+
+    expect(result.status).toBe('at_risk');
+    expect(result.reason).toContain('Longstopped');
+  });
+
+  it('should always name the single worst item when something is wrong', () => {
+    const cases = [
+      statusOf({ covenants: [{ ...healthyCovenant, compliant: false }] }),
+      statusOf({ milestones: [{ name: 'M', status: 'breached' }] }),
+      statusOf({ reserves: [{ name: 'R', balance: 0, target: 10, minimum: 5 }] }),
+      statusOf({ blockedDistribution: 1 }),
+    ];
+
+    for (const result of cases) {
+      expect(result.reason).toBeTruthy();
+      expect(result.reason?.length).toBeGreaterThan(0);
+    }
   });
 });
