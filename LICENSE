@@ -1,0 +1,42 @@
+Copyright (c) 2026 Haslun Studio. All rights reserved.
+
+PROPRIETARY AND CONFIDENTIAL
+
+This software and its source code, including the ProViso grammar
+(grammar/proviso.pegjs), parser, interpreter, validator, and all
+accompanying documentation (collectively, the "Software"), are the
+proprietary and confidential property of Haslun Studio.
+
+No license is granted. Except as expressly permitted in a separate
+written agreement signed by Haslun Studio, no person or entity may:
+
+  1. copy, reproduce, or republish the Software, in whole or in part;
+  2. modify, adapt, translate, or create derivative works of it;
+  3. distribute, sublicense, sell, lease, or otherwise transfer it;
+  4. reverse engineer, decompile, or disassemble any compiled or
+     minified form of it, or attempt to reconstruct the grammar,
+     language semantics, or evaluation logic therefrom; or
+  5. use it for any commercial purpose.
+
+Viewing this repository, or using any publicly hosted demonstration of
+the Software, does not grant any license or right to the Software.
+
+Prior notice: earlier versions of this repository declared an MIT
+license. That declaration is withdrawn as of this commit and does not
+apply to this or any subsequent version. It is not reinstated by the
+presence of any residual reference elsewhere in the repository or its
+history.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES
+OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+ProViso is a technology demonstration. It does not provide legal advice
+and must not be relied upon for the interpretation or administration of
+any actual credit agreement.
+
+Contact: Haslun Studio — https://proviso.finance

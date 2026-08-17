@@ -281,7 +281,7 @@ export const DEMO_CPS = [
     section: '4.01(g)',
     title: 'Legal Opinion',
     description: 'Opinion of borrower counsel',
-    responsible: 'Davis Polk',
+    responsible: 'Merrick Callan',
     status: 'pending' as const,
   },
   {
@@ -324,7 +324,7 @@ CONDITIONS_PRECEDENT InitialFunding
 
   CP LegalOpinion
     DESCRIPTION "Opinion of borrower counsel"
-    RESPONSIBLE "Davis Polk"
+    RESPONSIBLE "Merrick Callan"
 
   CP InsuranceCertificate
     DESCRIPTION "Evidencing required coverage"

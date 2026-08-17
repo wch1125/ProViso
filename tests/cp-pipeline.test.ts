@@ -664,7 +664,7 @@ describe('CP Pipeline: Category Inference', () => {
 
   it('infers technical for project finance', async () => {
     testCategory('EPCContract', 'Executed EPC contract', 'technical');
-    testCategory('TurbineSupplyAgreement', 'Executed TSA with Vestas', 'technical');
+    testCategory('TurbineSupplyAgreement', 'Executed TSA with Galewind', 'technical');
     testCategory('WindResourceStudy', 'Independent wind resource assessment', 'technical');
   });
 

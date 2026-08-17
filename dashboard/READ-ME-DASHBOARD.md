@@ -52,7 +52,7 @@ The dashboard follows a React Context pattern to connect the ProViso interpreter
 
 ### 1. Code Loading
 
-When the dashboard loads, it initializes with default ProViso code (`Sunrise Solar Project`) and default financial data:
+When the dashboard loads, it initializes with default ProViso code (`Silverpeak Solar Project`) and default financial data:
 
 1. **ProVisoProvider** wraps the entire app in `App.tsx`
 2. **MonitoringDashboard** calls `loadFromCode()` and `loadFinancials()` on mount
@@ -91,7 +91,7 @@ The interpreter computes and the context provides:
 |------|---------|
 | `src/context/ProVisoContext.tsx` | Main context provider with interpreter integration |
 | `src/context/index.ts` | Exports `ProVisoProvider`, `useProViso`, `useCovenants` |
-| `src/data/default-code.ts` | Default `.proviso` code (Sunrise Solar Project) |
+| `src/data/default-code.ts` | Default `.proviso` code (Silverpeak Solar Project) |
 | `src/data/default-financials.ts` | Default JSON financial data |
 
 ### Pages

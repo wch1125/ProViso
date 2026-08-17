@@ -1,9 +1,9 @@
 {
   "project": {
-    "name": "Sunrise Solar Project",
+    "name": "Silverpeak Solar Project",
     "facility": "$150M Construction + Term",
-    "sponsor": "Renewable Energy Partners",
-    "borrower": "Sunrise Solar Holdings LLC"
+    "sponsor": "Evergreen Renewable Partners",
+    "borrower": "Silverpeak Solar Holdings LLC"
   },
   "phase": {
     "current": "construction",

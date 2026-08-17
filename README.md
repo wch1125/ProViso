@@ -387,7 +387,15 @@ npm run format             # Prettier
 
 ## License
 
-MIT
+Proprietary — all rights reserved. See [LICENSE](LICENSE).
+
+No license is granted to copy, modify, distribute, or make commercial use
+of this software. Viewing this repository or using the hosted demo at
+[proviso.finance](https://proviso.finance) does not grant any such right.
+
+Earlier versions of this repository declared an MIT license; that
+declaration is withdrawn and does not apply to this or any subsequent
+version.
 
 ## Author
 

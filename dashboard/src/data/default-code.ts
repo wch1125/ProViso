@@ -1,6 +1,6 @@
 /**
  * Default ProViso code for dashboard initialization.
- * Desert Sun Solar Project - with tension points for compelling demo.
+ * Coyote Mesa Solar Project - with tension points for compelling demo.
  *
  * Tension:
  * - SubstationComplete milestone: 5 days to longstop (at-risk)
@@ -8,7 +8,7 @@
  * - InterestCoverage: has cure clause, previously used
  */
 
-export const DEFAULT_PROVISO_CODE = `// Desert Sun Solar Project
+export const DEFAULT_PROVISO_CODE = `// Coyote Mesa Solar Project
 // $280M Construction + Term Loan
 // ProViso v2.1
 
@@ -172,8 +172,8 @@ WATERFALL OperatingWaterfall
 
 TAX_EQUITY_STRUCTURE SolarPartnership
   STRUCTURE_TYPE partnership_flip
-  TAX_INVESTOR "Tax Equity Fund LP"
-  SPONSOR "Desert Sun Holdings LLC"
+  TAX_INVESTOR "Cardinal Tax Equity Fund LP"
+  SPONSOR "Coyote Mesa Holdings LLC"
   TAX_CREDIT_ALLOCATION 99/1
   DEPRECIATION_ALLOCATION 99/1
   CASH_ALLOCATION 10/90

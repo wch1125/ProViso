@@ -1,9 +1,9 @@
 {
   "project": {
-    "name": "Desert Sun Solar Project",
+    "name": "Coyote Mesa Solar Project",
     "facility": "$280M Construction + Term Loan",
-    "sponsor": "Desert Sun Holdings LLC",
-    "borrower": "Desert Sun Project Co LLC",
+    "sponsor": "Coyote Mesa Holdings LLC",
+    "borrower": "Coyote Mesa Project Co LLC",
     "capacity_mw": 200,
     "technology": "Utility-Scale Bifacial Solar",
     "location": "Imperial County, CA"
@@ -280,8 +280,8 @@
     "structure": {
       "name": "SolarPartnership",
       "type": "partnership_flip",
-      "taxInvestor": "Tax Equity Fund LP",
-      "sponsor": "Desert Sun Holdings LLC",
+      "taxInvestor": "Cardinal Tax Equity Fund LP",
+      "sponsor": "Coyote Mesa Holdings LLC",
       "taxCreditAllocation": { "investor": 99, "sponsor": 1 },
       "depreciationAllocation": { "investor": 99, "sponsor": 1 },
       "cashAllocation": { "investor": 10, "sponsor": 90 },

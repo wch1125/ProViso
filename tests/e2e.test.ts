@@ -115,7 +115,7 @@ describe('E2E: Deal Negotiation Workflow', () => {
       dealType: 'corporate',
       facilityAmount: 150_000_000,
       currency: 'USD',
-      createdBy: 'admin@testbank.com',
+      createdBy: 'admin@example.com',
     });
 
     expect(deal.id).toBeTruthy();
@@ -130,7 +130,7 @@ describe('E2E: Deal Negotiation Workflow', () => {
       partyType: 'borrower',
       primaryContact: {
         name: 'Jane Smith',
-        email: 'jsmith@abc.com',
+        email: 'jsmith@example.com',
         phone: '+1-555-0100',
         title: 'CFO',
       },
@@ -143,7 +143,7 @@ describe('E2E: Deal Negotiation Workflow', () => {
       partyType: 'agent',
       primaryContact: {
         name: 'John Doe',
-        email: 'jdoe@fnb.com',
+        email: 'jdoe@example.com',
         phone: '+1-555-0200',
         title: 'Managing Director',
       },
@@ -157,7 +157,7 @@ describe('E2E: Deal Negotiation Workflow', () => {
       creditLangCode: sampleCode.v1,
       versionLabel: "Lender's Initial Draft",
       authorParty: 'First National Bank',
-      createdBy: 'jdoe@fnb.com',
+      createdBy: 'jdoe@example.com',
     });
 
     expect(version1.versionNumber).toBe(1);
@@ -178,7 +178,7 @@ describe('E2E: Deal Negotiation Workflow', () => {
       creditLangCode: sampleCode.v2,
       versionLabel: "Borrower's Markup",
       authorParty: 'ABC Holdings',
-      createdBy: 'jsmith@abc.com',
+      createdBy: 'jsmith@example.com',
       parentVersionId: version1.id,
     });
 
@@ -200,7 +200,7 @@ describe('E2E: Deal Negotiation Workflow', () => {
       dealType: 'corporate',
       facilityAmount: 50_000_000,
       currency: 'USD',
-      createdBy: 'test@test.com',
+      createdBy: 'test@example.com',
     });
 
     // Create chain of versions
@@ -208,14 +208,14 @@ describe('E2E: Deal Negotiation Workflow', () => {
       creditLangCode: sampleCode.v1,
       versionLabel: 'v1',
       authorParty: 'Lender',
-      createdBy: 'test@test.com',
+      createdBy: 'test@example.com',
     });
 
     const v2 = await store.createVersion(deal.id, {
       creditLangCode: sampleCode.v2,
       versionLabel: 'v2',
       authorParty: 'Borrower',
-      createdBy: 'test@test.com',
+      createdBy: 'test@example.com',
       parentVersionId: v1.id,
     });
 
@@ -223,7 +223,7 @@ describe('E2E: Deal Negotiation Workflow', () => {
       creditLangCode: sampleCode.v1, // Reverted
       versionLabel: 'v3',
       authorParty: 'Lender',
-      createdBy: 'test@test.com',
+      createdBy: 'test@example.com',
       parentVersionId: v2.id,
     });
 
@@ -326,7 +326,7 @@ describe('E2E: Closing Workflow', () => {
     waiveCondition(cpKyc.id, 'party-agent', 'Existing customer, waived per policy');
 
     // Step 5: Process documents and signatures
-    markDocumentUploaded(docCert.id, 'uploader@abc.com');
+    markDocumentUploaded(docCert.id, 'uploader@example.com');
     requestSignature(sigBorrower!.id);
     requestSignature(sigAgent!.id);
     markSignatureSigned(sigBorrower!.id);
@@ -411,13 +411,13 @@ describe('E2E: Post-Closing Workflow', () => {
         total_debt: 45_000_000,
         interest_expense: 3_000_000,
       },
-      submittedBy: 'cfo@borrower.com',
+      submittedBy: 'cfo@example.com',
     });
 
     expect(q1Submission.verificationStatus).toBe('pending');
 
     // Step 2: Agent verifies submission
-    const verifiedSubmission = verifySubmission(q1Submission.id, 'agent@bank.com');
+    const verifiedSubmission = verifySubmission(q1Submission.id, 'agent@example.com');
     expect(verifiedSubmission.verificationStatus).toBe('verified');
 
     // Step 3: Submit more periods for trending
@@ -432,7 +432,7 @@ describe('E2E: Post-Closing Workflow', () => {
         total_debt: 42_000_000,
         interest_expense: 2_800_000,
       },
-      submittedBy: 'cfo@borrower.com',
+      submittedBy: 'cfo@example.com',
     });
 
     const submissions = listFinancialSubmissions(dealId);
@@ -526,7 +526,7 @@ describe('E2E: Post-Closing Workflow', () => {
         periodType: 'quarterly',
         periodEndDate: new Date(`2025-${(i + 1) * 3}-30`),
         financialData: financialTrends[i],
-        submittedBy: 'cfo@borrower.com',
+        submittedBy: 'cfo@example.com',
       });
     });
 
@@ -623,7 +623,7 @@ describe('E2E: Full Deal Lifecycle', () => {
       dealType: 'corporate',
       facilityAmount: 100_000_000,
       currency: 'USD',
-      createdBy: 'test@test.com',
+      createdBy: 'test@example.com',
       targetClosingDate: new Date('2026-03-15'),
     });
     expect(deal.status).toBe('draft');
@@ -634,7 +634,7 @@ describe('E2E: Full Deal Lifecycle', () => {
       shortName: 'Borrower',
       role: PartyRole.BORROWER,
       partyType: 'borrower',
-      primaryContact: { name: 'Test', email: 'test@test.com', phone: null, title: null },
+      primaryContact: { name: 'Test', email: 'test@example.com', phone: null, title: null },
     });
 
     // Create initial version
@@ -642,7 +642,7 @@ describe('E2E: Full Deal Lifecycle', () => {
       creditLangCode: sampleCode.v1,
       versionLabel: 'Initial Draft',
       authorParty: 'Lender',
-      createdBy: 'test@test.com',
+      createdBy: 'test@example.com',
     });
 
     // PHASE 2: Negotiation
@@ -656,7 +656,7 @@ describe('E2E: Full Deal Lifecycle', () => {
       creditLangCode: sampleCode.v2,
       versionLabel: 'Borrower Markup',
       authorParty: 'Borrower',
-      createdBy: 'test@test.com',
+      createdBy: 'test@example.com',
       parentVersionId: currentVersion.id,
     });
 
@@ -692,7 +692,7 @@ describe('E2E: Full Deal Lifecycle', () => {
       periodType: 'quarterly',
       periodEndDate: new Date('2026-06-30'),
       financialData: { revenue: 25_000_000, ebitda: 6_000_000 },
-      submittedBy: 'test@test.com',
+      submittedBy: 'test@example.com',
     });
 
     expect(submission.dealId).toBe(deal.id);

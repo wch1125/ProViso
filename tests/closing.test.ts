@@ -211,12 +211,12 @@ describe('Closing Module', () => {
         responsiblePartyId: 'party-1',
       });
 
-      const waived = waiveCondition(created.id, 'admin@bank.com');
+      const waived = waiveCondition(created.id, 'admin@example.com');
 
       expect(waived).toBeDefined();
       expect(waived?.status).toBe('waived');
       expect(waived?.waivedAt).toBeDefined();
-      expect(waived?.waiverApprovedBy).toBe('admin@bank.com');
+      expect(waived?.waiverApprovedBy).toBe('admin@example.com');
     });
 
     it('should delete a condition precedent', () => {
@@ -267,7 +267,7 @@ describe('Closing Module', () => {
         fileName: 'cert_of_inc.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/cert_of_inc.pdf',
-        uploadedBy: 'john@borrower.com',
+        uploadedBy: 'john@example.com',
       });
 
       expect(doc).toBeDefined();
@@ -285,7 +285,7 @@ describe('Closing Module', () => {
         fileName: 'cert_of_inc.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/cert_of_inc.pdf',
-        uploadedBy: 'john@borrower.com',
+        uploadedBy: 'john@example.com',
       });
 
       const retrieved = getDocument(created.id);
@@ -306,7 +306,7 @@ describe('Closing Module', () => {
         fileName: 'cert_of_inc.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/cert_of_inc.pdf',
-        uploadedBy: 'john@borrower.com',
+        uploadedBy: 'john@example.com',
       });
 
       createDocument({
@@ -316,7 +316,7 @@ describe('Closing Module', () => {
         fileName: 'bylaws.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/bylaws.pdf',
-        uploadedBy: 'john@borrower.com',
+        uploadedBy: 'john@example.com',
       });
 
       createDocument({
@@ -326,7 +326,7 @@ describe('Closing Module', () => {
         fileName: 'other.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/other.pdf',
-        uploadedBy: 'other@other.com',
+        uploadedBy: 'other@example.com',
       });
 
       const documents = listDocuments('deal-test-1');
@@ -341,7 +341,7 @@ describe('Closing Module', () => {
         fileName: 'cert_of_inc.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/cert_of_inc.pdf',
-        uploadedBy: 'john@borrower.com',
+        uploadedBy: 'john@example.com',
       });
 
       const updated = updateDocument(created.id, {
@@ -360,7 +360,7 @@ describe('Closing Module', () => {
         fileName: 'cert_of_inc.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/cert_of_inc.pdf',
-        uploadedBy: 'john@borrower.com',
+        uploadedBy: 'john@example.com',
       });
 
       const uploaded = markDocumentUploaded(created.id);
@@ -377,7 +377,7 @@ describe('Closing Module', () => {
         fileName: 'credit_agreement.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/credit_agreement.pdf',
-        uploadedBy: 'partner@lawfirm.com',
+        uploadedBy: 'partner@example.com',
       });
 
       const executed = markDocumentExecuted(created.id);
@@ -394,7 +394,7 @@ describe('Closing Module', () => {
         fileName: 'cert_of_inc.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/cert_of_inc.pdf',
-        uploadedBy: 'john@borrower.com',
+        uploadedBy: 'john@example.com',
       });
 
       const deleted = deleteDocument(created.id);
@@ -412,7 +412,7 @@ describe('Closing Module', () => {
         fileName: 'cert_of_inc.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/cert_of_inc.pdf',
-        uploadedBy: 'john@borrower.com',
+        uploadedBy: 'john@example.com',
         satisfiesConditionIds: ['cp-1', 'cp-2'],
       });
 
@@ -433,19 +433,19 @@ describe('Closing Module', () => {
         fileName: 'credit_agreement.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/credit_agreement.pdf',
-        uploadedBy: 'partner@lawfirm.com',
+        uploadedBy: 'partner@example.com',
       });
 
       const signature = addSignature({
         documentId: doc.id,
         partyId: 'party-1',
-        signatoryName: 'John Smith',
+        signatoryName: 'Alan Pierce',
         signatoryTitle: 'CEO',
       });
 
       expect(signature).toBeDefined();
       expect(signature?.id).toBeDefined();
-      expect(signature?.signatoryName).toBe('John Smith');
+      expect(signature?.signatoryName).toBe('Alan Pierce');
       expect(signature?.status).toBe('pending');
     });
 
@@ -453,7 +453,7 @@ describe('Closing Module', () => {
       const result = addSignature({
         documentId: 'non-existent',
         partyId: 'party-1',
-        signatoryName: 'John Smith',
+        signatoryName: 'Alan Pierce',
         signatoryTitle: 'CEO',
       });
 
@@ -468,13 +468,13 @@ describe('Closing Module', () => {
         fileName: 'credit_agreement.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/credit_agreement.pdf',
-        uploadedBy: 'partner@lawfirm.com',
+        uploadedBy: 'partner@example.com',
       });
 
       const signature = addSignature({
         documentId: doc.id,
         partyId: 'party-1',
-        signatoryName: 'John Smith',
+        signatoryName: 'Alan Pierce',
         signatoryTitle: 'CEO',
       });
 
@@ -494,13 +494,13 @@ describe('Closing Module', () => {
         fileName: 'credit_agreement.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/credit_agreement.pdf',
-        uploadedBy: 'partner@lawfirm.com',
+        uploadedBy: 'partner@example.com',
       });
 
       const signature = addSignature({
         documentId: doc.id,
         partyId: 'party-1',
-        signatoryName: 'John Smith',
+        signatoryName: 'Alan Pierce',
         signatoryTitle: 'CEO',
       });
 
@@ -519,13 +519,13 @@ describe('Closing Module', () => {
         fileName: 'credit_agreement.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/credit_agreement.pdf',
-        uploadedBy: 'partner@lawfirm.com',
+        uploadedBy: 'partner@example.com',
       });
 
       const signature = addSignature({
         documentId: doc.id,
         partyId: 'party-1',
-        signatoryName: 'John Smith',
+        signatoryName: 'Alan Pierce',
         signatoryTitle: 'CEO',
       });
 
@@ -543,13 +543,13 @@ describe('Closing Module', () => {
         fileName: 'credit_agreement.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/credit_agreement.pdf',
-        uploadedBy: 'partner@lawfirm.com',
+        uploadedBy: 'partner@example.com',
       });
 
       const sig1 = addSignature({
         documentId: doc.id,
         partyId: 'party-1',
-        signatoryName: 'John Smith',
+        signatoryName: 'Alan Pierce',
         signatoryTitle: 'CEO',
       });
       markSignatureSigned(doc.id, sig1!.id);
@@ -557,7 +557,7 @@ describe('Closing Module', () => {
       addSignature({
         documentId: doc.id,
         partyId: 'party-2',
-        signatoryName: 'Sarah Johnson',
+        signatoryName: 'Emma Bright',
         signatoryTitle: 'Managing Director',
       });
 
@@ -603,7 +603,7 @@ describe('Closing Module', () => {
         fileName: 'cert_of_inc.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/cert_of_inc.pdf',
-        uploadedBy: 'john@borrower.com',
+        uploadedBy: 'john@example.com',
       });
 
       const readiness = calculateClosingReadiness(mockDeal, mockParties);
@@ -632,7 +632,7 @@ describe('Closing Module', () => {
         fileName: 'cert_of_inc.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/cert_of_inc.pdf',
-        uploadedBy: 'john@borrower.com',
+        uploadedBy: 'john@example.com',
       });
       markDocumentUploaded(doc.id);
 
@@ -711,7 +711,7 @@ describe('Closing Module', () => {
         description: 'This will be waived',
         responsiblePartyId: 'party-1',
       });
-      waiveCondition(cp.id, 'admin@bank.com');
+      waiveCondition(cp.id, 'admin@example.com');
 
       const readiness = calculateClosingReadiness(mockDeal, mockParties);
 
@@ -727,13 +727,13 @@ describe('Closing Module', () => {
         fileName: 'credit_agreement.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/credit_agreement.pdf',
-        uploadedBy: 'partner@lawfirm.com',
+        uploadedBy: 'partner@example.com',
       });
 
       const sig1 = addSignature({
         documentId: doc.id,
         partyId: 'party-1',
-        signatoryName: 'John Smith',
+        signatoryName: 'Alan Pierce',
         signatoryTitle: 'CEO',
       });
       markSignatureSigned(doc.id, sig1!.id);
@@ -741,7 +741,7 @@ describe('Closing Module', () => {
       addSignature({
         documentId: doc.id,
         partyId: 'party-2',
-        signatoryName: 'Sarah Johnson',
+        signatoryName: 'Emma Bright',
         signatoryTitle: 'Managing Director',
       });
 
@@ -790,7 +790,7 @@ describe('Closing Module', () => {
         fileName: 'cert_of_inc.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/cert_of_inc.pdf',
-        uploadedBy: 'john@borrower.com',
+        uploadedBy: 'john@example.com',
         responsiblePartyId: 'party-1',
       });
 
@@ -843,7 +843,7 @@ describe('Closing Module', () => {
         fileName: 'cert_of_inc.pdf',
         fileType: 'application/pdf',
         storagePath: '/documents/cert_of_inc.pdf',
-        uploadedBy: 'john@borrower.com',
+        uploadedBy: 'john@example.com',
         satisfiesConditionIds: ['cp-1', 'cp-2'],
       });
 

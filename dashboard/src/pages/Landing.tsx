@@ -1,14 +1,16 @@
-import { useNavigate } from 'react-router-dom';
 import {
   Hero,
   Features,
   Footer,
 } from '../components/landing';
 import { TopNav } from '../components/layout';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * Landing page for ProViso public demo.
  * Explains value proposition and lets users select a demo scenario.
+ *
+ * Demo destinations are ordinary client-side routes on the same origin.
  */
 export function Landing() {
   const navigate = useNavigate();

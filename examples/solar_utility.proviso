@@ -1,4 +1,4 @@
-// Desert Sun Solar Project
+// Coyote Mesa Solar Project
 // 200MW Utility-Scale Solar Farm
 // $280M Construction + Term Loan with Tax Equity Partnership
 // ProViso v2.1 - Showcases all Project Finance Industry constructs
@@ -273,8 +273,8 @@ SEASONAL_ADJUSTMENT FallTransition
 
 TAX_EQUITY_STRUCTURE SolarPartnership
   STRUCTURE_TYPE partnership_flip
-  TAX_INVESTOR "Tax Equity Fund LP"
-  SPONSOR "Desert Sun Holdings LLC"
+  TAX_INVESTOR "Cardinal Tax Equity Fund LP"
+  SPONSOR "Coyote Mesa Holdings LLC"
   TAX_CREDIT_ALLOCATION 99/1
   DEPRECIATION_ALLOCATION 99/1
   CASH_ALLOCATION 10/90

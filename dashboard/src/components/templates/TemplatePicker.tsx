@@ -179,7 +179,7 @@ const TEMPLATES: TemplateInfo[] = [
       'Major lease approval conditions',
     ],
     defaultValues: {
-      propertyName: 'Metro Office Tower LLC',
+      propertyName: 'Parkside Tower LLC',
       loanAmount: 100_000_000,
       propertyType: 'office',
       appraised_value: 150_000_000,

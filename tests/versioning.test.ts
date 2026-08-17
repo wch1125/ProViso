@@ -627,7 +627,7 @@ describe('Change Log Generation', () => {
     versionNumber: num,
     versionLabel: `v${num}`,
     creditLangCode: code,
-    createdBy: 'user@test.com',
+    createdBy: 'user@example.com',
     authorParty: author,
     createdAt: new Date(),
     parentVersionId: null,
@@ -827,8 +827,8 @@ describe('Versioning Integration', () => {
       versionNumber: 1,
       versionLabel: "Lender's Draft",
       creditLangCode: v1Code,
-      createdBy: 'lender@test.com',
-      authorParty: 'Simpson Thacher',
+      createdBy: 'lender@example.com',
+      authorParty: 'Whitfield & Barr',
       createdAt: new Date(),
       parentVersionId: null,
       status: 'sent',
@@ -842,8 +842,8 @@ describe('Versioning Integration', () => {
       versionNumber: 2,
       versionLabel: "Borrower's Markup",
       creditLangCode: v2Code,
-      createdBy: 'borrower@test.com',
-      authorParty: 'Davis Polk',
+      createdBy: 'borrower@example.com',
+      authorParty: 'Merrick Callan',
       createdAt: new Date(),
       parentVersionId: 'v1',
       status: 'draft',
@@ -853,7 +853,7 @@ describe('Versioning Integration', () => {
 
     const summary = await generateChangeSummary(v1, v2);
 
-    expect(summary.authorParty).toBe('Davis Polk');
+    expect(summary.authorParty).toBe('Merrick Callan');
     expect(summary.totalChanges).toBeGreaterThanOrEqual(3);
     // Basket capacity increase and loosened covenants should be borrower favorable
     expect(summary.borrowerFavorable).toBeGreaterThan(0);

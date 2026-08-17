@@ -1,8 +1,12 @@
 /**
  * IndustryThemeContext - Provides industry-specific theming based on current deal
  *
- * Listens to URL changes to detect which deal is active, gets the industry
- * from the demo scenario, and applies the appropriate theme CSS variables.
+ * Listens to URL changes to detect which deal is active, resolves the industry
+ * for that deal, and applies the appropriate theme CSS variables.
+ *
+ * The deal → industry lookup is *injected* rather than imported, so this
+ * provider stays independent of src/data/demo-scenarios.ts. Mounted without a
+ * resolver it settles on the corporate default.
  */
 
 import React, { createContext, useContext, useEffect, useMemo } from 'react';
@@ -16,7 +20,6 @@ import {
   resolveThemeColors,
   corporateTheme,
 } from '../themes/industry-themes';
-import { getScenarioById } from '../data/demo-scenarios';
 import { useThemeMode } from './ThemeModeContext';
 
 // =============================================================================
@@ -48,9 +51,14 @@ const IndustryThemeContext = createContext<IndustryThemeContextValue | null>(nul
 
 interface IndustryThemeProviderProps {
   children: React.ReactNode;
+  /**
+   * Maps a dealId from the URL to its industry. Omitted on the public site,
+   * which has no deals; every route then themes as 'corporate'.
+   */
+  resolveIndustry?: (dealId: string | null) => IndustryType | null;
 }
 
-export function IndustryThemeProvider({ children }: IndustryThemeProviderProps) {
+export function IndustryThemeProvider({ children, resolveIndustry }: IndustryThemeProviderProps) {
   const location = useLocation();
   const { mode } = useThemeMode();
 
@@ -61,17 +69,12 @@ export function IndustryThemeProvider({ children }: IndustryThemeProviderProps) 
     return match ? match[1] : null;
   }, [location.pathname]);
 
-  // Get industry from demo scenario
+  // Resolve the industry for the active deal, falling back to corporate both
+  // when there is no deal and when no resolver was supplied.
   const industry = useMemo<IndustryType>(() => {
-    if (!dealId) return 'corporate';
-
-    const scenario = getScenarioById(dealId);
-    if (scenario?.metadata?.industry) {
-      return scenario.metadata.industry;
-    }
-
-    return 'corporate';
-  }, [dealId]);
+    if (!dealId || !resolveIndustry) return 'corporate';
+    return resolveIndustry(dealId) ?? 'corporate';
+  }, [dealId, resolveIndustry]);
 
   // Get theme for the industry
   const theme = useMemo(() => {

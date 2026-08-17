@@ -559,7 +559,7 @@ describe('Party Operations', () => {
     partyType: 'borrower',
     primaryContact: {
       name: 'John Doe',
-      email: 'jdoe@abc.com',
+      email: 'jdoe@example.com',
       phone: '+1-555-0100',
       title: 'CFO',
     },
@@ -749,7 +749,7 @@ describe('Store Utility Methods', () => {
       shortName: 'P',
       role: PartyRole.BORROWER,
       partyType: 'borrower',
-      primaryContact: { name: 'Test', email: 'test@test.com', phone: null, title: null },
+      primaryContact: { name: 'Test', email: 'test@example.com', phone: null, title: null },
     });
 
     const counts = store.getCounts();

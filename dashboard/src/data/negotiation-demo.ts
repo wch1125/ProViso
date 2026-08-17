@@ -100,7 +100,7 @@ export type ChangeSummary = {
 // =============================================================================
 
 const VERSION_1_CODE = `// ABC Acquisition Facility - Lender's Initial Draft
-// Version 1.0 - Simpson Thacher
+// Version 1.0 - Whitfield & Barr
 
 DEFINE EBITDA AS (
   NetIncome
@@ -130,7 +130,7 @@ BASKET PermittedAcquisitions
 `;
 
 const VERSION_2_CODE = `// ABC Acquisition Facility - Borrower's Markup
-// Version 2.0 - Davis Polk
+// Version 2.0 - Merrick Callan
 
 DEFINE EBITDA AS (
   NetIncome
@@ -162,7 +162,7 @@ BASKET PermittedAcquisitions
 `;
 
 const VERSION_3_CODE = `// ABC Acquisition Facility - Lender's Counter
-// Version 3.0 - Simpson Thacher
+// Version 3.0 - Whitfield & Barr
 
 DEFINE EBITDA AS (
   NetIncome
@@ -207,15 +207,15 @@ const parties: DealParty[] = [
     role: PartyRole.BORROWER,
     partyType: 'borrower',
     primaryContact: {
-      name: 'Jennifer Chen',
-      email: 'jchen@abcholdings.com',
+      name: 'Monica Ellis',
+      email: 'mellis@example.com',
       phone: '+1 (212) 555-0101',
       title: 'CFO',
     },
     additionalContacts: [
       {
-        name: 'Michael Rodriguez',
-        email: 'mrodriguez@abcholdings.com',
+        name: 'Steven Cole',
+        email: 'scole@example.com',
         phone: '+1 (212) 555-0102',
         title: 'Treasurer',
       },
@@ -230,8 +230,8 @@ const parties: DealParty[] = [
     role: PartyRole.ADMINISTRATIVE_AGENT,
     partyType: 'agent',
     primaryContact: {
-      name: 'Sarah Thompson',
-      email: 'sthompson@fnb.com',
+      name: 'Dana Frost',
+      email: 'dfrost@example.com',
       phone: '+1 (212) 555-0201',
       title: 'Managing Director',
     },
@@ -246,8 +246,8 @@ const parties: DealParty[] = [
     role: PartyRole.LENDER,
     partyType: 'lender',
     primaryContact: {
-      name: 'James Wilson',
-      email: 'jwilson@fnb.com',
+      name: 'Craig Sutton',
+      email: 'csutton@example.com',
       phone: '+1 (212) 555-0203',
       title: 'Director, Syndicated Loans',
     },
@@ -257,13 +257,13 @@ const parties: DealParty[] = [
   {
     id: 'party-lender-2',
     dealId: 'deal-abc-facility',
-    name: 'Regional Credit Partners',
+    name: 'Rampart Credit Partners',
     shortName: 'RCP',
     role: PartyRole.LENDER,
     partyType: 'lender',
     primaryContact: {
-      name: 'David Park',
-      email: 'dpark@rcp.com',
+      name: 'Owen Fitch',
+      email: 'ofitch@example.com',
       phone: '+1 (312) 555-0301',
       title: 'Principal',
     },
@@ -273,20 +273,20 @@ const parties: DealParty[] = [
   {
     id: 'party-davis-polk',
     dealId: 'deal-abc-facility',
-    name: 'Davis Polk & Wardwell LLP',
-    shortName: 'Davis Polk',
+    name: 'Merrick Callan & Hoyt LLP',
+    shortName: 'Merrick Callan',
     role: PartyRole.BORROWER, // Acting as borrower counsel
     partyType: 'law_firm',
     primaryContact: {
-      name: 'Elizabeth Warren',
-      email: 'elizabeth.warren@davispolk.com',
+      name: 'Diane Foster',
+      email: 'diane.foster@example.com',
       phone: '+1 (212) 555-0401',
       title: 'Partner',
     },
     additionalContacts: [
       {
-        name: 'Robert Kim',
-        email: 'robert.kim@davispolk.com',
+        name: 'Neil Barrett',
+        email: 'neil.barrett@example.com',
         phone: '+1 (212) 555-0402',
         title: 'Associate',
       },
@@ -296,13 +296,13 @@ const parties: DealParty[] = [
   {
     id: 'party-simpson-thacher',
     dealId: 'deal-abc-facility',
-    name: 'Simpson Thacher & Bartlett LLP',
-    shortName: 'Simpson Thacher',
+    name: 'Whitfield & Barr LLP',
+    shortName: 'Whitfield & Barr',
     role: PartyRole.ADMINISTRATIVE_AGENT, // Acting as agent counsel
     partyType: 'law_firm',
     primaryContact: {
-      name: 'William Harris',
-      email: 'wharris@stblaw.com',
+      name: 'Peter Nolan',
+      email: 'pnolan@example.com',
       phone: '+1 (212) 555-0501',
       title: 'Partner',
     },
@@ -318,7 +318,7 @@ const parties: DealParty[] = [
 const changeSummaryV1toV2: ChangeSummary = {
   versionFrom: 1,
   versionTo: 2,
-  authorParty: 'Davis Polk',
+  authorParty: 'Merrick Callan',
   createdAt: new Date('2028-01-15T14:30:00Z'),
   totalChanges: 5,
   covenantChanges: 2,
@@ -425,7 +425,7 @@ const changeSummaryV1toV2: ChangeSummary = {
 const changeSummaryV2toV3: ChangeSummary = {
   versionFrom: 2,
   versionTo: 3,
-  authorParty: 'Simpson Thacher',
+  authorParty: 'Whitfield & Barr',
   createdAt: new Date('2028-01-20T10:15:00Z'),
   totalChanges: 5,
   covenantChanges: 2,
@@ -540,8 +540,8 @@ const versions: DealVersion[] = [
     versionNumber: 1,
     versionLabel: "Lender's Initial Draft",
     creditLangCode: VERSION_1_CODE,
-    createdBy: 'wharris@stblaw.com',
-    authorParty: 'Simpson Thacher',
+    createdBy: 'pnolan@example.com',
+    authorParty: 'Whitfield & Barr',
     createdAt: new Date('2028-01-10T09:00:00Z'),
     parentVersionId: null,
     status: 'superseded',
@@ -554,8 +554,8 @@ const versions: DealVersion[] = [
     versionNumber: 2,
     versionLabel: "Borrower's Markup",
     creditLangCode: VERSION_2_CODE,
-    createdBy: 'elizabeth.warren@davispolk.com',
-    authorParty: 'Davis Polk',
+    createdBy: 'diane.foster@example.com',
+    authorParty: 'Merrick Callan',
     createdAt: new Date('2028-01-15T14:30:00Z'),
     parentVersionId: 'version-1',
     status: 'superseded',
@@ -568,8 +568,8 @@ const versions: DealVersion[] = [
     versionNumber: 3,
     versionLabel: "Lender's Counter",
     creditLangCode: VERSION_3_CODE,
-    createdBy: 'wharris@stblaw.com',
-    authorParty: 'Simpson Thacher',
+    createdBy: 'pnolan@example.com',
+    authorParty: 'Whitfield & Barr',
     createdAt: new Date('2028-01-20T10:15:00Z'),
     parentVersionId: 'version-2',
     status: 'draft',
@@ -596,7 +596,7 @@ export const demoDeal: Deal = {
   maturityDate: new Date('2033-03-15'),
   createdAt: new Date('2028-01-08T10:00:00Z'),
   updatedAt: new Date('2028-01-20T10:15:00Z'),
-  createdBy: 'sthompson@fnb.com',
+  createdBy: 'dfrost@example.com',
 };
 
 export const demoVersions = versions;

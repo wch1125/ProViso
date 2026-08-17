@@ -2,6 +2,7 @@
   "name": "proviso",
   "version": "2.6.0",
   "type": "module",
+  "private": true,
   "description": "Domain-Specific Language for Credit Agreements",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -37,7 +38,7 @@
     "parser"
   ],
   "author": "Haslun Studio",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@types/node": "^20.11.0",

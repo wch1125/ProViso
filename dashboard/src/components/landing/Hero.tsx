@@ -44,6 +44,7 @@ interface HeroProps {
  * Hero section with gradient background, grid pattern, and demo cards.
  */
 export function Hero({ onSelectIndustry }: HeroProps) {
+  // /demo lives only in the gated app; on the public site this crosses origins.
   const navigate = useNavigate();
 
   return (

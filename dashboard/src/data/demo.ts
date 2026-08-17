@@ -65,7 +65,7 @@ const industryData: IndustryData = {
     },
     {
       name: "Air Quality Permit",
-      agency: "California Air Resources Board",
+      agency: "State Air Resources Board",
       type: "Air Quality",
       requiredFor: "Construction",
       status: "approved",
@@ -197,10 +197,10 @@ const industryData: IndustryData = {
   ],
   taxEquity: {
     structure: {
-      name: "Sunrise Tax Equity",
+      name: "Silverpeak Tax Equity",
       structureType: "partnership_flip",
       taxInvestor: "Major Bank Tax Equity",
-      sponsor: "Renewable Energy Partners",
+      sponsor: "Evergreen Renewable Partners",
       taxCreditAllocation: { investor: 99, sponsor: 1 },
       cashAllocation: { investor: 30, sponsor: 70 },
       targetReturn: 8.0,
@@ -257,13 +257,13 @@ const industryData: IndustryData = {
   },
 };
 
-// Demo data based on the Sunrise Solar Project example
+// Demo data based on the Silverpeak Solar Project example
 export const demoData: DashboardData = {
   project: {
-    name: "Sunrise Solar Project",
+    name: "Silverpeak Solar Project",
     facility: "$150M Construction + Term",
-    sponsor: "Renewable Energy Partners",
-    borrower: "Sunrise Solar Holdings LLC"
+    sponsor: "Evergreen Renewable Partners",
+    borrower: "Silverpeak Solar Holdings LLC"
   },
   phase: {
     current: "construction",

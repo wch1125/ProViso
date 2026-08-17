@@ -387,7 +387,7 @@ export function WaiverRequestPortal({
                 <Input
                   value={contactName}
                   onChange={(e) => setContactName(e.target.value)}
-                  placeholder="e.g., Jennifer Chen, CFO"
+                  placeholder="e.g., Monica Ellis, CFO"
                 />
               </div>
               <div>
@@ -397,7 +397,7 @@ export function WaiverRequestPortal({
                 <Input
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder="e.g., jchen@company.com"
+                  placeholder="e.g., mellis@example.com"
                 />
               </div>
             </div>

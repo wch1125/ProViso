@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && npm run postbuild",
-    "postbuild": "node -e \"require('fs').copyFileSync('dist/index.html','dist/404.html'); require('fs').writeFileSync('dist/.nojekyll',''); require('fs').writeFileSync('dist/CNAME','proviso.finance');\"",
-    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "build": "npm run typecheck && vite build && node scripts/postbuild.mjs",
+    "preview": "vite preview --outDir dist",
     "lint": "eslint ."
   },
   "dependencies": {

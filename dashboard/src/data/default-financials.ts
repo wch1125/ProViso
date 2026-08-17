@@ -1,6 +1,6 @@
 /**
  * Default financial data for dashboard initialization.
- * Desert Sun Solar Project - with near-breach tension for demo impact.
+ * Coyote Mesa Solar Project - with near-breach tension for demo impact.
  *
  * Tension points:
  * - TotalLeverage at 4.35x vs 4.50x threshold (97%)
@@ -44,10 +44,10 @@ export const DEFAULT_FINANCIALS = {
  * Project metadata (not used by interpreter, but useful for display)
  */
 export const DEFAULT_PROJECT_INFO = {
-  name: 'Desert Sun Solar Project',
+  name: 'Coyote Mesa Solar Project',
   facility: '$280M Construction + Term Loan',
-  sponsor: 'Desert Sun Holdings LLC',
-  borrower: 'Desert Sun Project Co LLC',
+  sponsor: 'Coyote Mesa Holdings LLC',
+  borrower: 'Coyote Mesa Project Co LLC',
 };
 
 /**

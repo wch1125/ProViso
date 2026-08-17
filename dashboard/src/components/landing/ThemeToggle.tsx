@@ -1,5 +1,8 @@
 import { Moon, Sun } from 'lucide-react';
-import { useThemeMode } from '../../context';
+// Direct module import, not the ../../context barrel: this component renders
+// on the public site, and the barrel would pull every provider — and the demo
+// deal data behind them — into a bundle served without authentication.
+import { useThemeMode } from '../../context/ThemeModeContext';
 
 interface ThemeToggleProps {
   /** Extra classes for the host layout. */
